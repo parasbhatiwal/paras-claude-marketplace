@@ -1,0 +1,59 @@
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    env:
+      DIFF_COVERAGE_THRESHOLD: "90"
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Tests + coverage
+        run: npm run test:coverage
+      - name: Diff coverage gate (changed lines must be covered)
+        if: github.event_name == 'pull_request'
+        run: |
+          pip install diff-cover
+          if [ -f coverage/cobertura-coverage.xml ]; then
+            COV=coverage/cobertura-coverage.xml
+          elif [ -f coverage/coverage-final.json ]; then
+            echo "::warning::cobertura report not found; configure vitest coverage.reporter to include 'cobertura'"
+            exit 1
+          else
+            echo "::error::no coverage report found"; exit 1
+          fi
+          diff-cover "$COV" --compare-branch origin/${{ github.base_ref }} \
+            --fail-under "$DIFF_COVERAGE_THRESHOLD"
+      - name: Coverage ratchet (total coverage must not drop vs base)
+        if: github.event_name == 'pull_request'
+        run: |
+          get_pct() { node -e "
+            const s=require('./coverage/coverage-summary.json').total.lines.pct;
+            console.log(s);"; }
+          PR_PCT=$(get_pct)
+          git stash -u --quiet || true
+          git checkout --quiet origin/${{ github.base_ref }}
+          npm ci --silent
+          if npm run --silent test:coverage; then BASE_PCT=$(get_pct); else BASE_PCT=0; fi
+          echo "base=$BASE_PCT pr=$PR_PCT"
+          node -e "process.exit(Number($PR_PCT) + 0.01 >= Number($BASE_PCT) ? 0 : 1)" \
+            || { echo "::error::total coverage dropped: base $BASE_PCT% → PR $PR_PCT%"; exit 1; }
+      - name: Secret scan (full history of PR)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

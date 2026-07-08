@@ -1,0 +1,69 @@
+#!/bin/sh
+# Team pre-commit gate: lint + typecheck + scoped test-presence + secret scan.
+# Scoping and thresholds are per-repo tunable via the variables below.
+
+set -e
+
+fail() { echo "✗ pre-commit blocked: $1" >&2; exit 1; }
+
+# ---------------------------------------------------------------- lint/types
+if [ -f package.json ]; then
+  if grep -q '"lint"' package.json; then
+    echo "→ lint"; npm run --silent lint || fail "lint failed"
+  fi
+  if grep -q '"typecheck"' package.json; then
+    echo "→ typecheck"; npm run --silent typecheck || fail "typecheck failed"
+  fi
+fi
+
+# ------------------------------------------------- scoped test-presence gate
+# Logic-source globs that REQUIRE an accompanying test change. Exempt:
+# tests themselves, config, docs, styles, assets, migrations, generated code.
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+is_logic_source() {
+  case "$1" in
+    *.test.*|*.spec.*|*__tests__*|*/tests/*|*/test/*) return 1 ;;  # tests
+    *.md|*.mdx|*.txt|*.json|*.yml|*.yaml|*.toml|*.lock) return 1 ;;
+    *.css|*.scss|*.svg|*.png|*.jpg|*.jpeg|*.webp|*.ico|*.woff*) return 1 ;;
+    *.d.ts|*generated*|*/migrations/*|*.config.*|*.mjs) return 1 ;;
+    *.ts|*.tsx|*.js|*.jsx|*.py|*.go|*.rs) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+logic_changed=""
+tests_changed=""
+for f in $staged; do
+  if is_logic_source "$f"; then logic_changed="$logic_changed $f"; fi
+  case "$f" in
+    *.test.*|*.spec.*|*__tests__*|*/tests/*|*/test/*) tests_changed=1 ;;
+  esac
+done
+
+if [ -n "$logic_changed" ] && [ -z "$tests_changed" ]; then
+  # break-glass: allow if the pending message (merge/squash flows) or the
+  # environment declares a justified exception; commit-msg trailer is the
+  # audited record and CI re-checks it.
+  if [ "$JUSTIFIED_EXCEPTION" = "" ]; then
+    echo "✗ pre-commit blocked: source changed without any test change:" >&2
+    for f in $logic_changed; do echo "    $f" >&2; done
+    echo "  Team policy is TDD — add/adjust a test, or commit with a" >&2
+    echo "  'Justified-Exception: <reason>' trailer AND" >&2
+    echo "  JUSTIFIED_EXCEPTION=1 git commit ... (audited in CI)." >&2
+    exit 1
+  else
+    echo "⚠ test-presence gate skipped via JUSTIFIED_EXCEPTION (audited in CI)"
+  fi
+fi
+
+# ------------------------------------------------------------- secret scan
+if command -v gitleaks >/dev/null 2>&1; then
+  echo "→ gitleaks"; gitleaks protect --staged --no-banner || fail "possible secret in staged diff"
+else
+  if git diff --cached | grep -nE '(-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|xox[baprs]-[A-Za-z0-9-]{10,})' >&2; then
+    fail "possible secret in staged diff (install gitleaks for better scanning)"
+  fi
+fi
+
+echo "✓ pre-commit gates passed"

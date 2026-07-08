@@ -1,8 +1,8 @@
 {
   "name": "team-skills",
-  "version": "0.1.0",
-  "description": "Shared skills applied across all our projects",
+  "version": "0.2.0",
+  "description": "Team Claude workflow: TDD-gated feature/bug orchestrators, atomic skills, and git guardrails",
   "author": {
-    "name": "Your Org"
+    "name": "parasbhatiwal"
   }
 }

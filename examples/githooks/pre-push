@@ -1,0 +1,18 @@
+#!/bin/sh
+# Team pre-push gate: the full test suite must pass before anything is pushed.
+
+set -e
+
+if [ -f package.json ] && grep -q '"test"' package.json; then
+  echo "→ full test suite"
+  npm run --silent test || { echo "✗ push blocked: test suite is RED" >&2; exit 1; }
+elif [ -f pyproject.toml ] || [ -f pytest.ini ]; then
+  echo "→ pytest"
+  pytest || { echo "✗ push blocked: test suite is RED" >&2; exit 1; }
+else
+  echo "✗ push blocked: no test runner found. Team policy requires tests" >&2
+  echo "  in every project — see testing/bootstrap.md in the team marketplace." >&2
+  exit 1
+fi
+
+echo "✓ pre-push gate passed"
