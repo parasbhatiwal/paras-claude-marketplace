@@ -69,3 +69,11 @@ See [`examples/ONBOARDING.md`](examples/ONBOARDING.md). Short version:
 
 - Protect `main`: require PR, `validate` check, CODEOWNERS review.
 - Keep `stable` fast-forward-only from `main`.
+
+> **Known limitation (as of Jul 2026):** branch protection and CODEOWNERS
+> enforcement are NOT available on private repos under the GitHub Free plan
+> (API returns 403). Options: (a) upgrade to GitHub Pro/Team, (b) make this
+> repo public — skills/hooks contain no secrets, or (c) accept
+> convention-only protection here for now. The `validate` CI still runs on
+> every PR either way; what's missing is the server-side block on direct
+> pushes to `main`.
