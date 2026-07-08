@@ -45,6 +45,10 @@ plus format helpers `conventional-commits`, `pr-description`.
   user approval.
 - **Human accountability** — PRs need human review + a filled
   Human-verification section.
+- **Merge policy** — self-merge is allowed only for the owner account
+  (`parasbhatiwal`) on their own PRs; everyone else's PR must be merged by a
+  different person. Enforced in-session by the guard hook on `gh pr merge`
+  (allowlist override: `TEAM_SELF_MERGE_ALLOWLIST`).
 
 ## Adding or changing a skill
 

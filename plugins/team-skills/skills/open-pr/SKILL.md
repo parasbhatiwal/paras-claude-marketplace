@@ -52,3 +52,13 @@ them.
 ## After creating
 
 Report the PR URL. Do not merge, approve, or add labels unless the user asks.
+
+## Merge policy (when asked to merge)
+
+- Self-merge is allowed ONLY for the owner account (`parasbhatiwal`) merging
+  their own PR.
+- Any other author's PR must be reviewed and merged by a DIFFERENT person —
+  never by its author. If the user asking is the PR author and not the owner,
+  decline and point them to a teammate.
+- The session guard hook enforces this on `gh pr merge`; do not work around
+  a block.

@@ -9,12 +9,23 @@
  *  - any git commit/push with --no-verify / -n
  *  - force push (--force / -f / --force-with-lease) to main/master
  *  - history rewrites targeting main/master (rebase/reset --hard on main)
+ *  - self-merging a PR (`gh pr merge`) unless the merger is an allowlisted
+ *    owner account merging their OWN PR. Team rule: only the owner may
+ *    self-merge; everyone else's PR must be merged by someone else.
  *
  * Exit codes per Claude Code hook contract:
  *   0 = allow, 2 = block (stderr shown to Claude).
  */
 
 import { readFileSync } from "node:fs";
+import { execSync } from "node:child_process";
+
+// Accounts allowed to merge their own PRs. Override for testing or when the
+// owner account changes: TEAM_SELF_MERGE_ALLOWLIST="alice,bob"
+const SELF_MERGE_ALLOWLIST = (process.env.TEAM_SELF_MERGE_ALLOWLIST ?? "parasbhatiwal")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
 
 let input = "";
 try {
@@ -31,12 +42,42 @@ try {
   process.exit(0); // unparseable payload — do not block unrelated tooling
 }
 
-if (!/\bgit\b/.test(command)) process.exit(0);
-
 const block = (msg) => {
   process.stderr.write(`[team-skills guard] BLOCKED: ${msg}\n`);
   process.exit(2);
 };
+
+// --- PR merge policy (gh pr merge) ---------------------------------------
+// Self-merge is allowed only for allowlisted owner accounts merging their
+// own PR. Anyone else's PR must be merged by a different person.
+const mergeMatch = command.match(/\bgh\s+pr\s+merge\b(?:\s+(\d+|\S*#\d+|https?:\/\/\S+))?/);
+if (mergeMatch) {
+  const gh = (args) => {
+    try {
+      return execSync(`gh ${args}`, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
+    } catch {
+      return null;
+    }
+  };
+  const merger = gh("api user --jq .login");
+  const prRef = mergeMatch[1] ? ` ${mergeMatch[1]}` : "";
+  const author = gh(`pr view${prRef} --json author --jq .author.login`);
+  if (!merger || !author) {
+    block(
+      "cannot verify PR author/merger identity (gh unavailable?). " +
+        "Self-merge policy requires verification — retry when gh works."
+    );
+  }
+  if (merger === author && !SELF_MERGE_ALLOWLIST.includes(merger)) {
+    block(
+      `self-merge not allowed: @${merger} authored this PR. ` +
+        "Team rule: only the owner account may self-merge; ask a teammate to review and merge."
+    );
+  }
+  process.exit(0);
+}
+
+if (!/\bgit\b/.test(command)) process.exit(0);
 
 // --- universal: never bypass verification -------------------------------
 // -n is --no-verify for commit/push; match it only next to those subcommands

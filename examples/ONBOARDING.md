@@ -61,6 +61,8 @@ settings. For an older repo, copy from the marketplace `examples/` directory:
   labeled approval.
 - **Humans stay accountable**: PRs require a human review (no self-approval)
   and the Human-verification section filled in by YOU, not Claude.
+- **Merging**: you don't merge your own PRs — a teammate does. (Exception:
+  the owner account `parasbhatiwal` may self-merge their own PRs.)
 
 ## Troubleshooting
 
