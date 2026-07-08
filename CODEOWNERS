@@ -1,0 +1,6 @@
+# Skills and hooks run on every developer's machine — changes require review.
+* @parasbhatiwal
+/plugins/*/hooks/ @parasbhatiwal
+/plugins/*/skills/ @parasbhatiwal
+/.github/ @parasbhatiwal
+/scripts/ @parasbhatiwal

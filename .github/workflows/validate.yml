@@ -1,0 +1,23 @@
+name: validate
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Validate marketplace, plugins, skills, hooks
+        run: node scripts/validate-skills.mjs
+      - name: Syntax-check hook scripts
+        run: |
+          for f in plugins/*/hooks/*.mjs; do
+            [ -e "$f" ] || continue
+            node --check "$f"
+          done

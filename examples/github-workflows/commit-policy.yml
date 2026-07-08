@@ -1,0 +1,47 @@
+name: commit-policy
+
+on:
+  pull_request:
+
+jobs:
+  trailers:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Every commit carries both Co-Authored-By trailers
+        run: |
+          set -e
+          fail=0
+          for sha in $(git rev-list origin/${{ github.base_ref }}..HEAD --no-merges); do
+            body=$(git log -1 --format=%B "$sha")
+            subject=$(git log -1 --format=%s "$sha")
+            case "$subject" in fixup!*|squash!*) continue ;; esac
+            echo "$body" | grep -qi '^Co-Authored-By:.*Claude' \
+              || { echo "::error::commit $sha missing Claude co-author trailer: $subject"; fail=1; }
+            echo "$body" | grep -i '^Co-Authored-By:' | grep -qvi 'Claude' \
+              || { echo "::error::commit $sha missing human co-author trailer: $subject"; fail=1; }
+          done
+          exit $fail
+
+      - name: Surface Justified-Exception commits (break-glass audit)
+        run: |
+          found=0
+          for sha in $(git rev-list origin/${{ github.base_ref }}..HEAD --no-merges); do
+            reason=$(git log -1 --format=%B "$sha" | grep -i '^Justified-Exception:' || true)
+            if [ -n "$reason" ]; then
+              found=1
+              echo "::warning::break-glass commit $sha — $reason (PR requires a 'break-glass' labeled approval)"
+            fi
+          done
+          if [ "$found" = 1 ]; then
+            echo "HAS_BREAK_GLASS=1" >> "$GITHUB_ENV"
+          fi
+
+      - name: Break-glass commits require the 'break-glass' PR label
+        if: env.HAS_BREAK_GLASS == '1'
+        run: |
+          labels='${{ toJson(github.event.pull_request.labels.*.name) }}'
+          echo "$labels" | grep -q 'break-glass' \
+            || { echo "::error::PR contains Justified-Exception commits but lacks the 'break-glass' label (a reviewer must add it after approving the exception)"; exit 1; }

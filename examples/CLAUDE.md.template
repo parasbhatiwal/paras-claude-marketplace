@@ -1,0 +1,33 @@
+# <Project name>
+
+<One paragraph: what this project is, who uses it, what "done" means here.>
+
+## Team workflow (mandatory)
+
+This repo uses the team's Claude workflow (team-skills plugin):
+
+- **Features**: run the `feature-ticket` skill — brainstorm → TDD → review →
+  gated commit → push → PR.
+- **Bugs**: run the `bug-ticket` skill — failing repro test first, then fix.
+- **TDD is required.** No production code without a failing test first.
+  Commits without tests are blocked by hooks and CI (break-glass:
+  `Justified-Exception:` trailer + reviewer approval).
+- **Every commit** needs both `Co-Authored-By:` trailers (human + Claude) —
+  the `commit-changes` skill drafts these.
+- Git writes (commit / push / PR) always require explicit user approval.
+
+## Commands
+
+- `npm run dev` — <dev server>
+- `npm test` / `npm run test:coverage` — test suite / with coverage
+- `npm run lint` / `npm run typecheck` — static checks
+
+## Architecture notes
+
+<Key directories, data flow, external services, gotchas — what a new
+contributor (human or AI) needs that the code doesn't say by itself.>
+
+## Conventions
+
+<Anything project-specific beyond team defaults: naming, state management,
+styling approach, error-handling patterns.>

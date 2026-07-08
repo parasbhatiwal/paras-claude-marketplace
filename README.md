@@ -1,36 +1,71 @@
-# Claude Marketplace
+# Paras Claude Marketplace
 
-Central marketplace for Claude Code skills shared across all our projects.
-Author skills **here once**; every project that enables this marketplace picks
-up updates automatically (plugins update from this git repo).
+Central marketplace for the team's Claude Code workflow. Skills, hooks, and
+project templates are authored **here once**; every project and developer that
+enables this marketplace picks up updates automatically.
 
-## Layout
+## What's inside
 
 ```
-.claude-plugin/marketplace.json      # index of plugins in this repo
+.claude-plugin/marketplace.json     # marketplace index
 plugins/team-skills/
-  .claude-plugin/plugin.json         # plugin manifest
-  skills/<name>/SKILL.md             # one folder per skill
-examples/project-settings.json       # snippet to bake into each project
+  .claude-plugin/plugin.json
+  skills/                           # the team workflow (see below)
+  hooks/                            # Claude-session git guard
+scripts/validate-skills.mjs         # repo validator (runs in CI)
+.github/workflows/validate.yml      # blocks bad skills/manifests from shipping
+examples/                           # per-project templates (hooks, CI, settings)
+CODEOWNERS
 ```
 
-## Adding a skill
+## The workflow
 
-1. Create `plugins/team-skills/skills/<your-skill>/SKILL.md`.
-2. Give it YAML frontmatter with `name` and a trigger-focused `description`.
-3. Commit and push. Enabled projects get it on their next session.
+Two orchestrators drive everything; each stage is its own atomic skill:
 
-## Enabling it in a project (no per-machine setup)
+- **`feature-ticket`**: brainstorm → TDD implement (per chunk) → review →
+  gated commit → push → PR
+- **`bug-ticket`**: diagnose (failing repro test) → TDD fix → review →
+  gated commit → push → PR
 
-Copy the contents of `examples/project-settings.json` into the project's
-`.claude/settings.json` (merge if the file already exists). Commit it. Any repo
-carrying this file auto-registers the marketplace and enables the plugin — no
-`/plugin` command and nothing added to each developer's `~/.claude`.
+Atomic skills (usable standalone): `brainstorm`, `implement`, `run-tests`,
+`review-changes`, `commit-changes`, `push-branch`, `open-pr`, `diagnose`,
+plus format helpers `conventional-commits`, `pr-description`.
 
-Bake it into your starter/template repo so every new project inherits it.
+### Enforced team policy
 
-## Note on private repos
+- **TDD** — no production code without a failing test first; blocked at
+  pre-commit and by CI diff-coverage (≥90% changed lines) + coverage ratchet.
+- **Attribution** — every commit carries BOTH `Co-Authored-By:` trailers
+  (human + Claude); enforced by the Claude session hook, the committed
+  `commit-msg` git hook, and the `commit-policy` CI check.
+- **Green to ship** — full suite passes before commit and push.
+- **No `--no-verify`** — break-glass is a `Justified-Exception:` trailer,
+  audited in CI, requiring a `break-glass`-labeled PR approval.
+- **Ask-first git writes** — commit, push, and PR always require explicit
+  user approval.
+- **Human accountability** — PRs need human review + a filled
+  Human-verification section.
 
-If this repo is private, each developer's machine needs normal git auth to it
-(their existing GitHub SSH key or token — nothing Claude-specific). A public
-repo removes even that.
+## Adding or changing a skill
+
+1. Branch, edit `plugins/team-skills/skills/<name>/SKILL.md`.
+2. `node scripts/validate-skills.mjs` locally.
+3. Open a PR — `validate.yml` must be green, CODEOWNERS review required.
+4. Merge to `main`, then fast-forward `stable`:
+   `git checkout stable && git merge --ff-only main && git push`.
+
+Projects should pin to **`stable`** so a bad merge to `main` never reaches the
+team instantly.
+
+## Onboarding a developer / a project
+
+See [`examples/ONBOARDING.md`](examples/ONBOARDING.md). Short version:
+- Dev: one JSON block in `~/.claude/settings.json`, once, covers all projects.
+- Repo: copy `examples/` templates (githooks, workflows, settings, gitleaks),
+  run `setup-git-hooks.sh`, enable branch protection (require `ci` +
+  `commit-policy` + 1 review), enable Dependabot.
+
+## Repo protection (maintainers, one-time)
+
+- Protect `main`: require PR, `validate` check, CODEOWNERS review.
+- Keep `stable` fast-forward-only from `main`.

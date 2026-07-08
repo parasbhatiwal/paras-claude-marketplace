@@ -1,0 +1,18 @@
+# Team gitleaks config — extends the excellent default ruleset.
+# https://github.com/gitleaks/gitleaks#configuration
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Team allowlist"
+paths = [
+  '''\.test\.''',
+  '''\.spec\.''',
+  '''fixtures/''',
+  '''\.md$''',
+]
+regexes = [
+  '''noreply@anthropic\.com''',
+  '''EXAMPLE_[A-Z_]+''',
+]
