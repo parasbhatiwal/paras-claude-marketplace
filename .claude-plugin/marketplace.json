@@ -1,0 +1,13 @@
+{
+  "name": "parasbhatiwal",
+  "owner": {
+    "name": "Your Org"
+  },
+  "plugins": [
+    {
+      "name": "team-skills",
+      "source": "./plugins/team-skills",
+      "description": "Shared skills applied across all our projects"
+    }
+  ]
+}

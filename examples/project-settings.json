@@ -1,0 +1,13 @@
+{
+  "extraKnownMarketplaces": {
+    "parasbhatiwal": {
+      "source": {
+        "source": "github",
+        "repo": "parasbhatiwal/paras-claude-marketplace"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "team-skills@parasbhatiwal": true
+  }
+}
