@@ -28,9 +28,17 @@ for task in format-check lint typecheck; do
 done
 
 # ------------------------------------------------------------- secret scan
+# gitleaks only auto-loads `.gitleaks.toml`; a plain `gitleaks.toml` is
+# silently ignored and the defaults are used instead. Pass --config explicitly
+# so either filename works and the repo's real policy is the one applied.
 if have gitleaks; then
-  echo "→ gitleaks protect --staged"
-  gitleaks protect --staged --no-banner || fail "possible secret in staged diff"
+  gl_config=""
+  for c in .gitleaks.toml gitleaks.toml; do
+    [ -f "$c" ] && gl_config="--config $c" && break
+  done
+  echo "→ gitleaks protect --staged ${gl_config}"
+  # shellcheck disable=SC2086
+  gitleaks protect --staged --no-banner $gl_config || fail "possible secret in staged diff"
 else
   if git diff --cached | grep -nE '(-----BEGIN (RSA|EC|DSA|OPENSSH|PGP) PRIVATE KEY|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|github_pat_[A-Za-z0-9_]{22,}|xox[baprs]-[A-Za-z0-9-]{10,}|sk-[A-Za-z0-9]{32,}|-----BEGIN CERTIFICATE-----)' >&2; then
     fail "possible secret in staged diff (install gitleaks for better scanning)"

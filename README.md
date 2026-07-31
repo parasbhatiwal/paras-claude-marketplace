@@ -397,7 +397,7 @@ The manual copying, once you're ready for gates (step 3–4):
 cp -r examples/githooks            .githooks/     # whole dir — hooks source _lib.sh
 cp    examples/github-workflows/*  .github/workflows/
 cp    examples/pull_request_template.md .github/
-cp    examples/gitleaks.toml       .
+cp    examples/gitleaks.toml       .gitleaks.toml   # the dot matters — see below
 cp    examples/project-settings.json .claude/settings.json
 cp    examples/Makefile.template   Makefile        # polyglot/monorepo, optional
 sh    examples/setup-git-hooks.sh                  # once per clone
@@ -541,16 +541,11 @@ Skip steps 4 and 8 only when nothing under `plugins/` changed (a repo-level
 skill, a script, this README). CI's `check-version-bump` fails the PR whenever
 the bump was actually required.
 
-### Which version bump
-
-| Bump | When | Example |
-|---|---|---|
-| **patch** `0.5.1` | Wording, clearer instructions, a hook fix with no behavior change | Tightening a rule in `security.md` |
-| **minor** `0.6.0` | A new skill or command; a gate that only warns | Adding `threat-model` |
-| **major** `1.0.0` | A skill or command removed/renamed; a gate that now **blocks** what it used to allow | Dropping a skill; making `.mjs` non-exempt from the TDD gate |
-
-Pre-1.0, breaking changes go in the **minor** — the same rule the `release`
-skill applies.
+**`.claude/skills/ship-change/SKILL.md` is canonical** for the details this
+summary deliberately omits — how to size the version bump, what to do about a
+bad release, and the gotchas (`git mv` staging renames early; CI being the only
+place Node 20 runs). Ask Claude to *"ship this"* and it follows that file; it is
+not repeated here so the two cannot drift apart.
 
 ### What CI checks
 
@@ -563,12 +558,7 @@ fails the PR if `skills/` or `hooks/` changed without a version bump.
 CI is the **only** place Node 20 is exercised — local Node is newer, so
 version-specific breakage surfaces there and nowhere else.
 
-### Rolling back
-
-`stable` is fast-forward-only, so **roll forward, never rewind**: revert on a
-branch, bump the version *again*, merge, fast-forward. Force-pushing `stable`
-backwards leaves everyone on the bad version with no version change to correct
-them.
+Released versions and what changed in each: [`CHANGELOG.md`](CHANGELOG.md).
 
 ### Repo protection (maintainers, one-time)
 

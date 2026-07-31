@@ -85,7 +85,8 @@ settings. For an older repo, copy from the marketplace `examples/` directory:
 `githooks/ → .githooks/` (including `_lib.sh` — the others source it),
 `github-workflows/ → .github/workflows/`,
 `pull_request_template.md → .github/`,
-`project-settings.json → .claude/settings.json`, `gitleaks.toml`, and
+`project-settings.json → .claude/settings.json`, `gitleaks.toml → .gitleaks.toml`
+(the leading dot matters — gitleaks silently ignores any other name), and
 `Makefile.template → Makefile` if the repo is polyglot or a monorepo.
 
 The hooks work in **any** language: they resolve `lint`, `typecheck`, `test`
