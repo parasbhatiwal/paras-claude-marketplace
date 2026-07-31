@@ -1,11 +1,8 @@
----
-name: conventional-commits
-description: Use this skill whenever you write a git commit message or are asked to commit changes. Enforces our team's Conventional Commits format so history stays consistent and machine-readable across every project.
----
-
 # Conventional Commits
 
-Write every commit message in our team's Conventional Commits format.
+Write every commit message in our team's Conventional Commits format. Used by
+`commit-changes` (message drafting), `open-pr` (PR titles), and `release`
+(version derivation and changelog).
 
 ## Format
 

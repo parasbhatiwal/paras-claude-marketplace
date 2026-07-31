@@ -19,6 +19,10 @@ report.
 
 Create `fix/<slug>` from the up-to-date default branch.
 
+The fix must treat the cause, not the symptom — see the no-patchwork doctrine
+in the `engineering-principles` skill. A defensive check added where an
+invariant belongs is not a fix.
+
 ## Stage 1 — Diagnose
 
 Run the `diagnose` skill. Output: a RED repro test + root-cause statement +

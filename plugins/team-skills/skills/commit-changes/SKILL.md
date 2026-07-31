@@ -11,17 +11,22 @@ CI re-checks everything anyway.
 
 ## Gates (all must pass)
 
-1. **Test runner exists.** Discover it (see `run-tests`). If the project has
-   no test runner → BLOCK. Tell the user the project needs the team testing
-   bootstrap (`testing/bootstrap.md`) before any commit is possible.
+1. **Test runner exists.** Discover it (see the `run-tests` skill). If the
+   project has no test runner → BLOCK. Tell the user the project needs the
+   team testing bootstrap (`../../references/testing-bootstrap.md`, relative
+   to this skill's directory) before any commit is possible.
 2. **Full suite GREEN.** Run it now (via `run-tests`), even if it was green
    earlier. Any failure → BLOCK, show failures.
-3. **Lint + typecheck clean.** Use the project's own scripts (`lint`,
-   `typecheck`, or language equivalent). Failure → BLOCK.
+3. **Lint + typecheck clean.** Run the project's `lint` and `typecheck` tasks
+   — resolved the same way the hooks do (`make`/`just` target, then ecosystem
+   detection; see `../../references/toolchains.md`, relative to this skill's
+   directory). A task the project genuinely does not define is reported and
+   skipped; a defined task that fails → BLOCK.
 4. **Test-presence check (scoped).** Inspect the staged diff:
    - Count only *logic* source files. Exempt: test files themselves, generated
-     files, lockfiles, pure config, migrations, docs, styles/CSS, assets,
-     type-only declaration files.
+     files, lockfiles, migrations, docs, styles/CSS, assets, type-only
+     declaration files, and named config entrypoints (`*.config.ts`,
+     `vitest.config.mjs`, …). A plain `.mjs`/`.cjs` source file is NOT exempt.
    - If logic source changed but NO test file changed → BLOCK, unless a
      break-glass exception applies (below).
 5. **Secret scan.** Run `gitleaks protect --staged` if available; otherwise
@@ -33,14 +38,18 @@ CI re-checks everything anyway.
 
 Applicable ONLY for: hotfixes, generated code, config/docs-only changes,
 dependency bumps. When proposing it:
-- Add a trailer `Justified-Exception: <specific reason>` to the message.
+- Add a trailer `Justified-Exception: <specific reason>` to the message. The
+  trailer IS the mechanism — the `commit-msg` git hook reads it and waives the
+  gate; there is no flag or env var to set, and never `--no-verify`.
+- The reason must be non-empty and specific; an empty trailer does not waive.
 - Tell the user this commit will be annotated in CI and its PR requires a
   `break-glass`-labeled review approval.
 - Break-glass NEVER skips gates 1–3 or 5, and never skips the trailers.
 
 ## Message format
 
-Follow the `conventional-commits` skill for type/scope/subject/body. Then the
+Follow `../../references/conventional-commits.md` (relative to this skill's
+directory) for type/scope/subject/body. Then the
 trailers — BOTH are mandatory on every commit:
 
 ```
