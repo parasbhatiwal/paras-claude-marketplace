@@ -31,6 +31,16 @@ jobs:
           shellcheck -s sh examples/*.sh
       - name: Validate marketplace, plugins, skills, hooks
         run: npm run validate
+      # The shipped gitleaks config is a security control with its own tests;
+      # without the binary they skip silently, which is precisely where a
+      # regression would slip through unnoticed.
+      - name: Install gitleaks (required by the config tests)
+        env:
+          GITLEAKS_VERSION: 8.30.1
+        run: |
+          curl -sSfL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | sudo tar -xz -C /usr/local/bin gitleaks
+          gitleaks version
       - name: Tests
         run: npm test
       - name: Plugin version must move when skills or hooks change
