@@ -1,0 +1,16 @@
+{
+  "name": "paras-claude-marketplace",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Team Claude Code marketplace: skills, git guardrails, and project templates",
+  "scripts": {
+    "test": "node --test \"tests/*.test.mjs\"",
+    "test:coverage": "node --test --experimental-test-coverage \"tests/*.test.mjs\"",
+    "validate": "node scripts/validate-skills.mjs",
+    "lint": "find plugins scripts -name '*.mjs' -exec node --check {} +"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
