@@ -1,0 +1,71 @@
+# Standard task interface for the team's hooks and CI.
+#
+# Copy to your project root as `Makefile` and keep ONLY the block for your
+# stack. Every target must exit non-zero on failure. Targets you genuinely
+# do not need may be `@true` — but never make `test` a no-op.
+#
+# The hooks and CI call: install, format-check, lint, typecheck, test,
+# test-coverage, build, security. Anything not defined here falls back to
+# ecosystem detection (see .githooks/_lib.sh); defining them makes a polyglot
+# or unusual project uniform.
+
+.PHONY: install format format-check lint typecheck test test-coverage build security ci
+
+ci: format-check lint typecheck test-coverage security
+
+# ---------------------------------------------------------------- JS / TS ---
+install:        ; npm ci
+format:         ; npx prettier --write .
+format-check:   ; npx prettier --check .
+lint:           ; npx eslint .
+typecheck:      ; npx tsc --noEmit
+test:           ; npx vitest run
+test-coverage:  ; npx vitest run --coverage
+build:          ; npm run build
+security:       ; npm audit --audit-level=high
+
+# ------------------------------------------------------------------ Python ---
+# install:        ; uv sync --frozen
+# format:         ; ruff format .
+# format-check:   ; ruff format --check .
+# lint:           ; ruff check .
+# typecheck:      ; mypy .
+# test:           ; pytest -q
+# test-coverage:  ; pytest -q --cov --cov-report=xml --cov-report=term
+# build:          ; python -m build
+# security:       ; pip-audit
+
+# ---------------------------------------------------------------------- Go ---
+# install:        ; go mod download && go mod verify
+# format:         ; gofmt -w .
+# format-check:   ; test -z "$$(gofmt -l .)"
+# lint:           ; golangci-lint run
+# typecheck:      ; go build ./...
+# test:           ; go test ./...
+# test-coverage:  ; go test ./... -coverprofile=coverage.out -covermode=atomic && \
+#                   go run github.com/boumenot/gocover-cobertura@latest < coverage.out > coverage.xml
+# build:          ; go build ./...
+# security:       ; govulncheck ./...
+
+# -------------------------------------------------------------------- Rust ---
+# install:        ; cargo fetch --locked
+# format-check:   ; cargo fmt --check
+# lint:           ; cargo clippy --all-targets -- -D warnings
+# typecheck:      ; cargo check --all-targets
+# test:           ; cargo test --all-features
+# test-coverage:  ; cargo llvm-cov --cobertura --output-path coverage.xml
+# build:          ; cargo build --release
+# security:       ; cargo audit
+
+# --------------------------------------------------------------------- JVM ---
+# install:        ; ./gradlew --offline dependencies
+# format-check:   ; ./gradlew spotlessCheck
+# lint:           ; ./gradlew detekt
+# test:           ; ./gradlew test
+# test-coverage:  ; ./gradlew test jacocoTestReport
+# build:          ; ./gradlew assemble
+# security:       ; ./gradlew dependencyCheckAnalyze
+
+# ---------------------------------------------------------------- Monorepo ---
+# Fan out to each package so hooks and CI keep one entry point:
+# test:           ; $(MAKE) -C services/api test && $(MAKE) -C apps/web test
