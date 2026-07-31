@@ -41,7 +41,10 @@ jobs:
 
       - name: Break-glass commits require the 'break-glass' PR label
         if: env.HAS_BREAK_GLASS == '1'
+        # Labels are attacker-influenceable text, so they reach the shell via
+        # the environment rather than being interpolated into the script body.
+        env:
+          LABELS: ${{ toJson(github.event.pull_request.labels.*.name) }}
         run: |
-          labels='${{ toJson(github.event.pull_request.labels.*.name) }}'
-          echo "$labels" | grep -q 'break-glass' \
+          echo "$LABELS" | grep -q 'break-glass' \
             || { echo "::error::PR contains Justified-Exception commits but lacks the 'break-glass' label (a reviewer must add it after approving the exception)"; exit 1; }

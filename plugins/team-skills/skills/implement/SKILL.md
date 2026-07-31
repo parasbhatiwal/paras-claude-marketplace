@@ -13,11 +13,12 @@ team's git hooks and CI, so skipping TDD only creates rework.
 
 1. Identify the single chunk being implemented (from `brainstorm` output or the
    user's request). One chunk per cycle — do not batch.
-2. Discover the project's test setup: look for a `test` script in
-   `package.json`, a vitest/jest/pytest config, or equivalent for the language.
+2. Discover the project's test setup via the `run-tests` skill — it detects
+   the toolchain rather than assuming one.
    **If the project has no test runner, STOP** and tell the user the project
-   needs its testing bootstrap first (see the team's `testing/bootstrap.md`
-   template). Do not write untested code as a workaround.
+   needs its testing bootstrap first — the team template is
+   `../../references/testing-bootstrap.md` (relative to this skill's
+   directory). Do not write untested code as a workaround.
 3. Find existing test files near the code being changed and match their
    conventions (file location, naming, helpers, setup patterns).
 
@@ -44,6 +45,10 @@ important edge cases (empty input, error paths, boundaries).
 
 ## Rules
 
+- The code you write must satisfy the `engineering-principles` skill — the
+  non-negotiables there (boundaries, validation at the edge, per-object
+  authorization, typed errors, no swallowed failures, honest naming) apply to
+  every green step, not just to review.
 - Never write production code without a failing test demanding it.
 - Never weaken, delete, or `skip` an existing test to get to green — if a test
   is genuinely wrong, say so explicitly and fix it deliberately with the user

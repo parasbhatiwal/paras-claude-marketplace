@@ -19,7 +19,10 @@ implementation for non-trivial work.
    reusable implementation already exists.
 3. **Generate 2–4 genuinely distinct options.** For each: a one-line summary,
    how it works, its tradeoffs (complexity, risk, testability, maintenance).
-   Do not pad with straw-man options.
+   Do not pad with straw-man options. Judge every option against the
+   `engineering-principles` skill — which boundary owns this, what the
+   contract and failure modes are, where the trust boundary sits, and whether
+   the option fixes the cause or patches a symptom.
 4. **Recommend one** and say why in plain terms. If the choice materially
    affects the user (API shape, UX, cost), confirm it with them via a question
    rather than assuming.
@@ -44,6 +47,10 @@ This chunk list is the input to the `implement` skill (one chunk per cycle).
 
 ## Rules
 
+- If the chosen approach does not fit the current design, the first chunk is
+  the refactor that makes it fit — never wedge the feature in beside the
+  design (`engineering-principles`, the no-patchwork doctrine).
+- Decisions that are expensive to reverse get an ADR; note that as a chunk.
 - No file edits during brainstorming. This skill is read-only.
 - Keep the whole output scannable — reviewers and teammates read this later
   in the PR description.

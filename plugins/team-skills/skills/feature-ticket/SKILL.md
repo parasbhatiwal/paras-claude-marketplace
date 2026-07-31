@@ -20,11 +20,21 @@ and the task maps to one, note the issue number now — `open-pr` will link it
 Create `feat/<slug>` from the up-to-date default branch (slug from the ticket,
 kebab-case, short). All work happens on this branch.
 
+If the repo has no `CLAUDE.md` (or the session's context check flagged it as
+stale), run `project-context` first — every later stage is better with it.
+The standards for every stage below come from `engineering-principles`.
+
 ## Stage 1 — Brainstorm
 
 Run the `brainstorm` skill. Output: chosen approach + ordered chunk list.
 **Gate:** if the approach materially affects the user (API shape, UX, cost),
 get their confirmation before any code.
+
+If the feature touches auth, payments, PII, file handling, multi-tenancy, a
+public API, or a new integration, run the `threat-model` skill here — its
+mitigations become chunks with their own failing tests. If the approach
+settles a decision that is expensive to reverse, record it with the `adr`
+skill before implementing.
 
 ## Stage 2 — Implement (loop per chunk)
 

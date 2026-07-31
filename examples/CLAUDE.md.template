@@ -1,14 +1,25 @@
 # <Project name>
 
+> Prefer generating this file with the `project-context` skill (`/context`) —
+> it scans the repo, fills the sections below from what is actually there, and
+> stamps the freshness fingerprint the SessionStart hook checks. Use this
+> template only when writing one by hand.
+
+<!-- claude-context:begin -->
+<!-- claude-context: sha=<HEAD sha> generated=<YYYY-MM-DD> -->
+
 <One paragraph: what this project is, who uses it, what "done" means here.>
 
 ## Team workflow (mandatory)
 
 This repo uses the team's Claude workflow (team-skills plugin):
 
-- **Features**: run the `feature-ticket` skill — brainstorm → TDD → review →
-  gated commit → push → PR.
-- **Bugs**: run the `bug-ticket` skill — failing repro test first, then fix.
+- **Standards**: the `engineering-principles` skill governs all code here —
+  boundaries, SOLID/DRY, OWASP, typed errors, operability. Fix causes, not
+  symptoms; no patchwork.
+- **Features**: `/feature <ticket>` — brainstorm → TDD → review → gated commit
+  → push → PR.
+- **Bugs**: `/bug <report>` — failing repro test first, then fix.
 - **TDD is required.** No production code without a failing test first.
   Commits without tests are blocked by hooks and CI (break-glass:
   `Justified-Exception:` trailer + reviewer approval).
@@ -18,16 +29,40 @@ This repo uses the team's Claude workflow (team-skills plugin):
 
 ## Commands
 
-- `npm run dev` — <dev server>
-- `npm test` / `npm run test:coverage` — test suite / with coverage
-- `npm run lint` / `npm run typecheck` — static checks
+| Task | Command | Notes |
+|---|---|---|
+| Dev server | `npm run dev` | |
+| Tests | `npm test` | <how long it takes> |
+| Single test | `npm test -- <pattern>` | |
+| Coverage | `npm run test:coverage` | |
+| Lint / types | `npm run lint` / `npm run typecheck` | |
 
-## Architecture notes
+<Every command here must have been run and verified.>
 
-<Key directories, data flow, external services, gotchas — what a new
-contributor (human or AI) needs that the code doesn't say by itself.>
+## Architecture
+
+<Bounded contexts/modules, dependency direction, which boundaries are lint
+enforced, where things live and why. Link `docs/adr/` for the reasoning.>
+
+## Domain vocabulary
+
+<The 5–15 terms that mean something specific HERE.>
 
 ## Conventions
 
-<Anything project-specific beyond team defaults: naming, state management,
-styling approach, error-handling patterns.>
+<What a change should look like: patterns to follow, patterns being retired.>
+
+## Gotchas
+
+<The traps that waste an afternoon, each with its reason.>
+
+## Environment
+
+<Required env var NAMES (never values), local setup, what must be running for
+the integration tests.>
+<!-- claude-context:end -->
+
+## Team notes
+
+<Anything you add by hand. `project-context` never rewrites content outside
+the markers above.>

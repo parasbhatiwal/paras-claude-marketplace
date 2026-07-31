@@ -10,14 +10,29 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - name: Validate marketplace, plugins, skills, hooks
-        run: node scripts/validate-skills.mjs
-      - name: Syntax-check hook scripts
+      - name: Syntax-check hook and script sources
+        run: npm run lint
+      - name: Syntax-check the shell templates
         run: |
-          for f in plugins/*/hooks/*.mjs; do
-            [ -e "$f" ] || continue
-            node --check "$f"
+          for f in examples/githooks/* examples/*.sh; do
+            [ -f "$f" ] && sh -n "$f"
           done
+      - name: Lint the shell templates
+        # -x follows the sourced _lib.sh; run from the hooks directory so the
+        # `# shellcheck source=_lib.sh` directives resolve.
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+          (cd examples/githooks && shellcheck -s sh -x _lib.sh commit-msg pre-commit pre-push)
+          shellcheck -s sh examples/*.sh
+      - name: Validate marketplace, plugins, skills, hooks
+        run: npm run validate
+      - name: Tests
+        run: npm test
+      - name: Plugin version must move when skills or hooks change
+        if: github.event_name == 'pull_request'
+        run: node scripts/check-version-bump.mjs "origin/${{ github.base_ref }}"

@@ -1,5 +1,12 @@
 name: ci
 
+# Language-agnostic CI. Toolchains are set up conditionally from the manifests
+# actually present, and every check runs through the standard task interface
+# defined in .githooks/_lib.sh — the same resolution the git hooks use, so a
+# check can never pass locally and mean something different here.
+#
+# Projects that need a different coverage path set COVERAGE_XML below.
+
 on:
   pull_request:
   push:
@@ -10,49 +17,143 @@ jobs:
     runs-on: ubuntu-latest
     env:
       DIFF_COVERAGE_THRESHOLD: "90"
+      COVERAGE_XML: "" # auto-discovered when empty
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+
+      # ---------------------------------------------------------- toolchains
       - uses: actions/setup-node@v4
+        if: hashFiles('package.json') != ''
         with:
           node-version: 20
           cache: npm
-      - run: npm ci
-      - name: Lint
-        run: npm run lint
-      - name: Typecheck
-        run: npm run typecheck
+      - uses: actions/setup-python@v5
+        if: hashFiles('pyproject.toml', 'requirements.txt', 'setup.cfg') != ''
+        with:
+          python-version: "3.12"
+      - uses: actions/setup-go@v5
+        if: hashFiles('go.mod') != ''
+        with:
+          go-version: stable
+      - uses: dtolnay/rust-toolchain@stable
+        if: hashFiles('Cargo.toml') != ''
+        with:
+          components: clippy, rustfmt
+      - uses: actions/setup-java@v4
+        if: hashFiles('pom.xml', 'build.gradle', 'build.gradle.kts') != ''
+        with:
+          distribution: temurin
+          java-version: "21"
+      - uses: ruby/setup-ruby@v1
+        if: hashFiles('Gemfile') != ''
+        with:
+          bundler-cache: true
+
+      # ------------------------------------------------------------- checks
+      - name: Install
+        run: |
+          . ./.githooks/_lib.sh
+          run_task install; s=$?
+          [ $s -eq 127 ] && echo "::notice::no install task; assuming none needed"
+          [ $s -eq 127 ] || exit $s
+
+      - name: Static checks
+        run: |
+          . ./.githooks/_lib.sh
+          for t in format-check lint typecheck; do
+            run_task "$t"; s=$?
+            if [ $s -eq 127 ]; then
+              echo "::warning::$t is not configured for this project"
+            elif [ $s -ne 0 ]; then
+              echo "::error::$t failed"; exit $s
+            fi
+          done
+
       - name: Tests + coverage
-        run: npm run test:coverage
+        run: |
+          . ./.githooks/_lib.sh
+          run_task test-coverage; s=$?
+          if [ $s -eq 127 ]; then
+            echo "::error::no test-coverage task — every project must have tests and a coverage report"
+            exit 1
+          fi
+          exit $s
+
+      - name: Locate coverage report
+        id: cov
+        run: |
+          FILE="$COVERAGE_XML"
+          if [ -z "$FILE" ]; then
+            for c in coverage/cobertura-coverage.xml coverage.xml coverage/coverage.xml \
+                     target/site/cobertura/coverage.xml build/reports/cobertura/coverage.xml; do
+              [ -f "$c" ] && FILE="$c" && break
+            done
+          fi
+          if [ -z "$FILE" ]; then
+            echo "::error::no Cobertura coverage report found — configure your coverage reporter (see the team's testing bootstrap) or set COVERAGE_XML"
+            exit 1
+          fi
+          echo "file=$FILE" >> "$GITHUB_OUTPUT"
+          PCT=$(python3 -c "import sys,xml.etree.ElementTree as E;print(round(float(E.parse(sys.argv[1]).getroot().get('line-rate',0))*100,2))" "$FILE")
+          echo "pct=$PCT" >> "$GITHUB_OUTPUT"
+          echo "total line coverage: $PCT%"
+
       - name: Diff coverage gate (changed lines must be covered)
         if: github.event_name == 'pull_request'
         run: |
-          pip install diff-cover
-          if [ -f coverage/cobertura-coverage.xml ]; then
-            COV=coverage/cobertura-coverage.xml
-          elif [ -f coverage/coverage-final.json ]; then
-            echo "::warning::cobertura report not found; configure vitest coverage.reporter to include 'cobertura'"
-            exit 1
-          else
-            echo "::error::no coverage report found"; exit 1
-          fi
-          diff-cover "$COV" --compare-branch origin/${{ github.base_ref }} \
+          pipx install diff-cover || pip install diff-cover
+          diff-cover "${{ steps.cov.outputs.file }}" \
+            --compare-branch "origin/${{ github.base_ref }}" \
             --fail-under "$DIFF_COVERAGE_THRESHOLD"
-      - name: Coverage ratchet (total coverage must not drop vs base)
+
+      # The base branch's coverage is a property of the base commit, so it is
+      # cached rather than recomputed on every push to the PR.
+      - name: Restore cached base coverage
+        if: github.event_name == 'pull_request'
+        id: base-cov-cache
+        uses: actions/cache@v4
+        with:
+          path: .base-coverage
+          key: base-coverage-${{ github.event.pull_request.base.sha }}
+      - name: Measure base coverage (cache miss only)
+        if: github.event_name == 'pull_request' && steps.base-cov-cache.outputs.cache-hit != 'true'
+        run: |
+          # A separate worktree keeps the PR checkout intact for later steps.
+          git worktree add --quiet /tmp/base "${{ github.event.pull_request.base.sha }}"
+          BASE_PCT=0
+          if (cd /tmp/base && . ./.githooks/_lib.sh && run_task install >/dev/null 2>&1; \
+              cd /tmp/base && . ./.githooks/_lib.sh && run_task test-coverage >/dev/null 2>&1); then
+            for c in coverage/cobertura-coverage.xml coverage.xml coverage/coverage.xml; do
+              if [ -f "/tmp/base/$c" ]; then
+                BASE_PCT=$(python3 -c "import sys,xml.etree.ElementTree as E;print(round(float(E.parse(sys.argv[1]).getroot().get('line-rate',0))*100,2))" "/tmp/base/$c")
+                break
+              fi
+            done
+          fi
+          echo "$BASE_PCT" > .base-coverage
+          git worktree remove --force /tmp/base
+      - name: Coverage ratchet (total coverage must not drop)
         if: github.event_name == 'pull_request'
         run: |
-          get_pct() { node -e "
-            const s=require('./coverage/coverage-summary.json').total.lines.pct;
-            console.log(s);"; }
-          PR_PCT=$(get_pct)
-          git stash -u --quiet || true
-          git checkout --quiet origin/${{ github.base_ref }}
-          npm ci --silent
-          if npm run --silent test:coverage; then BASE_PCT=$(get_pct); else BASE_PCT=0; fi
+          BASE_PCT=$(cat .base-coverage)
+          PR_PCT="${{ steps.cov.outputs.pct }}"
           echo "base=$BASE_PCT pr=$PR_PCT"
-          node -e "process.exit(Number($PR_PCT) + 0.01 >= Number($BASE_PCT) ? 0 : 1)" \
+          python3 -c "import sys;sys.exit(0 if float('$PR_PCT')+0.01>=float('$BASE_PCT') else 1)" \
             || { echo "::error::total coverage dropped: base $BASE_PCT% → PR $PR_PCT%"; exit 1; }
+
+      # ----------------------------------------------------------- security
+      - name: Dependency vulnerabilities
+        run: |
+          . ./.githooks/_lib.sh
+          run_task security; s=$?
+          if [ $s -eq 127 ]; then
+            echo "::warning::no security task configured — add one (see references/toolchains.md)"
+          else
+            exit $s
+          fi
+
       - name: Secret scan (full history of PR)
         uses: gitleaks/gitleaks-action@v2
         env:

@@ -1,12 +1,8 @@
----
-name: pr-description
-description: Use this skill when opening a pull request or writing/updating a PR description. Produces a consistent, reviewer-friendly PR body derived from the actual branch diff so reviewers know what changed, why, and how it was verified.
----
-
 # PR Description
 
 Write pull request descriptions in our team's standard structure so every PR is
-easy to review.
+easy to review. Used by `open-pr`; the same shape ships as the repo's
+`pull_request_template.md` so hand-opened PRs match.
 
 ## How to build it
 

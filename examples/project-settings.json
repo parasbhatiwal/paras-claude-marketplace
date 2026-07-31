@@ -3,7 +3,8 @@
     "parasbhatiwal": {
       "source": {
         "source": "github",
-        "repo": "parasbhatiwal/paras-claude-marketplace"
+        "repo": "parasbhatiwal/paras-claude-marketplace",
+        "ref": "stable"
       }
     }
   },
@@ -11,11 +12,21 @@
     "team-skills@parasbhatiwal": true
   },
   "permissions": {
+    "comment": "Keep the allow list to the tasks THIS project actually uses; delete the rest. The task interface (make/just) keeps this short in any language.",
     "allow": [
+      "Bash(make:*)",
+      "Bash(just:*)",
       "Bash(npm run lint)",
       "Bash(npm run typecheck)",
       "Bash(npm test:*)",
       "Bash(npm run test:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff check:*)",
+      "Bash(mypy:*)",
+      "Bash(go test:*)",
+      "Bash(go build:*)",
+      "Bash(cargo test:*)",
+      "Bash(cargo clippy:*)",
       "Bash(git status)",
       "Bash(git diff:*)",
       "Bash(git log:*)"
@@ -30,7 +41,9 @@
       "Read(./.env.*)",
       "Read(**/secrets/**)",
       "Read(**/*.pem)",
-      "Read(**/id_rsa*)"
+      "Read(**/*.p12)",
+      "Read(**/id_rsa*)",
+      "Read(**/*.keystore)"
     ]
   }
 }

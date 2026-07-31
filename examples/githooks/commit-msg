@@ -1,8 +1,17 @@
 #!/bin/sh
-# Team policy: every commit message must carry BOTH co-author trailers.
-#   Co-Authored-By: <human>            (any non-Claude co-author line)
-#   Co-Authored-By: Claude <...>
-# Merge commits and fixup/squash autosquash commits are exempt.
+# Team commit-msg gate. This hook owns every rule that needs the commit MESSAGE:
+#
+#   1. Both co-author trailers are present:
+#        Co-Authored-By: <human name> <human email>
+#        Co-Authored-By: Claude <noreply@anthropic.com>
+#   2. TDD test-presence: if the staged diff changes logic source, it must also
+#      change a test — unless the message carries a `Justified-Exception:`
+#      trailer, which CI audits and which requires a `break-glass` PR label.
+#
+# Merge commits and fixup/squash autosquash commits are exempt from both.
+
+# shellcheck source=_lib.sh
+. "$(dirname "$0")/_lib.sh"
 
 msg_file="$1"
 
@@ -11,16 +20,45 @@ case "$first_line" in
   Merge\ *|fixup!\ *|squash!\ *) exit 0 ;;
 esac
 
-if ! grep -qi '^Co-Authored-By:.*Claude' "$msg_file"; then
+# ------------------------------------------------------------- co-authorship
+# The Claude trailer is identified by its canonical address, so a human who
+# happens to be named Claude still counts as the human co-author.
+if ! grep -qi '^Co-Authored-By:.*noreply@anthropic\.com' "$msg_file"; then
   echo "✗ commit rejected: missing 'Co-Authored-By: Claude <noreply@anthropic.com>' trailer." >&2
   echo "  Team policy: all work is done with Claude. Use the commit-changes skill." >&2
   exit 1
 fi
 
-if ! grep -i '^Co-Authored-By:' "$msg_file" | grep -qvi 'Claude'; then
+if ! grep -i '^Co-Authored-By:' "$msg_file" | grep -qvi 'noreply@anthropic\.com'; then
   echo "✗ commit rejected: missing human 'Co-Authored-By: <name> <email>' trailer." >&2
   echo "  Add yourself: Co-Authored-By: $(git config user.name) <$(git config user.email)>" >&2
   exit 1
+fi
+
+# ------------------------------------------------- TDD test-presence gate
+# `is_logic_source` / `is_test_file` live in _lib.sh and cover every language
+# the team supports — keep them there so the hooks, CI, and skills agree.
+staged=$(git diff --cached --name-only --diff-filter=ACM)
+
+logic_changed=""
+tests_changed=""
+for f in $staged; do
+  if is_logic_source "$f"; then logic_changed="$logic_changed $f"; fi
+  if is_test_file "$f"; then tests_changed=1; fi
+done
+
+if [ -n "$logic_changed" ] && [ -z "$tests_changed" ]; then
+  if grep -qi '^Justified-Exception:[[:space:]]*[^[:space:]]' "$msg_file"; then
+    echo "⚠ test-presence gate waived by Justified-Exception trailer (audited in CI;" >&2
+    echo "  the PR will require a 'break-glass' labeled approval)." >&2
+  else
+    echo "✗ commit rejected: source changed without any test change:" >&2
+    for f in $logic_changed; do echo "    $f" >&2; done
+    echo "  Team policy is TDD — add or adjust a test, or (hotfix / generated /" >&2
+    echo "  docs-only / dep bump only) add a trailer to this message:" >&2
+    echo "      Justified-Exception: <specific reason>" >&2
+    exit 1
+  fi
 fi
 
 exit 0
