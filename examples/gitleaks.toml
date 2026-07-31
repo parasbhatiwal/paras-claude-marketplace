@@ -1,18 +1,33 @@
-# Team gitleaks config — extends the excellent default ruleset.
+# Team gitleaks config — extends the default ruleset.
 # https://github.com/gitleaks/gitleaks#configuration
+#
+# Copy this to your repo root as `.gitleaks.toml` — WITH the leading dot.
+# gitleaks only auto-loads the dotfile name; a plain `gitleaks.toml` is
+# silently ignored and you get the defaults instead. The team pre-commit hook
+# passes --config explicitly when it finds either name, so the hook works
+# regardless, but CI's gitleaks-action relies on the dotfile.
+#
+# DELIBERATELY NO `paths` ALLOWLIST.
+#
+# Excluding file globs is how a secret scanner ends up scanning nothing that
+# matters. Markdown is where connection strings land while someone documents
+# an architecture (ADRs, CLAUDE.md, runbooks), and test files and fixtures are
+# the single most common home for a real credential "just for the integration
+# test". Both were previously excluded here; both are exactly where secrets
+# hide.
+#
+# If a specific finding is a genuine false positive, allowlist THAT VALUE with
+# a narrow regex below, or mark the line `# gitleaks:allow` — never open up a
+# whole file type.
 
 [extend]
 useDefault = true
 
 [allowlist]
-description = "Team allowlist"
-paths = [
-  '''\.test\.''',
-  '''\.spec\.''',
-  '''fixtures/''',
-  '''\.md$''',
-]
+description = "Team allowlist — specific values only, never paths"
 regexes = [
+  # The Claude co-author trailer required on every commit.
   '''noreply@anthropic\.com''',
+  # Documentation placeholders, e.g. EXAMPLE_API_KEY.
   '''EXAMPLE_[A-Z_]+''',
 ]

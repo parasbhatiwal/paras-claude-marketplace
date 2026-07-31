@@ -94,7 +94,8 @@ until they are green in CI:
    scanning.
 6. **Git hooks** from `examples/githooks/` via `setup-git-hooks.sh`.
 7. **Secret hygiene**: `.gitignore` covering `.env*`, a committed
-   `.env.example`, and `gitleaks.toml`.
+   `.env.example`, and a gitleaks config committed as `.gitleaks.toml` —
+   gitleaks silently ignores any other filename and falls back to defaults.
 8. **Dependency automation**: Dependabot/Renovate + the CVE gate.
 9. **Repo policy**: `CODEOWNERS`, PR template, branch protection requiring the
    CI checks + review, and the `commit-policy` workflow.
