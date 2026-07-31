@@ -10,6 +10,12 @@ if [ ! -d .githooks ]; then
   exit 1
 fi
 
+if [ ! -f .githooks/_lib.sh ]; then
+  echo "✗ .githooks/_lib.sh missing — the hooks source it for language" >&2
+  echo "  detection; copy the whole githooks/ directory, not individual files." >&2
+  exit 1
+fi
+
 chmod +x .githooks/*
 git config core.hooksPath .githooks
 echo "✓ git hooks installed (core.hooksPath → .githooks)"

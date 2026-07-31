@@ -1,18 +1,28 @@
 #!/bin/sh
 # Team pre-push gate: the full test suite must pass before anything is pushed.
+#
+# Language-agnostic: the suite is resolved through the standard task interface
+# (see _lib.sh). A project with no runnable `test` task is BLOCKED — team
+# policy requires tests in every project, in every language.
 
 set -e
 
-if [ -f package.json ] && grep -q '"test"' package.json; then
-  echo "→ full test suite"
-  npm run --silent test || { echo "✗ push blocked: test suite is RED" >&2; exit 1; }
-elif [ -f pyproject.toml ] || [ -f pytest.ini ]; then
-  echo "→ pytest"
-  pytest || { echo "✗ push blocked: test suite is RED" >&2; exit 1; }
-else
-  echo "✗ push blocked: no test runner found. Team policy requires tests" >&2
-  echo "  in every project — see testing/bootstrap.md in the team marketplace." >&2
-  exit 1
-fi
+# shellcheck source=_lib.sh
+. "$(dirname "$0")/_lib.sh"
 
-echo "✓ pre-push gate passed"
+set +e
+run_task test
+status=$?
+set -e
+
+case $status in
+  0) echo "✓ pre-push gate passed" ;;
+  127)
+    echo "✗ push blocked: no test task found for this project." >&2
+    echo "  Define a 'test' target (Makefile/justfile) or your ecosystem's" >&2
+    echo "  conventional test entry point — see the team's testing bootstrap." >&2
+    exit 1 ;;
+  *)
+    echo "✗ push blocked: test suite is RED" >&2
+    exit 1 ;;
+esac
