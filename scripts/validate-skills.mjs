@@ -34,9 +34,67 @@ const MIN_DESCRIPTION = 40;
 const MAX_DESCRIPTION = 1024;
 const SKILL_NAME = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 
+/** Reads every `<dir>/<name>/SKILL.md`, reporting missing ones. */
+function collectSkills(skillsDir, labelPrefix, err) {
+  const skills = [];
+  if (!existsSync(skillsDir)) return skills;
+  for (const entry of readdirSync(skillsDir)) {
+    const dir = join(skillsDir, entry);
+    if (!statSync(dir).isDirectory()) continue;
+    const skillPath = join(dir, "SKILL.md");
+    const sLabel = `${labelPrefix}/${entry}`;
+    if (!existsSync(skillPath)) {
+      err(`${sLabel}: missing SKILL.md`);
+      continue;
+    }
+    skills.push({ entry, dir, sLabel, raw: readFileSync(skillPath, "utf8") });
+  }
+  return skills;
+}
+
+/** Frontmatter, cross-referenced skills, and bundled file references. */
+function validateSkills(skills, known, err, parseFrontmatter) {
+  for (const { entry, dir, sLabel, raw } of skills) {
+    const fm = parseFrontmatter(raw, sLabel);
+    if (!fm.name) err(`${sLabel}: frontmatter missing \`name\``);
+    else if (fm.name !== entry) {
+      err(`${sLabel}: frontmatter name \`${fm.name}\` != directory \`${entry}\``);
+    } else if (!SKILL_NAME.test(fm.name)) {
+      err(`${sLabel}: name \`${fm.name}\` must be lowercase kebab-case`);
+    }
+
+    if (!fm.description) err(`${sLabel}: frontmatter missing \`description\``);
+    else if (fm.description.length < MIN_DESCRIPTION) {
+      err(`${sLabel}: description too short to be a useful trigger (<${MIN_DESCRIPTION} chars)`);
+    } else if (fm.description.length > MAX_DESCRIPTION) {
+      err(`${sLabel}: description too long (>${MAX_DESCRIPTION} chars) — it is loaded eagerly`);
+    }
+
+    const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
+
+    // cross-referenced skills must exist: "`x` skill" / "skill `x`"
+    const refs = new Set();
+    for (const m of body.matchAll(/`\/?([a-z][a-z0-9-]{2,})`\s+skill\b/g)) refs.add(m[1]);
+    for (const m of body.matchAll(/\bskills?\s+`\/?([a-z][a-z0-9-]{2,})`/g)) refs.add(m[1]);
+    for (const ref of refs) {
+      if (ref !== entry && !known.has(ref)) {
+        err(`${sLabel}: references skill \`${ref}\`, which does not exist`);
+      }
+    }
+
+    // explicitly relative file references must resolve
+    for (const m of body.matchAll(/`(\.{1,2}\/[^`\s]+)`/g)) {
+      if (!existsSync(resolve(dir, m[1]))) {
+        err(`${sLabel}: references bundled file \`${m[1]}\`, which does not exist`);
+      }
+    }
+  }
+}
+
 export function validate(root) {
   const errors = [];
   const err = (msg) => errors.push(msg);
+  const allSkills = [];
 
   const readJson = (path, label) => {
     try {
@@ -113,60 +171,10 @@ export function validate(root) {
       }
     }
 
-    // skills — pass 1: collect names so cross-references can be checked
-    const skillsDir = join(pluginDir, "skills");
-    const skills = [];
-    if (existsSync(skillsDir)) {
-      for (const entry of readdirSync(skillsDir)) {
-        const dir = join(skillsDir, entry);
-        if (!statSync(dir).isDirectory()) continue;
-        const skillPath = join(dir, "SKILL.md");
-        const sLabel = `${label}/skills/${entry}`;
-        if (!existsSync(skillPath)) {
-          err(`${sLabel}: missing SKILL.md`);
-          continue;
-        }
-        skills.push({ entry, dir, skillPath, sLabel, raw: readFileSync(skillPath, "utf8") });
-      }
-    }
+    const skills = collectSkills(join(pluginDir, "skills"), `${label}/skills`, err);
+    allSkills.push(...skills);
     const known = new Set([...skills.map((s) => s.entry), ...BUILTIN_SKILLS]);
-
-    // skills — pass 2: validate each
-    for (const { entry, dir, sLabel, raw } of skills) {
-      const fm = parseFrontmatter(raw, sLabel);
-      if (!fm.name) err(`${sLabel}: frontmatter missing \`name\``);
-      else if (fm.name !== entry) {
-        err(`${sLabel}: frontmatter name \`${fm.name}\` != directory \`${entry}\``);
-      } else if (!SKILL_NAME.test(fm.name)) {
-        err(`${sLabel}: name \`${fm.name}\` must be lowercase kebab-case`);
-      }
-
-      if (!fm.description) err(`${sLabel}: frontmatter missing \`description\``);
-      else if (fm.description.length < MIN_DESCRIPTION) {
-        err(`${sLabel}: description too short to be a useful trigger (<${MIN_DESCRIPTION} chars)`);
-      } else if (fm.description.length > MAX_DESCRIPTION) {
-        err(`${sLabel}: description too long (>${MAX_DESCRIPTION} chars) — it is loaded eagerly`);
-      }
-
-      const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
-
-      // cross-referenced skills must exist: "`x` skill" / "skill `x`"
-      const refs = new Set();
-      for (const m of body.matchAll(/`\/?([a-z][a-z0-9-]{2,})`\s+skill\b/g)) refs.add(m[1]);
-      for (const m of body.matchAll(/\bskills?\s+`\/?([a-z][a-z0-9-]{2,})`/g)) refs.add(m[1]);
-      for (const ref of refs) {
-        if (ref !== entry && !known.has(ref)) {
-          err(`${sLabel}: references skill \`${ref}\`, which does not exist`);
-        }
-      }
-
-      // bundled file references (explicitly plugin-relative) must exist
-      for (const m of body.matchAll(/`(\.{1,2}\/[^`\s]+)`/g)) {
-        if (!existsSync(resolve(dir, m[1]))) {
-          err(`${sLabel}: references bundled file \`${m[1]}\`, which does not exist`);
-        }
-      }
-    }
+    validateSkills(skills, known, err, parseFrontmatter);
 
     // commands — thin entry points, but a broken one is invisible until a
     // developer types it, so hold them to the same bar as skills
@@ -199,6 +207,19 @@ export function validate(root) {
         }
       }
     }
+  }
+
+  // --- repo-level skills (.claude/skills) ---------------------------------
+  // Not shipped to anyone, but they run in every session opened on this repo,
+  // so they are held to the same bar as the ones we distribute.
+  const repoSkills = collectSkills(join(root, ".claude", "skills"), ".claude/skills", err);
+  if (repoSkills.length) {
+    const known = new Set([
+      ...repoSkills.map((s) => s.entry),
+      ...allSkills.map((s) => s.entry),
+      ...BUILTIN_SKILLS,
+    ]);
+    validateSkills(repoSkills, known, err, parseFrontmatter);
   }
 
   return errors;
