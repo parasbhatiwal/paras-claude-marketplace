@@ -212,6 +212,43 @@ describe("commands", () => {
   });
 });
 
+describe("repo-level skills (.claude/skills)", () => {
+  const writeRepoSkill = (name, body) => {
+    const dir = join(root, ".claude", "skills", name);
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, "SKILL.md"), body);
+  };
+
+  test("accepts a well-formed repo-level skill", () => {
+    scaffold(root, { skills: { alpha: skill("alpha") } });
+    writeRepoSkill("ship-it", skill("ship-it"));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("holds it to the same frontmatter bar as shipped skills", () => {
+    scaffold(root, { skills: { alpha: skill("alpha") } });
+    writeRepoSkill("ship-it", skill("wrong-name"));
+    assert.match(validate(root).join("\n"), /\.claude\/skills\/ship-it: frontmatter name/);
+  });
+
+  test("can reference a plugin skill", () => {
+    scaffold(root, { skills: { alpha: skill("alpha") } });
+    writeRepoSkill("ship-it", skill("ship-it", "Use the `alpha` skill to verify."));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("rejects a reference to a skill that does not exist", () => {
+    scaffold(root, { skills: { alpha: skill("alpha") } });
+    writeRepoSkill("ship-it", skill("ship-it", "Use the `ghost` skill."));
+    assert.match(validate(root).join("\n"), /references skill `ghost`/);
+  });
+
+  test("is silent when the repo has no .claude/skills directory", () => {
+    scaffold(root, { skills: { alpha: skill("alpha") } });
+    assert.deepEqual(validate(root), []);
+  });
+});
+
 describe("hooks", () => {
   test("rejects a hooks.json pointing at a missing script", () => {
     const pluginDir = scaffold(root, { skills: { alpha: skill("alpha") } });
