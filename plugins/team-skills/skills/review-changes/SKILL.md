@@ -32,6 +32,17 @@ One structured review round on the working diff, before anything is committed.
    - Duplication of a *rule* (not just of characters); abstraction invented
      for a single caller
    - Outbound calls have timeouts; new config validated at startup
+   - **Cost at scale**: does any request handler do work proportional to the
+     number of records, or make more than one call to an external service?
+     Walk the loop with a realistic count out loud ("200 absences × one email
+     each, sequential, 5s timeout"). Work like that belongs in a job, not a
+     handler — the rule is in `operability.md` and is easy to violate while
+     following every other rule.
+   - **Authorization blast radius**: for each new or changed endpoint, name
+     which roles hold the permission and state the widest damage a holder can
+     do. Reusing a permission because the *action* is related is how a
+     narrow-sounding capability ("mark my class register") becomes a broad one
+     ("message every parent in the school").
    - **Patch vs. fix**: is this treating the cause, or making a symptom go
      away? A caller-specific branch or a defensive check where an invariant
      belongs is a finding.
