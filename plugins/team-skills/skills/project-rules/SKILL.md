@@ -133,6 +133,12 @@ Report which rules were verified this way, and which were only configured.
 
 - **Never weaken an existing gate** to make a build pass. Fix the code, or add
   a scoped, dated exception with a reason.
+- **The third occurrence of a bug class becomes a gate.** The first is bad
+  luck, the second is a helper with a comment explaining it, and the third
+  proves that neither the helper nor the comment is being read. Turn it into a
+  lint rule, a grep in CI, or a schema constraint — whatever fails the build.
+  A recurring mistake that keeps being fixed by hand is a missing rule, and
+  every repetition is evidence somebody's memory is load-bearing.
 - Introduce rules to an existing codebase **ratcheted, not big-bang**: enable
   globally, allowlist current violations, forbid additions, shrink over time.
   A rule that fails 400 files on day one gets disabled by day two.

@@ -19,6 +19,17 @@ test, at which level, and what "good" looks like.
 Inverted pyramids (mostly E2E) produce slow, flaky suites that teams learn to
 ignore — which is the same as having no tests.
 
+**When the real consumer does not exist yet** — a backend built before its UI,
+a service before its caller — commit a **runnable scenario script** that walks
+the whole path against a real instance: provision, authenticate, do the day's
+work, read the result back. Not a test; a thing a human runs and watches.
+
+Every serious defect in a young service tends to be found by running it rather
+than by testing it, and the walk gets repeated by hand a dozen times anyway.
+Committing it makes each repetition free, makes the sequence reviewable, and
+gives the eventual UI a specification of what the flow actually is. Without it,
+"nobody has used this yet" quietly becomes "nobody can."
+
 ## What to test
 
 - Behavior visible at the module's boundary: inputs → outputs and side
@@ -47,6 +58,14 @@ ignore — which is the same as having no tests.
   fix it deliberately and say so out loud.
 - No conditional logic in tests (`if`/loops deciding assertions) — split into
   separate cases or a table-driven test.
+- **Never set up state the application itself could not produce.** Bypassing a
+  constraint, casting past a type, or writing a row the domain would reject
+  makes the test prove something about a world that does not exist — and hides
+  the fact that the real path cannot reach that state at all. If the setup is
+  impossible through the application, that is the finding.
+- Never write a test whose only purpose is to reach a line. If a branch is
+  genuinely unreachable, delete it or record the exception; covering it with a
+  type-violating input is coverage theatre and asserts nothing.
 
 ## Test quality
 
@@ -56,6 +75,14 @@ ignore — which is the same as having no tests.
 - Deterministic: fixed clock, seeded randomness, no sleeps (poll with a
   timeout), no shared mutable state, no ordering dependence, isolated data per
   test. A flaky test is treated as a failing test — quarantine costs trust.
+- **Isolate database tests by construction, not by tidying up.** Wrap each test
+  in a transaction that is rolled back, or give it its own schema/database.
+  Cleanup in a teardown hook is the common alternative and it rots: it runs
+  after the assertions, it is usually wrapped in a catch that hides its own
+  failure, and when it silently stops working the symptom is a *later* test
+  failing for reasons that look like a product bug. If a suite shares one
+  database, unique constraints and other global invariants become couplings
+  between tests that nobody declared.
 - Build data with factories/builders that state only what the test cares
   about; sprawling fixture files hide what a test actually depends on.
 - Tests are production code: same review bar, same naming, no duplication of
@@ -66,6 +93,12 @@ ignore — which is the same as having no tests.
 - Diff coverage ≥ 90% on changed lines, plus a total-coverage ratchet, is the
   team gate (CI enforces both). Coverage proves what *ran*, never what was
   *verified* — it is a floor, not a goal.
+- Watch for the ratchet inverting the relationship: once the number is the
+  target, the cheapest way to hit it is a test that exercises a line and
+  asserts nothing worth asserting. A 100% ratchet makes that pressure constant.
+  When a line is hard to cover honestly, the answer is usually to delete the
+  line — a defensive branch that no caller can reach is dead code wearing a
+  safety costume, not a testing problem.
 - Use mutation testing (Stryker/mutmut/PIT) on the highest-value modules
   (money, auth, permissions) to find assertions that never actually assert.
 - Track and delete tests that never fail for any real bug; they cost time and

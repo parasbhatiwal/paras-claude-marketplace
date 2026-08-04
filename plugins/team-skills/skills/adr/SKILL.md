@@ -81,6 +81,15 @@ true is the point. Instead:
   reader needs most — they are the ones they will otherwise re-propose.
 - Say what would make you revisit. A decision with no stated trigger for
   reconsideration becomes permanent by accident.
+- **An accepted ADR is not an exemption from YAGNI.** It records what was
+  decided, not a standing instruction to build every affordance the decision
+  allows. "The architecture keeps X possible" is a reason to avoid closing the
+  door — not a reason to build the door, the frame and the hinges for a room
+  nobody has asked to enter. When implementing against an ADR, still ask what
+  the *current* change needs.
+- Revisit the log when its assumptions move, not only when a trigger fires. An
+  ADR written before there were users describes a world that may no longer
+  exist, and it keeps being cited as though it does.
 - No secrets, no customer names, no vendor pricing under NDA.
 - If the decision deviates from `engineering-principles`, say so explicitly and
   name which rule — an undeclared deviation is how standards quietly die.
