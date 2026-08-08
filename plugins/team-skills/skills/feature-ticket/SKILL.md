@@ -52,8 +52,17 @@ Judgment-call findings: surfaced to the user, decided, recorded.
 
 ## Stage 4 — Commit
 
-Run the `commit-changes` skill. It runs the full gate matrix and **asks the
-user before committing** — that ask is mandatory, even inside this flow.
+**Refresh `CLAUDE.md` first, in the same change.** A feature just made
+something about the project untrue — a new command, a new module, a new
+convention, a gotcha found the hard way while building it. Run
+`project-context` in refresh mode before `commit-changes`, so the description
+of the feature ships in the same commit as the feature, not as an
+afterthought discovered later by a stale-context hook or the next confused
+session. Skip only if this feature genuinely changed nothing `project-context`
+would write differently — say so rather than skipping silently.
+
+Then run the `commit-changes` skill. It runs the full gate matrix and **asks
+the user before committing** — that ask is mandatory, even inside this flow.
 Prefer one commit per logical change; if chunks are separable, offer split
 commits.
 
@@ -67,6 +76,11 @@ Run the `open-pr` skill. It builds the body (with the mandatory Human
 verification section) and **asks before creating the PR**.
 
 ## Wrap-up
+
+Consider `principles-audit`'s triggers (feature count since the last audit,
+growth in `.claude/engineering-overrides.md`, a structural change this feature
+just made) and mention it to the user if one applies — a suggestion, not a
+gate.
 
 Report: branch, commits, PR URL, chunk list delivered, anything deferred.
 Remind the user the Human-verification checklist in the PR is theirs to

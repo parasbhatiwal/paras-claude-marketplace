@@ -46,8 +46,15 @@ radius — a bug fix that changes shared code gets the security routing check.
 
 ## Stage 4 — Commit
 
-Run the `commit-changes` skill (full gates, **asks the user first**). Message
-type is `fix(scope):`; the body states root cause in one line.
+If the root cause reveals something `CLAUDE.md` states wrong or omits — a
+gotcha this bug *was*, a convention nobody wrote down — refresh it via
+`project-context` before committing, so the fix and the corrected description
+land together. Most bug fixes touch nothing `project-context` would write
+differently; do not refresh reflexively, only when the diagnosis actually
+found one.
+
+Then run the `commit-changes` skill (full gates, **asks the user first**).
+Message type is `fix(scope):`; the body states root cause in one line.
 
 ## Stage 5 — Push
 
