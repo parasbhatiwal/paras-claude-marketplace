@@ -7,6 +7,94 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [0.7.0] — 2026-08-08
+
+The 0.6.0 release wrote down rules that a build had proven the *prose* version
+of `review-changes` still missed. Continuing to use those rules on a second,
+parallel build (a school ERP plus its first frontend) surfaced a sharper
+problem: prose is advice, and advice can always be told "just skip it" —
+including by the person who wrote the request. Everything below moves what can
+be moved from something Claude is asked to follow into something a hook
+actually enforces, and closes four places where a rule existed but nothing
+ever triggered it.
+
+### Added
+
+- **A code-quality guard that blocks the write, not just the commit.** A new
+  `PreToolUse` hook on `Write`/`Edit`/`MultiEdit` refuses `any`, silenced
+  linter/type checks, swallowed errors, untracked `TODO`s, disabled tests, and
+  a gate being weakened — mechanically, before the file is written. Every rule
+  carries an escape hatch (`// why: <reason>`) because a guard with no way
+  through gets uninstalled and then protects nothing; writing the reason down
+  is what turns a shortcut into a recorded decision.
+- **The guard escalates instead of refusing forever.** First refusal explains
+  the rule; second names what ignoring it tends to cost; a third attempt on the
+  same rule in the same file is let through — and logged to
+  `.claude/engineering-overrides.md` with a timestamp, so persistence can win
+  but never silently. That file is itself a reading list: a cluster of
+  overrides on one rule is evidence the rule may be wrong for the project, not
+  only that the code is.
+- **Built against real code before trusting it.** The first draft, run over a
+  277-file production repository, produced 43 findings — mostly false
+  positives: it read doc comments as offending code, and judged a config file's
+  new text with no way to know whether a number had gone up or down. Rebuilt to
+  ignore comment bodies for the rules that aren't about comments, and to compare
+  a threshold against what it *replaced*, not what it now reads. Second run: 18
+  findings, all real.
+- **Pushing no longer outruns `CLAUDE.md`.** A `git push` when the context has
+  drifted (stale fingerprint, or none at all) is blocked once per session with
+  the specific reason and the fix — not on every subsequent push, which would
+  make the rule the kind of obstacle that gets disabled. `feature-ticket` and
+  `bug-ticket` now refresh context as part of the commit that changes what's
+  true, rather than leaving it to be discovered later by this hook.
+- **`review-changes` looks outside the diff.** Every existing check judges what
+  changed, and duplication of a *rule* accumulates one clean diff at a time —
+  no single diff among three ever looked like the offender. Found this way on
+  the same build: eight services independently re-deriving "entity refusal →
+  field-level validation error," and three screens independently re-deriving a
+  loading/saving/error triple. The fix is extraction in the same round, not a
+  note for later.
+- **`adr`: silence is a decision too.** An ADR that names a framework and stays
+  quiet on everything else reads, to the next person, as though the rest was
+  decided the same deliberate way. The trigger is now explicit: the second or
+  third instance of something in a category an ADR should own, with no ADR
+  covering it, is the moment to write or amend one — wired into both
+  `brainstorm` and `review-changes` step 6, since those are where the pattern
+  is already being looked at.
+- **`principles-audit` has stated triggers.** It existed and nothing ever fired
+  it. Now named explicitly: a round number of shipped tickets, visible growth
+  in `engineering-overrides.md`, a structural change to the project, before
+  handing the codebase to someone who wasn't there for the decisions.
+- **`engineering-principles`: a frontend reference.** Component extraction at
+  the third caller (not the first, not never); server state and client state
+  are different problems with different defaults, and neither is "reach for a
+  global store"; accessibility made structural through shared primitives
+  rather than remembered per screen. Written after watching a real frontend
+  accumulate three copies of the same form-field wiring and reach for
+  `useState` for data the server, not the client, owns.
+- **Plain-language rule for every question a skill asks the user.**
+  `brainstorm` now requires every tradeoff to be translatable into its
+  real-world consequence before it is asked — "should the second clerk see an
+  error or wait and retry" instead of "optimistic or pessimistic locking." If a
+  tradeoff can't be phrased that way, it hasn't been understood well enough to
+  ask about yet. `bootstrap-project`'s Stage 0 questions were rewritten under
+  the same rule.
+- **The PR's human-verification section asks two different questions of two
+  different people.** It previously asked one signer to both "verify the
+  behavior" and "read the full diff" — the second is not something a
+  non-engineer driving a change can honestly check. Split into what anyone who
+  used the feature can attest to, and a separately named code review that an
+  engineer has to have actually done; a checked behavior box no longer stands
+  in for one.
+
+### Fixed
+
+- **The guard's own pattern matching blocked writing tests about it.** A test
+  fixture containing the literal text of a forbidden flag, inside a heredoc,
+  read as the command itself. Command text is now distinguished from heredoc
+  bodies being written as data — except where the heredoc *is* the thing being
+  inspected (a commit message), which the trailer check still reads.
+
 ## [0.6.0] — 2026-08-04
 
 Everything here comes from one long build: a multi-tenant school ERP taken from
