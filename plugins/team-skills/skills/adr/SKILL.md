@@ -24,6 +24,35 @@ context `project-context` feeds into CLAUDE.md.
 **Not** for reversible, local choices — naming, file layout inside a module,
 a library swap with no API impact. An ADR log full of trivia is unread.
 
+## Silence is a decision too
+
+An ADR that decides part of an area and stays quiet about the rest reads, to
+everyone after it, as though the rest was decided the same deliberate way. A
+record that names a framework and says nothing about state management is not
+neutral about state management — the next person finds thirty screens of one
+pattern and reasonably assumes somebody chose it. Nobody did; it accreted, one
+unremarkable diff at a time, and by the time it is questioned reversing it
+costs exactly what an ADR exists to avoid.
+
+So the trigger for this skill is not only "a decision was just made." It is
+also: **you are about to build the second or third instance of something in a
+category `docs/adr/` should cover, and no ADR covers it.** Concretely, notice
+this during `brainstorm` step 3 (judging options against
+`engineering-principles`) and during `review-changes` step 6 (the
+third-occurrence check) — both already look at exactly the right moment, they
+just need to ask one more question: *"does an ADR own this choice, or did we
+just make it by typing it three times?"* If the answer is the latter, stop and
+write the ADR — or, if a related one exists, amend it — before the fourth
+occurrence normalizes the silence further.
+
+This is not a license to write an ADR for everything a codebase happens to be
+consistent about; consistency earned by one person making the same reasonable
+call five times is not automatically a gap. It is a trigger specifically for
+the categories already listed above under "When an ADR is required" — a
+framework, a boundary, an authz model, a pattern with ongoing cost — when one
+of those categories turns out to have been decided by accident rather than on
+purpose.
+
 ## Write it
 
 1. Find the next number: list `docs/adr/`, take the highest + 1, zero-padded

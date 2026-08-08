@@ -18,17 +18,31 @@ Works in any language: never assume an ecosystem, resolve tooling through
 
 ## Stage 0 — Understand before choosing (do not skip)
 
-Ask the user, and record the answers — they drive every later choice:
+Ask the user, and record the answers — they drive every later choice. This is
+the entry point for someone starting a project who may never have written
+code, so every question follows the "Plain language" rule in `brainstorm`:
+ask about the real-world thing, translate it into the engineering question
+yourself, never make the user answer in engineering terms.
 
 - **Domain & users**: what problem, for whom, what does "done" mean?
-- **Scale & shape**: expected users/req-per-second/data volume in year 1;
-  read-heavy or write-heavy; real-time or batch?
-- **Constraints**: languages/clouds the team must use, existing systems to
-  integrate, budget, deadline, team size and experience.
-- **Compliance & data**: any PII/PHI/PCI, which jurisdictions, retention or
-  residency requirements, audit obligations?
-- **Interfaces**: web UI, mobile, public API, internal service, CLI, jobs?
-- **Availability target**: what does an hour of downtime cost?
+- **Scale & shape**: roughly how many people would use this in the first
+  year, and does it grow slowly or could it suddenly spike (a class
+  announcement app vs. something that could go viral)? Do people mostly look
+  things up (read-heavy) or mostly enter new information (write-heavy)? Does
+  an action need to show up for others instantly, or is a short delay — a
+  minute, an hour — genuinely fine (real-time vs. batch)?
+- **Constraints**: any tools, languages or providers already decided for
+  other reasons (a team that already knows one language, a cloud contract
+  already in place), existing systems this has to talk to, budget, deadline,
+  who will be maintaining it.
+- **Compliance & data**: does it hold anything sensitive — health records,
+  card numbers, anything about children — which country's rules apply, how
+  long must records be kept, does anyone need to audit who did what.
+- **Interfaces**: how do people actually reach this — a website, a phone app,
+  another company's system calling in automatically, a command someone types,
+  something that just runs on a schedule with nobody watching?
+- **Availability target**: if this is down for an hour, who is affected and
+  what does it cost them — nothing much, a bad afternoon, or real money?
 
 If the answers are not known, say so explicitly and choose the *reversible*
 option. Never invent requirements to justify infrastructure.
@@ -43,8 +57,15 @@ option. Never invent requirements to justify infrastructure.
 2. Name the bounded contexts and the module structure — package by feature,
    not by technical layer (`references/design.md` in `engineering-principles`).
 3. Record each significant choice with the `adr` skill **now**: language,
-   framework, datastore, deployment target, auth strategy, API style.
-4. Confirm with the user before scaffolding — this is the expensive decision.
+   framework, datastore, deployment target, auth strategy, API style. The ADR
+   itself is written precisely, for the future engineer reading it — that
+   precision is not in tension with plain language, it is downstream of it.
+4. Confirm with the user before scaffolding — this is the expensive decision,
+   and the confirmation is the plain-language recommendation from
+   `brainstorm`, not the ADR text. "We'll build this as one application with
+   clearly separated parts inside it, which is simpler to run and can still
+   be split into separate services later if it needs to be" is what gets
+   confirmed; the ADR is what gets written down afterward.
 
 **Anti-goal:** do not build for imagined scale. Kafka, service meshes, CQRS,
 and multi-region are decisions with ongoing cost; each needs a stated reason

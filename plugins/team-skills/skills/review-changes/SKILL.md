@@ -46,7 +46,29 @@ One structured review round on the working diff, before anything is committed.
    - **Patch vs. fix**: is this treating the cause, or making a symptom go
      away? A caller-specific branch or a defensive check where an invariant
      belongs is a finding.
-6. Layer the team checklist on top of the findings:
+6. **Look outside the diff.** Every rule above judges what changed — and
+   duplication of a *rule* accumulates one clean diff at a time. Screen one has
+   no duplication; screen three does, and no single diff was ever the one that
+   introduced it. A per-diff review structurally cannot see a per-codebase
+   property, so make it look on purpose:
+   - Name the pattern this diff just added (a shape of error handling, a form
+     field wired up by hand, a fetch-loading-error triple, a permission check).
+   - `grep`/search the codebase for that pattern. If this diff makes it the
+     **third occurrence or more**, that is a finding — even though the diff
+     itself is clean. Two real examples found this way in one build: eight
+     services each re-deriving "entity refusal → field-level `ValidationError`"
+     by hand, and three screens each re-deriving "loading / saving / error"
+     state with their own `try/catch`.
+   - The fix is extraction, not a note for later — pull the shared helper or
+     component out now, in this round, before the third caller becomes a
+     fourth. If extraction is large enough to be its own change, say so
+     explicitly and treat it as a blocking follow-up, not a someday.
+   - If the pattern is a *decision* rather than a helper (a state-management
+     approach, an authz model, a framework choice) and nothing in `docs/adr/`
+     owns it, that is the "silence is a decision too" trigger in the `adr`
+     skill — stop and record it rather than letting the third occurrence
+     finish making the decision by accident.
+7. Layer the team checklist on top of the findings:
    - Every behavior change is covered by a test that was seen failing first
    - No secrets, keys, or `.env` values in the diff
    - No dead code, debug logging, or commented-out blocks left behind

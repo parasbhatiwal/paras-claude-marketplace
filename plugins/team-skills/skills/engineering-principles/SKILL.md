@@ -21,6 +21,7 @@ loading all of them.
 | API contracts, schemas, migrations, PII | `references/api-and-data.md` |
 | What to test, how, and what not to mock | `references/testing.md` |
 | Performance budgets, accessibility, i18n | `references/quality-attributes.md` |
+| Component extraction, server/client state, structural a11y | `references/frontend.md` |
 
 These are language-agnostic by design. Where a rule needs tooling, resolve it
 for the project's stack through `../../references/toolchains.md` (relative to
