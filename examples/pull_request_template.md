@@ -23,10 +23,28 @@
 
 ## Human verification
 
-- [ ] I ran the affected flow locally and verified the behavior myself
-- [ ] I read the full diff before requesting review
+Two different questions, because they need two different people. Whoever
+drove this change — coder or not — answers the first from using the product.
+The second requires someone who can read the diff, and is not optional because
+the first one is checked.
 
-What I checked by hand:
+**Did you use it, and does it do what it should?**
 
-<!-- Author fills this in. Reviewers: reject PRs where this is empty, and
-     never tick these boxes on someone else's behalf. -->
+- [ ] I ran the affected flow myself (not just the automated tests) and it
+      behaved the way it is supposed to
+- What I did, and what I saw:
+
+<!-- Author fills this in, in plain terms — "I signed up as a new user, added
+     two items, and the total was right" is a complete answer. Reviewers:
+     reject PRs where this is empty, and never tick it on someone else's
+     behalf. -->
+
+**Has this been read by someone who can read code?**
+
+- [ ] A qualified engineer has read the diff, not only the description
+      (an automated review pass such as `review-changes` does not satisfy
+      this — see its own note that a second round belongs to a human)
+- Who, and what they flagged (if anyone other than the PR author):
+
+<!-- If nobody who can evaluate the code has looked yet, say so rather than
+     leaving this blank — an honest "not yet" is reviewable; silence is not. -->

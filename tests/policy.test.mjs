@@ -178,3 +178,93 @@ describe("parseAllowlist", () => {
     assert.deepEqual(parseAllowlist(undefined), []);
   });
 });
+
+describe("pushing work the context does not describe", () => {
+  const stale = () => ({
+    status: "stale",
+    reasons: ["18 commits since the context was written"],
+    action: "Run the `project-context` skill in refresh mode.",
+  });
+
+  test("stops a push when CLAUDE.md has drifted", () => {
+    // Stale context is the defect that costs most and shows least: every later
+    // session starts by believing something untrue, and nobody can point at
+    // the moment it went wrong.
+    const verdict = evaluate("git push origin feat/x", { getContextFreshness: stale });
+
+    assert.equal(verdict.action, "block");
+    assert.match(verdict.reason, /CLAUDE\.md is stale/);
+    assert.match(verdict.reason, /18 commits/);
+    assert.match(verdict.reason, /project-context/);
+  });
+
+  test("stops one when there is no CLAUDE.md at all", () => {
+    assert.ok(
+      isBlocked("git push", {
+        getContextFreshness: () => ({
+          status: "missing",
+          reasons: ["no CLAUDE.md in this repository"],
+          action: "Run the `project-context` skill.",
+        }),
+      }),
+    );
+  });
+
+  test("allows the push when the context is fresh", () => {
+    assert.ok(
+      !isBlocked("git push origin feat/x", {
+        getContextFreshness: () => ({ status: "fresh", reasons: [], action: null }),
+      }),
+    );
+  });
+
+  test("does not ask twice in one session", () => {
+    // A rule that fires on every push until a document is perfect stops being a
+    // reminder and becomes an obstacle — and obstacles get removed entirely.
+    assert.ok(
+      !isBlocked("git push origin feat/x", {
+        getContextFreshness: stale,
+        contextAlreadyRaised: true,
+      }),
+    );
+  });
+
+  test("says out loud that pushing again works", () => {
+    // A hidden escape gets found anyway, usually by someone disabling the hook.
+    assert.match(reason("git push", { getContextFreshness: stale }), /also works/);
+  });
+
+  test("says nothing about a command that is not a push", () => {
+    for (const command of ["git status", "git log -n 5", compliantCommit]) {
+      assert.ok(!isBlocked(command, { getContextFreshness: stale }), command);
+    }
+  });
+});
+
+describe("text that merely looks like a command", () => {
+  // Assembled rather than written out, so this file does not itself contain the
+  // literal flag — the guard that reads it would have no way to tell the
+  // difference, which is the entire point of the case below.
+  const forbidden = ["--no", "verify"].join("-");
+  const heredoc = (body) => `cat > tests/a.test.mjs <<'FIXTURE'\n${body}\nFIXTURE`;
+
+  test("does not read a heredoc body as a command to run", () => {
+    // Found by this guard blocking the commit that was adding tests for it.
+    // Anyone writing a test, a runbook or a README about the policy would have
+    // hit the same wall and concluded the tool was broken — which it was.
+    assert.ok(!isBlocked(heredoc(`assert(blocked("git push ${forbidden}"));`)));
+  });
+
+  test("still blocks the real thing on the same line", () => {
+    assert.ok(isBlocked(`git push ${forbidden}`));
+  });
+
+  test("still reads a commit message inside a heredoc", () => {
+    // The one place the guard must look *into* a heredoc: that is where the
+    // message, and so the trailers it has to check, actually live.
+    const commit = (body) => `git commit -F- <<'MSG'\n${body}\nMSG`;
+
+    assert.ok(isBlocked(commit("feat(x): a thing")));
+    assert.ok(!isBlocked(commit(`feat(x): a thing\n\n${TRAILERS}`)));
+  });
+});

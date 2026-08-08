@@ -8,6 +8,42 @@ description: Use this skill to assess an EXISTING codebase against the team's en
 Assess what is actually there, against the `engineering-principles` skill, and
 hand back a plan a team can execute incrementally without stopping delivery.
 
+## When to run this, unprompted
+
+Nobody schedules an audit — a project runs feature after feature, and quality
+that erodes one clean diff at a time never reaches a moment that feels like
+"time to audit". `review-changes` step 6 catches duplication the instant a
+*pattern* hits three occurrences; this skill is the wider version of the same
+idea, run periodically rather than per-diff, because some things are only
+visible zoomed out (a whole subsystem with no tests, a boundary erected in one
+module and ignored in the next five, a security posture that made sense for
+one feature and not the shape of the whole app).
+
+Treat any of these as a trigger to propose running it — name the signal to the
+user rather than launching silently, and let them say yes or "not yet":
+
+- **A round number of shipped features or fixes since the last audit** (or the
+  first one) — ten is a reasonable default or the same order of magnitude.
+  `feature-ticket` and `bug-ticket` wrap-ups are where to count from.
+- **`.claude/engineering-overrides.md` has grown noticeably** since it was last
+  read (the quality guard's override ledger — see `hooks/escalation.mjs`). A
+  cluster of overrides on the same rule is usually one of two things: a rule
+  that no longer fits the project, or a corner of the codebase sliding out from
+  under the standard. Either is exactly what this skill exists to surface.
+- **A structural change**: a new package/app added to the workspace (a second
+  frontend, a new service), a new language entering the repo, a framework
+  migration completing.
+- **Before a hiring/onboarding milestone**, or before handing the project to
+  someone who was not there for the decisions — the audit is the fastest way
+  for a newcomer's first review not to be a surprise.
+- **The user asks a question this skill answers** even without naming it —
+  "how good is this code", "are we cutting corners", "is this ready to hand
+  off", "why does this feel worse than it used to".
+
+None of these are hard gates — this skill produces a document, not a build
+failure, so there is nothing here for a hook to enforce. The obligation is on
+whichever skill notices the signal to say so out loud.
+
 Works on any codebase in any language — detect the stack and its tooling via
 `../../references/toolchains.md` (relative to this skill's directory) rather
 than assuming an ecosystem.

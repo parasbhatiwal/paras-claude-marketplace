@@ -26,14 +26,27 @@ Raising a PR is a gated, ask-first action.
 3. **Ticket link**: if the task came from a GitHub Issue, add `Closes #<n>`
    (use `gh issue list`/context to confirm the number). If there is no issue,
    skip — do not invent references.
-4. **Append the mandatory section** (reviewers reject PRs where it is empty):
+4. **Append the mandatory section** (reviewers reject PRs where it is empty).
+   It asks two different questions of two different people on purpose —
+   whoever drove the change verifies *behavior*, which needs no ability to
+   read code; a second, separately-named person verifies the *diff*, which
+   does. Never let a checked behavior box stand in for the code review — they
+   are not substitutes for each other:
 
 ```markdown
 ## Human verification
 
-- [ ] I ran the affected flow locally and verified the behavior myself
-- [ ] I read the full diff before requesting review
-- What I checked by hand: <author fills this in>
+**Did you use it, and does it do what it should?**
+- [ ] I ran the affected flow myself and it behaved the way it is supposed to
+- What I did, and what I saw: <author fills this in, plainly — "signed up,
+  added two items, the total was right" is a complete answer>
+
+**Has this been read by someone who can read code?**
+- [ ] A qualified engineer has read the diff (an automated pass such as
+  `review-changes` does not satisfy this on its own — see its own note that a
+  second round belongs to a human)
+- Who, and what they flagged: <or "not yet" — an honest gap is reviewable,
+  silence is not>
 ```
 
 5. If any commit in the branch carries a `Justified-Exception:` trailer, state
