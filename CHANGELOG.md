@@ -7,6 +7,19 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [0.8.0] — 2026-08-15
+
+### Added
+
+- **`ux-audit` skill.** A read-only UX audit for existing products with a real
+  UI surface: gates on whether a UI surface actually exists (refuses to
+  fabricate screens or a design system for a CLI/library/API-only repo), audits
+  the current UI with cited evidence, prioritizes P0–P3, and writes a
+  screen-by-screen, file-level `docs/ui-ux-implementation-plan.md` that
+  `feature-ticket` can execute. Explicitly refuses generic templates
+  (sidebar+cards+charts) in favor of layouts derived from the actual user
+  workflow.
+
 ## [0.7.0] — 2026-08-08
 
 The 0.6.0 release wrote down rules that a build had proven the *prose* version

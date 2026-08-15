@@ -128,7 +128,7 @@ also name one directly ("run the threat-model skill on this").
 
 ## Skills
 
-All 20 skills at a glance. Most trigger themselves from how you describe the
+All 21 skills at a glance. Most trigger themselves from how you describe the
 task; the ones with a command are the deliberate entry points.
 
 | Skill | Command | Use it when | You get |
@@ -139,6 +139,7 @@ task; the ones with a command are the deliberate entry points.
 | **Lifecycle** | | | |
 | `bootstrap-project` | `/new-project` | Starting from nothing | Architecture, ADRs, guardrails, walking slice |
 | `principles-audit` | `/audit` | You inherited a codebase | Scored report + `docs/engineering-remediation-plan.md` |
+| `ux-audit` | — | The product's UI/UX needs a redesign or modernization pass | Cited audit + `docs/ui-ux-implementation-plan.md` |
 | `project-context` | `/context` | Claude keeps re-learning the repo | `CLAUDE.md` that maintains itself |
 | **Delivery** | | | |
 | `feature-ticket` | `/feature` | Building a feature end to end | Branch → PR, every gate enforced |
@@ -200,6 +201,15 @@ maturity score, P0–P3 ranking by impact × likelihood × churn, and a phased
 plan in `docs/engineering-remediation-plan.md`: make change safe → stop the
 bleeding → strangler-fig boundaries → pay down by churn → automate the floor.
 Never proposes a rewrite as the default.
+
+**`ux-audit`** — existing products with a real UI surface. Read-only. First
+gates on whether a UI surface actually exists — no fabricated screens or design
+systems for a CLI, library, or API-only repo. Audits IA, hierarchy, components,
+states, responsiveness and accessibility with cited evidence, prioritizes
+P0–P3, and writes a screen-by-screen, file-level `docs/ui-ux-implementation-
+plan.md` that `feature-ticket` can execute. Refuses generic templates
+(sidebar+cards+charts) in favor of layouts derived from the actual user
+workflow.
 
 **`project-context`** (`/context`) — scans the repo and writes a high-signal
 `CLAUDE.md`: verified command table, architecture, domain vocabulary, gotchas,
@@ -446,7 +456,7 @@ these."
 .claude/skills/ship-change/          # repo-level: how a change gets released
 plugins/team-skills/
   .claude-plugin/plugin.json
-  skills/                            # 19 skills (see above)
+  skills/                            # 20 skills (see above)
   commands/                          # /feature /bug /new-project /audit
                                      # /rules /context /adr /release
   hooks/
