@@ -1,6 +1,6 @@
 {
   "name": "team-skills",
-  "version": "0.8.0",
+  "version": "0.8.1",
   "description": "Language-agnostic team engineering workflow for Claude Code: enterprise principles, enforced project rules, TDD-gated feature/bug orchestrators, bootstrap/audit/threat-model/release skills, self-maintaining CLAUDE.md, and git guardrails",
   "author": {
     "name": "parasbhatiwal"

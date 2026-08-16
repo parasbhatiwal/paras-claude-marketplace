@@ -7,6 +7,25 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [0.8.1] — 2026-08-16
+
+### Fixed
+
+- **`ux-audit`: four gaps found by dogfooding on a real project.**
+  - Stage 1 now checks the project's decision log (`docs/adr/` or equivalent)
+    for a prior visual/component-strategy decision before proposing one — a
+    recorded ADR always wins over the skill's own defaults.
+  - Stage 1 now reads a sample of existing UI tests to state upfront whether a
+    visual-only pass is test-safe (asserts on `data-testid`/ARIA/text) or not
+    (asserts on CSS classes/DOM structure).
+  - Design-system changes (plan section 8) now call for visual tokens as
+    runtime CSS custom properties, not compiled-in values, whenever the
+    product is or will be multi-tenant/white-labeled.
+  - New Stage 6 self-check before the plan is finalized: verify code samples
+    against the target framework's actual semantics and re-read the plan
+    end-to-end for internal contradictions, so a wrong snippet doesn't ship
+    looking authoritative.
+
 ## [0.8.0] — 2026-08-15
 
 ### Added

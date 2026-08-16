@@ -57,6 +57,18 @@ Inspect the codebase before proposing anything:
   tokens, state management, data fetching, current responsive strategy.
   Reuse what's good here — do not propose replacing working architecture
   without a specific reason tied to a UX problem it causes.
+- **Prior decisions**: check the project's decision log (`docs/adr/` or
+  equivalent) for anything already decided about visual/component strategy —
+  a UI library, a design-token approach, a styling system — even if it was
+  never fully executed. A decision found late is the same as one never found:
+  the plan must build on it, not quietly recommend around it. This is the
+  single highest-leverage check in this stage — missing it produces a plan
+  that contradicts a decision the team already made.
+- **Test surface**: read a sample of the existing UI tests and note what they
+  assert on — `data-testid`/ARIA roles/text content (visual changes are
+  test-safe) vs. CSS classes or DOM structure (they aren't). State this
+  explicitly in the plan so `feature-ticket` knows upfront whether a purely
+  visual pass risks breaking the suite.
 
 ## Stage 2 — Audit the current UI (evidence, not adjectives)
 
@@ -133,7 +145,12 @@ execute it without re-deriving strategy:
 7. **Component changes** — current behavior → required behavior → states →
    reuse strategy, for every component that changes.
 8. **Design system changes** — only the tokens (typography/color/spacing/
-   radius/shadow/icon) that the audit actually justifies changing.
+   radius/shadow/icon) that the audit actually justifies changing. If the
+   product is, or is stated to become, multi-tenant or white-labeled, define
+   visual tokens as runtime CSS custom properties rather than compiled-in
+   values (Tailwind theme constants, Sass variables) — per-tenant branding
+   needs to change at runtime, not at build time. Say so explicitly even when
+   the audit's other findings don't touch theming.
 9. **Responsive changes** — exact desktop/tablet/mobile behavior per screen.
 10. **Accessibility changes** — concrete requirements, cross-referencing
     `quality-attributes.md` rather than restating it.
@@ -152,6 +169,24 @@ execute it without re-deriving strategy:
 15. **UX quality checklist** — hierarchy, cognitive load, navigation,
     accessibility, responsive, all states, typography, color, spacing,
     component consistency, performance, mobile usability, keyboard usability.
+
+## Stage 6 — Verify before finalizing
+
+A plan handed to `feature-ticket` is executed close to verbatim — a wrong
+code sample in it is worse than a vaguer plan, because it looks authoritative
+instead of looking uncertain. Before the document is done:
+
+- **Check every code sample against the target framework's actual semantics.**
+  A token/CSS/config snippet that would not compile or would silently resolve
+  to nothing (e.g. a custom property defined in terms of itself) is worse than
+  no snippet — it fails in a way that looks intentional.
+- **Re-read the whole plan once, end to end, for internal contradictions** —
+  a design-system section that conflicts with a screen-by-screen section, an
+  IA proposal that conflicts with the prior-decision check from Stage 1.
+
+This is a self-check, not a second opinion — it does not replace a human or
+`review-changes` reading the plan; it exists to catch the class of error that
+looks fine until someone actually tries to use the snippet.
 
 ## Rules
 
@@ -173,3 +208,8 @@ execute it without re-deriving strategy:
 - Motion, gradients, glassmorphism, and other visual effects appear in the
   plan only when the audit ties them to a specific usability or feedback need
   — never as default decoration.
+- A recorded architecture decision on visual/component strategy always wins
+  over this skill's own defaults — find it before proposing anything (Stage
+  1), never after.
+- Never finalize the plan without the Stage 6 self-check. Code samples in the
+  plan are read as correct; verify that before handing it off.
