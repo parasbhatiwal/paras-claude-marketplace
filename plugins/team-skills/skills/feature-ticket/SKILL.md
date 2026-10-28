@@ -54,6 +54,13 @@ Run the `review-changes` skill once over the whole working diff.
 **Gate:** all confirmed correctness findings fixed and suite green again.
 Judgment-call findings: surfaced to the user, decided, recorded.
 
+**Manual test offer (local sessions only).** If the change has a web UI and
+`printenv TEAM_AUTONOMOUS` is not `1`, ask the user one yes/no question:
+*"Want me to test this manually in Chrome before it goes up?"* Yes → run the
+`browser-verify` skill on this branch against the ticket's acceptance
+criteria; a FAIL goes back through Stage 2 before moving on. No → carry on and
+do not ask again. No web UI → do not ask.
+
 ## Stage 4 — Commit
 
 **Refresh `CLAUDE.md` first, in the same change.** A feature just made

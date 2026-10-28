@@ -24,6 +24,7 @@ Never set `TEAM_AUTONOMOUS` yourself, locally, to skip a prompt.
 | `open-pr` asks before creating | Creates subtask PRs (base: feature branch) and the final PR (base: main) |
 | Self-merge limited to the owner allowlist | Agent merges its own subtask PRs into the feature branch; **blocked** from merging anything into main/master, and from `--admin` |
 | Stale-`CLAUDE.md` push reminder | Skipped; `deliver` refreshes once at the end |
+| Offers to test manually in Chrome (`browser-verify`) before the PR | Never asks, never runs; the PR notes it was not browser-tested |
 
 Unchanged in both modes: no `--no-verify`, no force-push to main, no history
 rewrites on main, both `Co-Authored-By` trailers, all test/lint/type/secret

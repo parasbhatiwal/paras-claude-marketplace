@@ -48,6 +48,13 @@ Run the `review-changes` skill on the diff. Pay extra attention to blast
 radius — a bug fix that changes shared code gets the security routing check.
 **Gate:** confirmed findings fixed, suite green.
 
+**Manual test offer (local sessions only).** If the bug is visible in a web UI
+and `printenv TEAM_AUTONOMOUS` is not `1`, ask the user one yes/no question:
+*"Want me to re-check the original bug in Chrome before it goes up?"* Yes →
+run the `browser-verify` skill with the reproduction steps as the plan; a FAIL
+goes back through Stage 2. No → carry on and do not ask again. Not visible in
+a UI → do not ask.
+
 ## Stage 4 — Commit
 
 If the root cause reveals something `CLAUDE.md` states wrong or omits — a
