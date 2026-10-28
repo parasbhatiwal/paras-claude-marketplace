@@ -124,6 +124,7 @@ fallback and per-developer onboarding: [`examples/ONBOARDING.md`](examples/ONBOA
 | `/triage [#n or "what needs attention"]` | `triage` | Raw incoming issues and PRs |
 | `/work <issue or requirement>` | `work` | **Anything you hand to an agent** — intake, grilling, readiness gate, delivery |
 | `/deliver <epic>` | `deliver` | Run autonomous delivery of `ready-for-agent` tickets |
+| `/verify <issue/PR/branch/what>` | `browser-verify` | Manually test it in Chrome with Claude in Chrome |
 | `/feature <ticket>`, `/bug <report>` | `work` | Aliases for `/work` (attended single-session path: ask for `feature-ticket` / `bug-ticket` by name) |
 | `/new-project <what>` | `bootstrap-project` | Greenfield repo |
 | `/audit [area]` | `principles-audit` | Assessing an existing codebase |
@@ -139,7 +140,7 @@ also name one directly ("run the threat-model skill on this").
 
 ## Skills
 
-All 41 plugin skills (plus the repo-level `ship-change`). Most trigger
+All 42 plugin skills (plus the repo-level `ship-change`). Most trigger
 themselves from how you describe the task; the ones with a command are the
 deliberate entry points.
 
@@ -181,6 +182,7 @@ deliberate entry points.
 | `adr` | `/adr` | A decision that's expensive to reverse | `docs/adr/NNNN-*.md` |
 | `implement` | — | Writing production code | Red → green → refactor at agreed seams |
 | `diagnose` | — | Any bug, flake or regression | Tight red loop, root cause, regression test |
+| `browser-verify` | `/verify` | Test an issue, PR, branch or change by hand in Chrome | Do/Expect plan, PASS/FAIL report, recording |
 | `run-tests` | — | "Do the tests pass?" | A verdict you can trust in any language |
 | `review-changes` | — | Before committing | Standards + Spec axes, findings fixed, suite green |
 | `commit-changes` | — | Committing | Gated, compliant commit — **asks first** (unless autonomous `deliver`) |
@@ -575,8 +577,8 @@ these."
   prompts/upstream-sync.md           # the agent's instructions for the sync
 plugins/team-skills/
   .claude-plugin/plugin.json
-  skills/                            # 41 skills (see above)
-  commands/                          # /go /work /deliver /triage /feature /bug
+  skills/                            # 42 skills (see above)
+  commands/                          # /go /work /deliver /triage /verify /feature /bug
                                      # /new-project /audit /rules /context /adr /release
   hooks/
     guard-git.mjs   + policy.mjs           # git guardrails + autonomous mode (pure/tested)

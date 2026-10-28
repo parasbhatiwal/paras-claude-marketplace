@@ -7,6 +7,20 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.2.0] — 2026-10-28
+
+### Added
+
+- **`browser-verify` skill + `/verify`**: manual testing in a real Chrome via
+  Claude in Chrome. Point it at an issue, PR, branch or a plain description; it
+  builds a Do/Expect plan from the brief, spec or PR checklist, confirms it
+  with you, runs the right branch (in a worktree, leaving your tree alone),
+  drives the browser while watching console and network, and reports
+  PASS/FAIL/BLOCKED with evidence and a recording. Standalone: nothing in the
+  delivery flow triggers it. It stops if there is no web UI or no Chrome tools,
+  and never reports a pass it did not observe.
+- `route` sends "test it in the browser" requests to it.
+
 ## [2.1.0] — 2026-10-28
 
 Adapted from upstream `mattpocock/skills` 1.3.1.

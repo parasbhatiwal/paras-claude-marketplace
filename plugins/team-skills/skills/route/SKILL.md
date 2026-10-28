@@ -39,6 +39,7 @@ its `SKILL.md`: the table below is for orientation only.
 | Need an answer only someone else holds | `to-questionnaire` |
 | Only a human can do the step (credentials, dashboards, cutover) | `wizard` |
 | Messy diff or branch to review | `review-changes` |
+| "Test it in the browser" - a ticket, PR, branch or described change | `browser-verify` |
 | Uncommitted, green work to land | `commit-changes` → `push-branch` → `open-pr` |
 | Codebase feels hard to change or test; spare time | `improve-architecture` |
 | Fuzzy or overloaded terms; a decision worth recording | `domain-modeling`, `adr` |
