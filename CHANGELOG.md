@@ -7,6 +7,20 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.1.0] — 2026-10-28
+
+Adapted from upstream `mattpocock/skills` 1.3.1.
+
+### Changed
+
+- **`setup-workflow`**: with no GitHub remote it now wires one up and verifies
+  with `gh repo view`; offers to rename a legacy `CONTEXT.md` /
+  `CONTEXT-MAP.md` to its `GLOSSARY` name.
+- **GitHub operations reference**: closing an issue posts the comment first
+  (`close --comment` silently drops it on closed issues); native
+  `--blocked-by` flags, an open-blocker count query, and a fork target-repo
+  check.
+
 ## [2.0.0] — 2026-10-28
 
 Major: the plugin's primary flow is now **grill once, deliver without a
