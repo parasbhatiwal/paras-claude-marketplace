@@ -1,11 +1,12 @@
 ---
-description: Fix a bug end-to-end with the team workflow (failing repro test → TDD fix → review → gated commit → push → PR)
+description: Alias for /work — hand over a bug (intake → reproduce and grill → readiness gate → delivery)
 argument-hint: [bug report or issue number]
 ---
 
-Run the `bug-ticket` skill for this bug:
+Run the `work` skill for this bug:
 
 $ARGUMENTS
 
-Reproduce it with a failing test before writing any fix. The commit, push, and
-PR stages require my explicit approval — do not auto-approve them.
+The grill reproduces it with a failing test before any fix is planned. For a
+bug I will watch end-to-end in this one session, I can instead ask for the
+`bug-ticket` skill by name.

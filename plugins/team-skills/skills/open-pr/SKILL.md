@@ -58,7 +58,14 @@ Raising a PR is a gated, ask-first action.
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
 
-## Approval — ALWAYS ask
+## Approval — ALWAYS ask (except autonomous delivery)
+
+**Autonomous exception.** If `printenv TEAM_AUTONOMOUS` is `1` and `deliver`
+invoked this skill, create the PR without the prompt: subtask PRs target the
+feature's integration branch, and the final PR targets the default branch. The
+Human verification boxes stay unticked either way. Elsewhere the rule below
+holds. See `../../references/autonomous-mode.md`.
+
 
 Show the user: title, full body, base ← head branches, and whether it will be
 draft or ready. Ask for explicit approval before running `gh pr create`. The

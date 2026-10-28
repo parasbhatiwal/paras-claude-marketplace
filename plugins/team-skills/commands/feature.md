@@ -1,11 +1,11 @@
 ---
-description: Build a feature end-to-end with the team workflow (brainstorm → TDD → review → gated commit → push → PR)
+description: Alias for /work — hand over a feature (intake → grilling → readiness gate → delivery)
 argument-hint: [feature description or issue number]
 ---
 
-Run the `feature-ticket` skill for this ticket:
+Run the `work` skill for this feature:
 
 $ARGUMENTS
 
-Follow every stage in order and stop at each gate. The commit, push, and PR
-stages require my explicit approval — do not auto-approve them.
+For a task I will watch end-to-end in this one session, I can instead ask for
+the `feature-ticket` skill by name.

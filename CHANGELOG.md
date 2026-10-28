@@ -7,6 +7,35 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.0.0] — 2026-10-28
+
+Major: the plugin's primary flow is now **grill once, deliver without a
+human**. Adapts Matt Pocock's skills (MIT; `THIRD_PARTY_NOTICES.md`).
+
+### Added
+
+- **`work` skill + `/work`**: the new entry point. Intake → grill → spec and
+  tickets → handoff gate → hand over (cloud or local).
+- **`intake`, `grill`, `spec-and-tickets`, `handoff-gate`, `deliver` skills.**
+  `deliver` builds on one integration branch from main, one `--t<n>` branch
+  and PR per subtask merged into it, and a single final PR to main.
+- **Autonomous mode** (`TEAM_AUTONOMOUS=1`): the git guard lets an agent
+  push feature/subtask branches and merge PRs *into* them, and blocks any push
+  or merge to main/master and `gh pr merge --admin`. Fails closed when a PR's
+  base cannot be resolved. `commit-changes`, `push-branch` and `open-pr` skip
+  their ask-gate only in this mode, only under `deliver`.
+- References: `workflow-labels.md`, `agent-brief.md`,
+  `issue-tracker-github.md`, `autonomous-mode.md`.
+- `/deliver` command.
+
+### Changed
+
+- **Breaking:** `/feature` and `/bug` now run `work` instead of
+  `feature-ticket` / `bug-ticket`, which remain as the attended
+  single-session path (name them directly).
+- Stale-`CLAUDE.md` push reminder is skipped in autonomous mode; `deliver`
+  refreshes it once at the end.
+
 ## [0.8.1] — 2026-08-16
 
 ### Fixed

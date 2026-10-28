@@ -36,6 +36,8 @@ const REWRITE = re(
 const PUSH = re(`\\bgit\\b${SEG}\\bpush\\b`);
 const COMMIT = re(`\\bgit\\b${SEG}\\bcommit\\b`);
 const PROTECTED_BRANCH = /\b(main|master)\b/;
+const PUSH_TO_PROTECTED = re(`\\bgit\\b${SEG}\\bpush\\b${SEG}\\b(main|master)\\b`);
+const ADMIN_MERGE = /\bgh\s+pr\s+merge\b[^|;&\n]*--admin\b/;
 const GH_PR_MERGE = /\bgh\s+pr\s+merge\b(?:\s+(\d+|\S*#\d+|https?:\/\/\S+))?/;
 
 // Trailers are scanned inside a single-line command string, so match without
@@ -73,6 +75,10 @@ const block = (reason) => ({ action: "block", reason });
  * @param {() => string|null} [deps.getMerger]    resolves the current gh user
  * @param {(ref: string) => string|null} [deps.getPrAuthor]  resolves a PR author
  * @param {string[]} [deps.allowlist]             self-merge allowlist
+ * @param {boolean} [deps.autonomous]  true when the runtime (env, never the
+ *        command text) says no human is at the keyboard. See "autonomous mode".
+ * @param {() => string|null} [deps.getCurrentBranch]  checked-out branch
+ * @param {(ref: string|null) => string|null} [deps.getPrBase]  a PR's base branch
  * @param {() => {status: string, reasons: string[], action: string|null}|null} [deps.getContextFreshness]
  *        assesses CLAUDE.md against the repository. Injected rather than read
  *        here so this module stays pure and testable.
@@ -87,6 +93,9 @@ export function evaluateCommand(command, deps = {}) {
     getContextFreshness = () => null,
     contextAlreadyRaised = false,
     allowlist = DEFAULT_SELF_MERGE_ALLOWLIST,
+    autonomous = false,
+    getCurrentBranch = () => null,
+    getPrBase = () => null,
   } = deps;
 
   // Two views of the same command, and the difference matters.
@@ -101,7 +110,27 @@ export function evaluateCommand(command, deps = {}) {
   // Self-merge is allowed only for allowlisted owner accounts merging their
   // own PR. Anyone else's PR must be merged by a different person.
   const mergeMatch = cmd.match(GH_PR_MERGE);
-  if (mergeMatch) {
+  if (mergeMatch && autonomous) {
+    // Autonomous mode: the agent authors AND merges its own subtask PRs into
+    // the feature's integration branch, so the self-merge rule cannot apply.
+    // It is replaced by a stricter one: nothing an agent merges may land on
+    // the default branch. That merge is the single human decision in the flow.
+    if (ADMIN_MERGE.test(cmd)) {
+      return block("gh pr merge --admin is not allowed: it bypasses the checks that make auto-merge safe.");
+    }
+    const base = getPrBase(mergeMatch[1] ?? null);
+    if (!base) {
+      return block("cannot resolve the PR's base branch (gh unavailable?). Autonomous merges fail closed.");
+    }
+    if (PROTECTED_BRANCH.test(base)) {
+      return block(
+        `autonomous mode may not merge into ${base}. Leave the feature PR open: ` +
+          "merging to the default branch is the one step a human takes."
+      );
+    }
+  } else if (mergeMatch) {
+    // Self-merge is allowed only for allowlisted owner accounts merging their
+    // own PR. Anyone else's PR must be merged by a different person.
     const merger = getMerger();
     const author = getPrAuthor(mergeMatch[1] ?? null);
     if (!merger || !author) {
@@ -164,6 +193,16 @@ export function evaluateCommand(command, deps = {}) {
     }
   }
 
+  // --- autonomous mode: agents never publish to the default branch ---------
+  if (autonomous && PUSH.test(cmd)) {
+    if (PUSH_TO_PROTECTED.test(cmd) || PROTECTED_BRANCH.test(getCurrentBranch() ?? "")) {
+      return block(
+        "autonomous mode may not push to main/master. Push the feature or subtask branch; " +
+          "the single PR to the default branch is merged by a human."
+      );
+    }
+  }
+
   // --- CLAUDE.md must describe what is being pushed ------------------------
   //
   // Stale context is the defect that costs the most and shows up the least:
@@ -177,7 +216,9 @@ export function evaluateCommand(command, deps = {}) {
   // reminder with teeth, not a wall — the second push goes through, because
   // being unable to ship until a document is perfect is how a rule like this
   // gets removed entirely.
-  if (PUSH.test(cmd) && !contextAlreadyRaised) {
+  // Skipped in autonomous mode: there is no one to read the reminder, and
+  // `deliver` refreshes CLAUDE.md once, on the integration branch, instead.
+  if (PUSH.test(cmd) && !contextAlreadyRaised && !autonomous) {
     const freshness = getContextFreshness();
     if (freshness && (freshness.status === "stale" || freshness.status === "missing")) {
       return block(

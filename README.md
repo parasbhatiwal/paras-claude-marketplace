@@ -112,8 +112,9 @@ fallback and per-developer onboarding: [`examples/ONBOARDING.md`](examples/ONBOA
 
 | Command | Runs | Use when |
 |---|---|---|
-| `/feature <ticket>` | `feature-ticket` | Building a feature end to end |
-| `/bug <report>` | `bug-ticket` | Fixing a bug end to end |
+| `/work <issue or requirement>` | `work` | **Anything you hand to an agent** — intake, grilling, readiness gate, delivery |
+| `/deliver <epic>` | `deliver` | Run autonomous delivery of `ready-for-agent` tickets |
+| `/feature <ticket>`, `/bug <report>` | `work` | Aliases for `/work` (attended single-session path: ask for `feature-ticket` / `bug-ticket` by name) |
 | `/new-project <what>` | `bootstrap-project` | Greenfield repo |
 | `/audit [area]` | `principles-audit` | Assessing an existing codebase |
 | `/rules [area]` | `project-rules` | Making standards enforceable here |
@@ -219,7 +220,38 @@ a fingerprint, and a `SessionStart` hook nudges when the context has drifted —
 commits piled up, structural files changed, or it's simply old. Silent when
 fresh.
 
-### The delivery workflow
+### The v2 workflow: grill once, deliver without you
+
+```
+/work <issue # or plain requirement>
+  intake ─► grill ─► spec-and-tickets ─► handoff-gate ─► deliver ─► ONE PR → main
+            (you answer everything here)                 (no human; usually cloud)
+```
+
+1. **`intake`** — an issue number is fetched; plain text becomes a normal
+   GitHub issue first. Labelled `needs-triage` + `bug`/`enhancement`.
+2. **`grill`** — the exhaustive interview, in rounds, each question carrying a
+   recommended answer. Facts are looked up, never asked. Runs `diagnose` for
+   bugs, `threat-model`/`adr` where warranted, sharpens `GLOSSARY.md`. **This
+   is your last touchpoint, so it asks everything.** Business questions get
+   their own `needs-business-input` issue; non-blocking ones (reversible
+   default) become labelled assumptions and work continues.
+3. **`spec-and-tickets`** — spec on the epic, vertical-slice sub-issues with
+   native blocking edges. You approve the breakdown.
+4. **`handoff-gate`** — the zero-questions test per ticket, then an agent
+   brief and `ready-for-agent` / `ready-for-human` / `needs-info`.
+5. **`deliver`** — one integration branch `feat/<n>-<slug>` from main; each
+   subtask on `feat/<n>-<slug>--t<m>`, TDD'd, reviewed, PR'd into it and
+   merged when green; then full review, `CLAUDE.md` refresh, and **one PR to
+   main** that it never merges. A question the brief didn't answer is never
+   guessed: that subtask is marked `needs-info` and the rest continues.
+
+Cloud runs set `TEAM_AUTONOMOUS=1`; the git guard then lets the agent
+auto-merge into the feature branch but blocks any push or merge to main. See
+`plugins/team-skills/references/autonomous-mode.md` — including turning on
+branch protection on main, which is the real wall.
+
+### The attended delivery workflow (v1 path)
 
 Two orchestrators sequence the atomic skills; each stage is its own skill and
 each gate is hard.
