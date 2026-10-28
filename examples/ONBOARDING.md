@@ -3,13 +3,12 @@
 One-time setup, ~2 minutes. After this, every project you open has the team
 skills, and the guardrails travel with you.
 
-## 0. Prerequisite: repo access
+## 0. Prerequisites
 
-This marketplace repo is **private**. Before anything below works you need to
-be added as a GitHub collaborator (or org member) with at least read access
-to `parasbhatiwal/paras-claude-marketplace`, and have working git credentials
-(SSH key or `gh auth login`) — Claude Code shells out to git to fetch the
-marketplace.
+This marketplace repo is **public**, so no access grant is needed. You need
+`git` and network access (Claude Code shells out to git to fetch the
+marketplace) and, for the v2 workflow, the GitHub CLI authenticated
+(`gh auth login`) — it is how issues, labels and PRs are driven.
 
 ## 1. Add the marketplace and install the plugin
 
@@ -98,8 +97,9 @@ for your stack.
 
 | You want to | Run |
 |---|---|
-| Build a feature | `/feature <ticket>` — brainstorm → TDD → review → commit → push → PR |
-| Fix a bug | `/bug <report>` — failing repro test → fix → review → commit → push → PR |
+| Not sure where to start | `/go <anything>` — picks the right flow and starts it |
+| Build a feature or fix a bug | `/work <issue # or description>` — grill → tickets → handoff → autonomous delivery → one PR to main |
+| Triage incoming issues | `/triage` |
 | Start a new project | `/new-project <what you're building>` — architecture + guardrails before features |
 | Assess an inherited project | `/audit` — scored report + phased remediation plan, no code changes |
 | Set up or refresh CLAUDE.md | `/context` — scans the repo, keeps your own notes intact |
@@ -137,9 +137,9 @@ once; Claude consults it on every design, implementation, and review.
   `parasbhatiwal` registered?) and `/plugin list` (is `team-skills@parasbhatiwal`
   installed/enabled?). If the marketplace is missing, re-run
   `/plugin marketplace add parasbhatiwal/paras-claude-marketplace@stable`.
-- Marketplace add/install fails → you likely lack repo access. Check
-  `gh auth status` and that `git ls-remote git@github.com:parasbhatiwal/paras-claude-marketplace`
-  works; ask an owner to add you as a collaborator if not.
+- Marketplace add/install fails → check network and that
+  `git ls-remote https://github.com/parasbhatiwal/paras-claude-marketplace`
+  works. `/work` and `/triage` also need `gh auth status` to pass.
 - Commit blocked unexpectedly → read the hook's message; it names the gate.
   If the gate is wrong (e.g. a generated file counted as source), fix the
   glob list in `.githooks/_lib.sh` via a PR — don't bypass.
