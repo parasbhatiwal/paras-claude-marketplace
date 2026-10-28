@@ -18,7 +18,9 @@ than with documents nobody re-reads.
 - [Skills](#skills)
   - [Standards](#standards)
   - [Project lifecycle](#project-lifecycle)
-  - [The delivery workflow](#the-delivery-workflow)
+  - [The v2 workflow: grill once, deliver without you](#the-v2-workflow-grill-once-deliver-without-you)
+  - [Coverage vs. AI Hero](#coverage-this-plugin-vs-ai-heros-skills)
+  - [The attended delivery workflow](#the-attended-delivery-workflow-v1-path)
   - [Maintenance](#maintenance)
 - [Enforcement: what actually blocks you](#enforcement-what-actually-blocks-you)
 - [Language support](#language-support)
@@ -47,8 +49,10 @@ Then, in any project:
 |---|---|
 | Starting something new | `/new-project a billing service for…` |
 | Inherited a codebase | `/audit` |
-| Building a feature | `/feature add saved payment methods` |
-| Fixing a bug | `/bug checkout 500s when the cart is empty` |
+| Not sure where to start | `/go` (describe anything; it picks the flow) |
+| Building a feature | `/work add saved payment methods` |
+| Fixing a bug | `/work checkout 500s when the cart is empty` |
+| Issues piling up | `/triage` |
 | No CLAUDE.md yet | `/context` |
 | Nothing stops bad code | `/rules` |
 | Shipping a version | `/release` |
@@ -57,9 +61,8 @@ Then, in any project:
 
 ## Installation
 
-This repo is **private** — you need GitHub read access (collaborator or org
-member) plus working git credentials (SSH key or `gh auth login`) before
-either command resolves.
+This repo is **public** — no access grant is needed, only `git` and network
+access.
 
 ```
 /plugin marketplace add parasbhatiwal/paras-claude-marketplace@stable
@@ -67,7 +70,8 @@ either command resolves.
 ```
 
 `@stable` pins to the `stable` branch, which only ever fast-forwards from a
-reviewed `main`. Drop it only if you deliberately want to track `main`.
+reviewed `main` (automatically, by `release-stable`, when the plugin version
+moved). Drop it only if you deliberately want to track `main`.
 
 Pick a scope in the picker that follows:
 
@@ -97,11 +101,15 @@ fallback and per-developer onboarding: [`examples/ONBOARDING.md`](examples/ONBOA
 2. **Rules are enforced per project.** `project-rules` turns the canon into
    this repo's formatter, linter, strict types, boundary rules, coverage gates,
    security scanning, hooks, and CI. A rule that isn't a gate is a wish.
-3. **Work flows through orchestrators.** `/feature` and `/bug` walk the whole
-   path — design → TDD → review → gated commit → push → PR — stopping at every
-   gate and asking before anything leaves your machine.
+3. **Work starts with a grill, then runs without you.** `/go` routes any
+   request; `/work` interviews you until every decision is settled (the last
+   point a human is needed), then `deliver` builds it — usually in the cloud —
+   on one feature branch with a PR per subtask, ending in a single PR to
+   `main` that only you merge. In attended sessions the commit/push/PR gates
+   still ask first.
 4. **Claude keeps its own context.** `/context` writes `CLAUDE.md`, and a
-   session hook notices when it has drifted.
+   session hook notices when it has drifted. The same hook reminds every
+   session to route task requests through `route`/`work` before coding.
 5. **Everything is language-agnostic.** Checks resolve through a standard task
    interface, so the same gates work in Go, Python, Rust, JVM, .NET, Ruby, PHP
    or JS.
@@ -131,36 +139,60 @@ also name one directly ("run the threat-model skill on this").
 
 ## Skills
 
-All 21 skills at a glance. Most trigger themselves from how you describe the
-task; the ones with a command are the deliberate entry points.
+All 41 plugin skills (plus the repo-level `ship-change`). Most trigger
+themselves from how you describe the task; the ones with a command are the
+deliberate entry points.
 
 | Skill | Command | Use it when | You get |
 |---|---|---|---|
+| **Entry & v2 workflow** | | | |
+| `route` | `/go` | Unsure which flow fits | Reads repo + request, picks and runs the right skill |
+| `work` | `/work`, `/feature`, `/bug` | Handing over any task | Intake → grill → tickets → handoff gate |
+| `intake` | — | Turning input into one GitHub issue | A labelled issue ready for grilling |
+| `grill` | — | Settling every decision | Decision log, glossary, business issues split out |
+| `spec-and-tickets` | — | After grilling | Spec on an epic + vertical-slice sub-issues with blocking edges |
+| `handoff-gate` | — | Before autonomous delivery | Zero-questions test per ticket, agent briefs, labels |
+| `deliver` | `/deliver` | Tickets are `ready-for-agent` | Integration branch, subtask PRs, one final PR to main |
+| `triage` | `/triage` | Raw incoming issues and PRs | State-machine labels, verified claims, briefs |
+| `setup-workflow` | — | First run in a repo | Labels, protection check, cloud-readiness checklist |
+| **Planning & research** | | | |
+| `wayfinder` | — | Effort too big or foggy for one session | Map of decision tickets, hand-off to spec |
+| `prototype` | — | A design question needs a runnable answer | Logic demo or UI variants, thrown away after |
+| `research` | — | A fact outside the repo is needed | Cited Markdown from primary sources |
+| `to-questionnaire` | — | The answer is in someone else's head | A questionnaire aimed at the gap |
+| `wizard` | — | Only a human can take the step | Interactive bash walkthrough |
+| `domain-modeling` | — | Fuzzy terms; ADR-worthy decisions | `GLOSSARY.md` kept sharp |
 | **Standards** | | | |
 | `engineering-principles` | — | Always — consulted by design, implement, review | The rules everything else defers to |
 | `project-rules` | `/rules` | Standards aren't enforced by anything | Configured gates + `docs/engineering-rules.md` |
+| `codebase-design` | — | Shaping a module or placing a seam | Deep-module vocabulary, design-it-twice |
+| `writing-for-agents` | — | Writing a skill or `CLAUDE.md` | Pointer, hierarchy and pruning rules |
 | **Lifecycle** | | | |
 | `bootstrap-project` | `/new-project` | Starting from nothing | Architecture, ADRs, guardrails, walking slice |
 | `principles-audit` | `/audit` | You inherited a codebase | Scored report + `docs/engineering-remediation-plan.md` |
 | `ux-audit` | — | The product's UI/UX needs a redesign or modernization pass | Cited audit + `docs/ui-ux-implementation-plan.md` |
 | `project-context` | `/context` | Claude keeps re-learning the repo | `CLAUDE.md` that maintains itself |
-| **Delivery** | | | |
-| `feature-ticket` | `/feature` | Building a feature end to end | Branch → PR, every gate enforced |
-| `bug-ticket` | `/bug` | Fixing a bug end to end | Repro test → fix → PR |
+| `improve-architecture` | — | Spare time; no seam to lock a bug down | HTML report of deepening opportunities |
+| **Delivery (attended and building blocks)** | | | |
+| `feature-ticket` | — | You will watch a feature end to end | Branch → PR, every gate enforced |
+| `bug-ticket` | — | You will watch a fix end to end | Repro test → fix → PR |
 | `brainstorm` | — | Deciding an approach | 2–4 options, a recommendation, TDD-able chunks |
 | `threat-model` | — | Auth, payments, PII, uploads, tenancy | Ranked threats, each with a test |
 | `adr` | `/adr` | A decision that's expensive to reverse | `docs/adr/NNNN-*.md` |
-| `implement` | — | Writing production code | Red → green → refactor, no shortcuts |
-| `diagnose` | — | Understanding a bug | A failing repro test + root cause |
+| `implement` | — | Writing production code | Red → green → refactor at agreed seams |
+| `diagnose` | — | Any bug, flake or regression | Tight red loop, root cause, regression test |
 | `run-tests` | — | "Do the tests pass?" | A verdict you can trust in any language |
-| `review-changes` | — | Before committing | Findings fixed, suite green |
-| `commit-changes` | — | Committing | Gated, compliant commit — **asks first** |
-| `push-branch` | — | Pushing | Never to `main`, suite re-verified — **asks first** |
-| `open-pr` | — | Raising a PR | Team PR body — **asks first** |
-| **Maintenance** | | | |
+| `review-changes` | — | Before committing | Standards + Spec axes, findings fixed, suite green |
+| `commit-changes` | — | Committing | Gated, compliant commit — **asks first** (unless autonomous `deliver`) |
+| `push-branch` | — | Pushing | Never to `main`, suite re-verified — **asks first** (unless autonomous `deliver`) |
+| `open-pr` | — | Raising a PR | Team PR body — **asks first** (unless autonomous `deliver`) |
+| **Maintenance & session** | | | |
 | `release` | `/release` | Cutting a version | Version, changelog, tag |
 | `dependency-upgrade` | — | Updates or Dependabot PRs | Risk-batched, verified upgrades |
-| `ship-change` | — | Changing **this** marketplace repo | The full release flow, incl. the silent steps |
+| `retro` | — | A build just ended, especially a rough one | Environment improvements: checks, standards, pointers |
+| `handoff` | — | Work moves to a new harness, directory or person | Portable summary file |
+| `wait-what` | — | You did not follow Claude's last message | A plain-language re-pitch |
+| `ship-change` | — | Changing **this** marketplace repo | The full release flow (repo-level, not shipped) |
 
 ---
 
@@ -287,19 +319,21 @@ and GitLab trackers; this plugin is GitHub-only.
 
 ### The attended delivery workflow (v1 path)
 
-Two orchestrators sequence the atomic skills; each stage is its own skill and
-each gate is hard.
+For work you will watch from start to finish in one session. Ask for
+`feature-ticket` or `bug-ticket` by name (the `/feature` and `/bug` commands now
+run `work` instead). Two orchestrators sequence the atomic skills; each stage is
+its own skill and each gate is hard.
 
 ```
-/feature → brainstorm → [threat-model] → [adr] → implement (per chunk, TDD)
+feature-ticket → brainstorm → [threat-model] → [adr] → implement (per chunk, TDD)
            → review-changes → commit-changes* → push-branch* → open-pr*
 
-/bug     → diagnose (failing repro test) → implement (fix) → review-changes
+bug-ticket     → diagnose (failing repro test) → implement (fix) → review-changes
            → commit-changes* → push-branch* → open-pr*
                                                     * = always asks you first
 ```
 
-**`feature-ticket`** (`/feature`) — the default way to build anything. Branches,
+**`feature-ticket`** — the attended way to build a feature. Branches,
 designs the approach, breaks it into chunks each small enough for one
 red→green→refactor, implements them in order with the suite green between
 chunks, reviews the whole diff, then walks the three ask-gates. A failed gate
@@ -308,7 +342,7 @@ than patching around it.
 *Note: it will stop and ask if the approach materially affects you — API shape,
 UX, cost. That question is the point, not friction.*
 
-**`bug-ticket`** (`/bug`) — same spine, different opening move: **no fix code
+**`bug-ticket`** — same spine, different opening move: **no fix code
 exists until a failing test reproduces the bug.** If diagnosis shows the "bug"
 is intended behavior or a requirements gap, it stops and says so instead of
 inventing a fix. Sibling occurrences found during diagnosis each get their own
@@ -337,7 +371,7 @@ Notes that trip people up:
   nothing is exactly how a broken test config hides for months.
 - **`review-changes` is one round by design.** The second round is a human on
   the PR; endless self-review rounds stall delivery.
-- **The three ask-gates never auto-approve**, even inside `/feature` or `/bug`,
+- **The three ask-gates never auto-approve**, even inside `feature-ticket` or `bug-ticket`,
   even for a one-line change. Approving a commit is not approving the push.
 - **`threat-model` is worth running on a small feature too** — fifteen minutes
   beats an incident, and its output feeds straight into the chunk list.
@@ -378,7 +412,14 @@ Three independent layers. Skills advise; these decide.
   either `Co-Authored-By` trailer, force-push and history rewrites on
   `main`/`master`, and self-merging a PR unless you're on the allowlist
   (`TEAM_SELF_MERGE_ALLOWLIST`, default: the owner account).
-- `session-context.mjs` nudges when `CLAUDE.md` has drifted.
+- `session-context.mjs` nudges when `CLAUDE.md` has drifted, and tells every
+  session to route task requests through `route`/`work` before writing code
+  (questions are answered directly).
+- **Autonomous mode** (`TEAM_AUTONOMOUS=1`, set by the cloud runtime, never by
+  the agent): the guard also allows pushing feature/subtask branches and
+  merging PRs *into* them, and blocks any push or merge to `main`/`master`
+  and `gh pr merge --admin`; it fails closed if a PR's base branch cannot be
+  resolved. See `plugins/team-skills/references/autonomous-mode.md`.
 
 **2. Committed git hooks** (per project, from `examples/githooks/`)
 
@@ -401,7 +442,10 @@ Three independent layers. Skills advise; these decide.
   and required to carry a `break-glass` PR label.
 
 **Ask-first, always:** commit, push, PR, tag, publish. Even inside an
-orchestrator, even for a one-line change.
+orchestrator, even for a one-line change. The single exception is autonomous
+`deliver` in a cloud session (`TEAM_AUTONOMOUS=1`), which commits, pushes and
+opens PRs on feature and subtask branches without asking — and can never touch
+`main`; the final PR is merged by a human.
 
 ---
 
@@ -463,8 +507,8 @@ Step 3  Phase 0      From that plan: test runner + CI + hooks + characterization
                      tests on the highest-churn code. Nothing else is safe first
 Step 4  /rules       Turn on gates ONE at a time, ratcheted: enable globally,
                      allowlist today's violations, forbid adding to it, shrink
-Step 5  /feature     Start working normally. New code meets the bar; old code
-        /bug         improves where you touch it (Phase 3 of the plan)
+Step 5  /work        Start working normally. New code meets the bar; old code
+                     improves where you touch it (Phase 3 of the plan)
 ```
 
 The manual copying, once you're ready for gates (step 3–4):
@@ -490,11 +534,15 @@ everything else.
 
 ## Everyday recipes
 
-**"Build this feature."** → `/feature <description>`. Confirm the approach when
-asked, then approve commit / push / PR at the three gates.
+**"I'm not sure which skill."** → `/go <anything>`.
 
-**"Production is broken."** → `/bug <symptom>`. You'll get a failing repro test
-and a root cause before any fix is written.
+**"Build this feature."** → `/work <description or issue #>`. Answer the grill
+thoroughly, choose cloud or local delivery, and review the one PR at the end.
+
+**"Production is broken."** → `/work <symptom>`. The grill reproduces it with
+a failing test first, then plans the fix.
+
+**"Issues are piling up."** → `/triage`.
 
 **"Is this codebase any good?"** → `/audit`. Read the score table and the three
 Monday items at the end of the plan.
@@ -520,23 +568,32 @@ these."
 ```
 .claude-plugin/marketplace.json      # marketplace index
 .claude/skills/ship-change/          # repo-level: how a change gets released
+.github/
+  workflows/validate.yml             # CI on every PR
+  workflows/upstream-sync.yml        # weekly: adapt AI Hero changes into one PR
+  workflows/release-stable.yml       # fast-forward stable when the version moved
+  prompts/upstream-sync.md           # the agent's instructions for the sync
 plugins/team-skills/
   .claude-plugin/plugin.json
-  skills/                            # 20 skills (see above)
-  commands/                          # /feature /bug /new-project /audit
-                                     # /rules /context /adr /release
+  skills/                            # 41 skills (see above)
+  commands/                          # /go /work /deliver /triage /feature /bug
+                                     # /new-project /audit /rules /context /adr /release
   hooks/
-    guard-git.mjs   + policy.mjs           # git guardrails (rules are pure/tested)
-    session-context.mjs + context-freshness.mjs   # CLAUDE.md drift check
+    guard-git.mjs   + policy.mjs           # git guardrails + autonomous mode (pure/tested)
+    session-context.mjs + context-freshness.mjs + workflow-nudge.mjs
   references/
-    toolchains.md                    # task interface + per-language detection
-    testing-bootstrap.md             # test setup for every ecosystem
-    conventional-commits.md          # commit format
-    pr-description.md                # PR body structure
+    workflow-labels.md  agent-brief.md  issue-tracker-github.md
+    autonomous-mode.md  code-smells.md            # v2 workflow
+    toolchains.md  testing-bootstrap.md           # task interface, test setup
+    conventional-commits.md  pr-description.md    # commit format, PR body
+  THIRD_PARTY_NOTICES.md             # MIT credit for the adapted AI Hero skills
 scripts/
-  validate-skills.mjs                # manifest/skill/reference validation,
-                                     # incl. .claude/skills/
-  check-version-bump.mjs             # skills or hooks changed ⇒ version moves
+  validate-skills.mjs                # manifest/skill/reference validation
+  check-version-bump.mjs             # skills or hooks changed => version moves
+  upstream-diff.mjs                  # diff AI Hero against upstream.json
+  upstream-guard.mjs                 # confines the sync agent to content files
+  release-needed.mjs                 # should stable be fast-forwarded?
+upstream.json                        # AI Hero version + per-file hashes we ported from
 tests/                               # node --test suite over hooks and scripts
 examples/                            # per-project templates
   githooks/ (_lib.sh, commit-msg, pre-commit, pre-push)
@@ -554,10 +611,10 @@ You installed the plugin pinned to `@stable`. Here is what has to happen for a
 change the maintainer makes to land on your machine:
 
 ```
-maintainer merges to main   →  nothing reaches you yet
-maintainer fast-forwards    →  stable is the published ref — THIS is the release
-  stable
-plugin version changed?     →  yes → you get it     no → silently skipped
+maintainer merges to main   →  release-stable checks the plugin version
+plugin version moved?       →  yes → stable is fast-forwarded (THIS is the release)
+                               no  → nothing published (Claude Code would skip it)
+you                         →  get it on your next marketplace refresh
 ```
 
 Two things are worth knowing:
@@ -567,17 +624,10 @@ the resolved `version` matches what you already have. A change published under
 an unchanged version reaches nobody, with no error. (CI enforces the bump, so
 this shouldn't happen — but it's why it's enforced.)
 
-**Auto-update depends on how the marketplace was cloned.** The background
-refresh disables git credential helpers, so it can't authenticate to this
-**private** repo over HTTPS; it falls back to a full re-clone that can time
-out. SSH is unaffected. The `owner/repo` form in [Installation](#installation)
-clones over SSH by default, so following those instructions with an SSH key in
-`ssh-agent` gives you working auto-updates.
-
-| How you added it | Background auto-update |
-|---|---|
-| `parasbhatiwal/paras-claude-marketplace@stable` (SSH, the default) | ✅ works |
-| An `https://` URL, or `CLAUDE_CODE_PLUGIN_PREFER_HTTPS=1` | ⚠️ unreliable |
+**Auto-update works over SSH and HTTPS.** The repo is public, so the
+background refresh no longer needs credentials. (While it was private, HTTPS
+clones updated unreliably; if you added the marketplace back then and updates
+stall, remove and re-add it.)
 
 Force an update at any time:
 
@@ -608,13 +658,14 @@ these steps fail *silently* — nothing errors, the change just never arrives.
 5. verify        npm run lint && npm run validate && npm test
 6. PR            gh pr create  →  validate must be green
 7. merge         gh pr merge --merge                  main updated, users unaffected
-8. PUBLISH       git checkout stable
-                 git merge --ff-only main && git push origin stable   ← silent if skipped
-9. confirm       git rev-parse --short origin/main origin/stable      both must match
+8. PUBLISH       automatic: release-stable fast-forwards stable when the version moved
+                 (manual fallback if Actions is down: git checkout stable,
+                 git merge --ff-only main, git push origin stable)
+9. confirm       both refs must match: compare origin/main and origin/stable
 ```
 
 Skip steps 4 and 8 only when nothing under `plugins/` changed (a repo-level
-skill, a script, this README). CI's `check-version-bump` fails the PR whenever
+skill, a script, this README); `release-stable` skips itself in that case. CI's `check-version-bump` fails the PR whenever
 the bump was actually required.
 
 **`.claude/skills/ship-change/SKILL.md` is canonical** for the details this
@@ -625,7 +676,9 @@ not repeated here so the two cannot drift apart.
 
 ### What CI checks
 
-`validate.yml` runs on every PR: syntax-checks the scripts, shellchecks the
+Three workflows run here. `upstream-sync.yml` (weekly) and `release-stable.yml`
+(on merge) are described in [The v2 workflow](#the-v2-workflow-grill-once-deliver-without-you)
+and `ship-change`. `validate.yml` runs on every PR: syntax-checks the scripts, shellchecks the
 shell templates, runs the validator (manifests, frontmatter, every referenced
 skill exists, every explicitly-relative reference resolves, plugin names
 agree, `.claude/skills/` held to the same bar), runs the full test suite, and
@@ -636,17 +689,21 @@ version-specific breakage surfaces there and nowhere else.
 
 Released versions and what changed in each: [`CHANGELOG.md`](CHANGELOG.md).
 
-### Repo protection (maintainers, one-time)
+### Repo protection
 
-- Protect `main`: require PR, the `validate` check, CODEOWNERS review.
-- Keep `stable` fast-forward-only from `main`.
+The repo is public and protected with two rulesets:
 
-> **Known limitation (as of Jul 2026):** branch protection and CODEOWNERS
-> enforcement are not available on private repos under the GitHub Free plan
-> (API returns 403). Options: (a) upgrade to Pro/Team, (b) make this repo
-> public — skills and hooks contain no secrets, or (c) accept convention-only
-> protection here. The `validate` CI still runs on every PR either way; what's
-> missing is the server-side block on direct pushes to `main`.
+- **`main`:** changes need a pull request and a green `validate`; force-push and
+  deletion are blocked. Only a repo admin can bypass (for example for a bot PR
+  that cannot trigger `validate`).
+- **`stable`:** force-push and deletion are blocked, so it can only move
+  forward. Only collaborators with write access can push to it; keep that
+  list to the maintainers.
+
+First-time outside contributors need approval before workflows run on their
+PRs. Upstream sync setup: a `CLAUDE_CODE_OAUTH_TOKEN` secret (from
+`claude setup-token`, set by hand) and "Allow GitHub Actions to create pull
+requests" turned on in Settings → Actions → General.
 
 ---
 
@@ -683,10 +740,11 @@ Cobertura XML, or it's in an unusual path — configure the reporter, or set
 
 **I changed a skill but my teammate still has the old one.** Almost always one
 of the two silent steps in [the flow](#the-flow): the plugin `version` wasn't
-bumped, or `stable` wasn't fast-forwarded. Check both:
+bumped (so `release-stable` skipped it), or `stable` wasn't fast-forwarded.
+Check both:
 
 ```sh
-git rev-parse --short origin/main origin/stable        # must match
+git rev-parse --short origin/main; git rev-parse --short origin/stable   # must match
 git show origin/stable:plugins/team-skills/.claude-plugin/plugin.json | grep version
 ```
 

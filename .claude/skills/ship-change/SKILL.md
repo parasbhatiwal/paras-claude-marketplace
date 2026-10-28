@@ -128,9 +128,9 @@ git rev-parse --short origin/main origin/stable
 ## Stage 8 — Report
 
 Tell the user: the version shipped, what teammates will receive, and how.
-Background auto-update reaches SSH-cloned marketplaces; HTTPS clones of this
-private repo update unreliably and may need
-`/plugin marketplace update parasbhatiwal` + `/plugin update team-skills@parasbhatiwal`.
+The repo is public, so background auto-update works over SSH and HTTPS; a
+stalled client can run `/plugin marketplace update parasbhatiwal` +
+`/plugin update team-skills@parasbhatiwal`.
 
 ## Rolling back
 
