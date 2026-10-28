@@ -75,7 +75,21 @@ function payloadSessionId() {
   }
 }
 
+// Set by the cloud runtime's environment, never by the agent: the hook reads
+// its own process env, so `TEAM_AUTONOMOUS=1 git push` typed in a command does
+// not reach it. See references/autonomous-mode.md.
+const autonomous = process.env.TEAM_AUTONOMOUS === "1";
+
 const verdict = evaluateCommand(command, {
+  autonomous,
+  getCurrentBranch: () => {
+    try {
+      return execSync("git rev-parse --abbrev-ref HEAD", { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
+    } catch {
+      return null;
+    }
+  },
+  getPrBase: (ref) => gh(`pr view${ref ? ` ${ref}` : ""} --json baseRefName --jq .baseRefName`),
   allowlist,
   getMerger: () => gh("api user --jq .login"),
   getPrAuthor: (ref) => gh(`pr view${ref ? ` ${ref}` : ""} --json author --jq .author.login`),

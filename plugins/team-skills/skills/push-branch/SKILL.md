@@ -19,7 +19,14 @@ Pushing publishes work to the team. It is a gated, ask-first action.
    carry both required `Co-Authored-By` trailers. A non-compliant commit →
    BLOCK; fix it before pushing (see `commit-changes`).
 
-## Approval — ALWAYS ask
+## Approval — ALWAYS ask (except autonomous delivery)
+
+**Autonomous exception.** If `printenv TEAM_AUTONOMOUS` is `1` and `deliver`
+invoked this skill, push the feature or subtask branch after the checks above
+without the prompt. Pushing main/master is blocked by the session hook; if you
+are on it, stop. Elsewhere the rule below holds. See
+`../../references/autonomous-mode.md`.
+
 
 Show the user: target remote/branch, the commit list being pushed, and the
 suite verdict. Ask for explicit approval before running `git push`. Never

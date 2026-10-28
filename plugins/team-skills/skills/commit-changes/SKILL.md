@@ -59,7 +59,14 @@ Co-Authored-By: Claude <noreply@anthropic.com>
 
 Fill the human line from `git config user.name` / `git config user.email`.
 
-## Approval — ALWAYS ask
+## Approval — ALWAYS ask (except autonomous delivery)
+
+**Autonomous exception.** If `printenv TEAM_AUTONOMOUS` is `1` and `deliver`
+invoked this skill on a feature or subtask branch, there is no one to ask:
+run every gate below exactly as normal, then commit without the prompt. A
+failed gate still blocks. Anywhere else — including a human running `deliver`
+locally — the rule below holds. See `../../references/autonomous-mode.md`.
+
 
 Before running `git commit`, show the user:
 - The gate results (one line each, pass/fail)

@@ -5,6 +5,10 @@ description: Use this skill when the user hands over a feature to build end-to-e
 
 # Feature Ticket (orchestrator)
 
+> **v2:** work handed to an agent starts with the `work` skill (intake → grill
+> → handoff → `deliver`). This skill remains the **attended, single-session**
+> path for when the human is present for the whole build.
+
 Drive a feature from idea to PR by running the team's atomic skills IN ORDER.
 This skill sequences; the child skills do the work. Never skip a stage, never
 reorder, never inline a stage's logic instead of invoking its skill.

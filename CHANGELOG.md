@@ -7,6 +7,61 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.0.0] — 2026-10-28
+
+Major: the plugin's primary flow is now **grill once, deliver without a
+human**. Adapts Matt Pocock's skills (MIT; `THIRD_PARTY_NOTICES.md`).
+
+### Added
+
+- **`work` skill + `/work`**: the new entry point. Intake → grill → spec and
+  tickets → handoff gate → hand over (cloud or local).
+- **`intake`, `grill`, `spec-and-tickets`, `handoff-gate`, `deliver` skills.**
+  `deliver` builds on one integration branch from main, one `--t<n>` branch
+  and PR per subtask merged into it, and a single final PR to main.
+- **Autonomous mode** (`TEAM_AUTONOMOUS=1`): the git guard lets an agent
+  push feature/subtask branches and merge PRs *into* them, and blocks any push
+  or merge to main/master and `gh pr merge --admin`. Fails closed when a PR's
+  base cannot be resolved. `commit-changes`, `push-branch` and `open-pr` skip
+  their ask-gate only in this mode, only under `deliver`.
+- References: `workflow-labels.md`, `agent-brief.md`,
+  `issue-tracker-github.md`, `autonomous-mode.md`.
+- `/deliver` command.
+- **`route` skill + `/go`**: the front door. Reads the request, the repo and
+  issue labels; picks the right skill or flow (including resuming an
+  interrupted `deliver`), announces why, and runs it.
+- **Adapted AI Hero skills (MIT):** `triage` (+ `/triage`), `wayfinder`,
+  `prototype`, `research`, `retro`, `codebase-design`, `improve-architecture`,
+  `domain-modeling`, `handoff`, `wait-what`, `to-questionnaire`, `wizard`,
+  `writing-for-agents`, plus `setup-workflow`.
+- **Workflow nudge (SessionStart hook):** every session in a git repo is told
+  to route task requests through `route`/`work` before writing code, scoped so
+  plain questions are answered directly. The `project-context` skill and the
+  `CLAUDE.md` template carry the same line, so the entry point is stated, not
+  merely hoped for from skill-description matching.
+- `references/code-smells.md` (Fowler smell baseline).
+
+### Improved
+
+- **`diagnose`**: feedback-loop-first (tight, red-capable, deterministic,
+  fast), minimization, ranked falsifiable hypotheses, tagged instrumentation,
+  seam-or-finding, cleanup — plus the existing root-cause, siblings, blast
+  radius.
+- **`implement`**: pre-agreed seams, vertical slices, no tautological tests,
+  verify through the interface, mock only at system boundaries.
+- **`review-changes`**: parallel Standards and Spec axes with the smell
+  baseline, alongside `/code-review`, security routing and the principles pass.
+- **`pr-description`**: smallest-visual summary, before/after evidence,
+  one-way/two-way door and blast radius; autonomous PR sections.
+
+### Changed
+
+- **Breaking:** `/feature` and `/bug` now run `work` instead of
+  `feature-ticket` / `bug-ticket`, which remain as the attended
+  single-session path (name them directly).
+- Stale-`CLAUDE.md` push reminder is skipped in autonomous mode; `deliver`
+  refreshes it once at the end.
+
 ## [0.8.1] — 2026-08-16
 
 ### Fixed

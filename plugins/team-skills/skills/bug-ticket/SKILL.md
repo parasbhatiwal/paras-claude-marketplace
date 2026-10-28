@@ -5,6 +5,10 @@ description: Use this skill when the user hands over a bug to fix end-to-end ("f
 
 # Bug Ticket (orchestrator)
 
+> **v2:** work handed to an agent starts with the `work` skill (intake → grill
+> → handoff → `deliver`). This skill remains the **attended, single-session**
+> path for when the human is present for the whole fix.
+
 Drive a bug from report to PR by running the team's atomic skills IN ORDER.
 The defining rule: **the bug must be reproduced by a failing test before any
 fix is attempted.**

@@ -17,6 +17,9 @@ This repo uses the team's Claude workflow (team-skills plugin):
 - **Standards**: the `engineering-principles` skill governs all code here —
   boundaries, SOLID/DRY, OWASP, typed errors, operability. Fix causes, not
   symptoms; no patchwork.
+- **Any task**: hand it over with `/go` (or just describe it) — the `route`
+  skill picks the flow; `/work` grills first, then autonomous `deliver`.
+  Don't start coding a task that hasn't been through the grill.
 - **Features**: `/feature <ticket>` — brainstorm → TDD → review → gated commit
   → push → PR.
 - **Bugs**: `/bug <report>` — failing repro test first, then fix.

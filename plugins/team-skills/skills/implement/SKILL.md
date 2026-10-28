@@ -5,6 +5,10 @@ description: Use this skill whenever writing or changing production code for a t
 
 # Implement (TDD)
 
+Adapted in part from Matt Pocock's TDD skill (MIT; see
+`THIRD_PARTY_NOTICES.md`). Read `GLOSSARY.md` (if present) so test names and
+interface vocabulary match the domain, and respect ADRs in the area.
+
 Every code change follows red → green → refactor. This is mandatory, not a
 preference: commits that add source code without tests are rejected by the
 team's git hooks and CI, so skipping TDD only creates rework.
@@ -21,6 +25,17 @@ team's git hooks and CI, so skipping TDD only creates rework.
    directory). Do not write untested code as a workaround.
 3. Find existing test files near the code being changed and match their
    conventions (file location, naming, helpers, setup patterns).
+
+## Seams: where tests go
+
+A **seam** is the public boundary you test at — where behavior is observable
+without reaching inside (see `codebase-design`). Tests live at seams, never
+against internals. **Test only at pre-agreed seams**: they come from the
+ticket's *Test seams* (settled in the grill). Attended with none agreed: name
+the proposed seams, with a line each on what they catch and what they miss,
+and confirm before writing a test. Unattended with none stated: choose the
+highest seam that reaches the behavior, and record the choice under *Decisions
+the agent made* in the PR — never write a test at an unconfirmed seam silently.
 
 ## The cycle
 
@@ -56,6 +71,22 @@ important edge cases (empty input, error paths, boundaries).
 - Never mock the thing under test; mock only true externals (network, clock,
   fs) and prefer real implementations where cheap.
 - Test behavior, not implementation details — tests should survive refactors.
+- **Vertical slices, not horizontal.** One test → one implementation →
+  repeat, each test a tracer bullet that responds to what the last cycle
+  taught you. Writing all tests first, then all code, tests *imagined*
+  behavior and the shape of things.
+- **No tautological tests.** An assertion that recomputes the expected value
+  the way the code does (`expect(add(a,b)).toBe(a+b)`) passes by
+  construction. Expected values come from an independent source: a literal, a
+  worked example, the spec.
+- **Verify through the interface.** `createUser` is tested by retrieving the
+  user through the public interface, not by querying the database behind it.
+  Tests that break on a refactor that changed no behavior are
+  implementation-coupled.
+- **Mock only at system boundaries** — external APIs, time/randomness, the
+  filesystem or database when a real one is not cheap. Never your own modules.
+  Design for it: inject dependencies, prefer SDK-style per-operation
+  interfaces over one generic fetcher.
 - If mid-cycle you discover the chunk is too big, stop and split it; don't
   push through with a sprawling test.
 

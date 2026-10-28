@@ -268,3 +268,60 @@ describe("text that merely looks like a command", () => {
     assert.ok(!isBlocked(commit(`feat(x): a thing\n\n${TRAILERS}`)));
   });
 });
+
+describe("autonomous mode (cloud delivery, no human at the keyboard)", () => {
+  const auto = (extra = {}) => ({
+    autonomous: true,
+    getCurrentBranch: () => "feat/12-export--t3",
+    getPrBase: () => "feat/12-export",
+    ...extra,
+  });
+
+  test("changes nothing unless the runtime turned it on", () => {
+    // The flag comes from the environment the hook runs in, never from the
+    // command text — an agent cannot grant itself autonomy by typing it.
+    assert.ok(isBlocked("gh pr merge 5", { getMerger: () => "bot", getPrAuthor: () => "bot", getPrBase: () => "feat/x" }));
+  });
+
+  test("allows pushing a feature or subtask branch", () => {
+    assert.ok(!isBlocked("git push -u origin feat/12-export--t3", auto()));
+  });
+
+  test("blocks pushing to main or master", () => {
+    assert.ok(isBlocked("git push origin main", auto()));
+    assert.ok(isBlocked("git push origin HEAD:master", auto()));
+  });
+
+  test("blocks a bare push while checked out on the default branch", () => {
+    assert.ok(isBlocked("git push", auto({ getCurrentBranch: () => "main" })));
+  });
+
+  test("lets an agent merge a subtask PR into the feature branch, even its own", () => {
+    const deps = auto({ getMerger: () => "bot", getPrAuthor: () => "bot" });
+    assert.ok(!isBlocked("gh pr merge 41 --merge", deps));
+  });
+
+  test("never lets an agent merge into main — that merge is the human's", () => {
+    const deps = auto({ getPrBase: () => "main" });
+    assert.match(reason("gh pr merge 41 --merge", deps), /main/);
+    assert.ok(isBlocked("gh pr merge 41 --merge", auto({ getPrBase: () => "master" })));
+  });
+
+  test("fails closed when the PR base cannot be resolved", () => {
+    assert.ok(isBlocked("gh pr merge 41", auto({ getPrBase: () => null })));
+  });
+
+  test("blocks --admin merges", () => {
+    assert.ok(isBlocked("gh pr merge 41 --admin", auto()));
+  });
+
+  test("does not stop the first push over stale CLAUDE.md — deliver refreshes it once, at the end", () => {
+    const deps = auto({ getContextFreshness: () => ({ status: "stale", reasons: ["x"], action: "refresh" }) });
+    assert.ok(!isBlocked("git push origin feat/12-export", deps));
+  });
+
+  test("keeps every universal rule", () => {
+    assert.ok(isBlocked(`git push ${["--no", "verify"].join("-")} origin feat/x`, auto()));
+    assert.ok(isBlocked("git push --force origin main", auto()));
+  });
+});

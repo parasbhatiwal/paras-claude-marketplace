@@ -4,8 +4,9 @@
  *
  * Checks whether the project's CLAUDE.md has drifted from the repository and,
  * if so, injects a short notice so the session starts by refreshing context
- * instead of working from stale facts. Silent when the context is fresh —
- * this runs on every session, so it must be fast and quiet.
+ * instead of working from stale facts. Every session in a git repository also
+ * gets the one-paragraph workflow nudge (`workflow-nudge.mjs`). This runs on
+ * every session, so it must be fast and quiet.
  *
  * Noticing is all this does. Insisting happens at push time, in
  * `guard-git.mjs`: a notice at the start of a session is read once and then
@@ -19,6 +20,7 @@ import { readFileSync } from "node:fs";
 
 import { assessContextFreshness, renderNotice } from "./context-freshness.mjs";
 import { repositoryFacts } from "./repo-facts.mjs";
+import { withWorkflowNudge } from "./workflow-nudge.mjs";
 
 const emit = (context) => {
   if (context) {
@@ -44,4 +46,4 @@ const facts = repositoryFacts(cwd);
 // Only meaningful inside a git repository.
 if (!facts) emit(null);
 
-emit(renderNotice(assessContextFreshness(facts)));
+emit(withWorkflowNudge(renderNotice(assessContextFreshness(facts))));
