@@ -152,7 +152,8 @@ lost adaptations (autonomous mode, brief contract, labels) — then merge it;
 `release-stable` fast-forwards `stable` automatically when the version moved.
 If the agent fails, the report lands in an issue instead; port by hand and
 refresh the baseline with `node scripts/upstream-diff.mjs <checkout>
---write-baseline` in the same PR. Needs the `ANTHROPIC_API_KEY` secret.
+--write-baseline` in the same PR. Needs the `CLAUDE_CODE_OAUTH_TOKEN` secret
+(from `claude setup-token`; counts against the owner's Claude plan).
 
 ## Rules
 

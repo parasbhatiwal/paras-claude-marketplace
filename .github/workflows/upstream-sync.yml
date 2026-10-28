@@ -6,7 +6,8 @@ name: upstream-sync
 # merges; release-stable.yml then publishes. Nothing here merges or releases.
 #
 # One-time setup (secrets are set by you, never by an agent):
-#   gh secret set ANTHROPIC_API_KEY
+#   claude setup-token            # in your own terminal; uses your Claude plan
+#   pbpaste | gh secret set CLAUDE_CODE_OAUTH_TOKEN
 #   Settings > Actions > General > "Allow GitHub Actions to create pull requests"
 # Optional: gh secret set UPSTREAM_SYNC_TOKEN (a PAT) so the validate workflow
 # also runs on the PR; PRs opened with the default token do not trigger it. The
@@ -94,7 +95,7 @@ jobs:
         if: steps.diff.outputs.changed == 'true'
         uses: anthropics/claude-code-action@v1
         with:
-          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.UPSTREAM_SYNC_TOKEN || github.token }}
           prompt: |
             Follow .github/prompts/upstream-sync.md exactly.
