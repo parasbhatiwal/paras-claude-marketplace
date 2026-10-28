@@ -90,6 +90,15 @@ remain):
 2. `review-changes` over the whole integration diff; fix every confirmed
    finding in one implementer. Judgment-call findings go in the PR body under
    *Decisions for the reviewer*, not silently decided.
+   **Manual test offer — attended runs only.** If `TEAM_AUTONOMOUS` is not `1`
+   (you are on the user's machine) and the feature has a web UI, ask one
+   yes/no question: *"Want me to test this manually in Chrome before the PR
+   goes up?"* Yes → run the `browser-verify` skill on the integration branch
+   using the epic's acceptance criteria; fix any FAIL (back through an
+   implementer) before continuing, and put the verdict in the PR's *Human
+   verification* section. No → continue and do not ask again. Autonomous
+   (cloud) runs never ask and never run it — nobody is there to answer and
+   there is no browser; the PR simply says it was not browser-tested.
 3. Apply the grill's deliverables: `GLOSSARY.md` terms, ADRs (`adr` skill).
 4. Refresh `CLAUDE.md` with `project-context` in this same change.
 5. Push; mark the draft PR **ready** (or create it with `open-pr`). Body: the

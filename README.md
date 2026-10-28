@@ -182,7 +182,7 @@ deliberate entry points.
 | `adr` | `/adr` | A decision that's expensive to reverse | `docs/adr/NNNN-*.md` |
 | `implement` | — | Writing production code | Red → green → refactor at agreed seams |
 | `diagnose` | — | Any bug, flake or regression | Tight red loop, root cause, regression test |
-| `browser-verify` | `/verify` | Test an issue, PR, branch or change by hand in Chrome | Do/Expect plan, PASS/FAIL report, recording |
+| `browser-verify` | `/verify` | Test an issue, PR, branch or change by hand in Chrome (also offered yes/no after local delivery) | Do/Expect plan, PASS/FAIL report, recording |
 | `run-tests` | — | "Do the tests pass?" | A verdict you can trust in any language |
 | `review-changes` | — | Before committing | Standards + Spec axes, findings fixed, suite green |
 | `commit-changes` | — | Committing | Gated, compliant commit — **asks first** (unless autonomous `deliver`) |

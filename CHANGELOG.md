@@ -7,6 +7,19 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.3.0] — 2026-10-28
+
+### Changed
+
+- **Local runs now offer a manual browser test.** When delivery runs on the
+  user's machine (attended; `TEAM_AUTONOMOUS` not set) and the change has a
+  web UI, `deliver`, `feature-ticket` and `bug-ticket` ask one yes/no question
+  after review: test it in Chrome (`browser-verify`) before it goes up? A FAIL
+  goes back through implementation; the verdict lands in the PR's Human
+  verification section. Cloud runs never ask and never run it, since nobody is
+  there to answer and there is no browser; the PR notes it was not
+  browser-tested. `browser-verify` itself stays available on demand.
+
 ## [2.2.0] — 2026-10-28
 
 ### Added
