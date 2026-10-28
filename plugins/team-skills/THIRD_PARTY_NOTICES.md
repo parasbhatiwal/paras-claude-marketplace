@@ -1,10 +1,18 @@
 # Third-party notices
 
-Several v2 workflow skills (`grill`, `spec-and-tickets`, `handoff-gate`,
-`deliver`) and references (`agent-brief.md`, `issue-tracker-github.md`) are
-adapted from Matt Pocock's `skills` repository (`grilling`, `domain-modeling`,
-`triage`, `to-spec`, `to-tickets`, `implement-spec`), used under the MIT
-license:
+Many skills and references in this plugin are adapted from Matt Pocock's
+`skills` repository, used under the MIT license: `grill`, `spec-and-tickets`,
+`handoff-gate`, `deliver`, `triage`, `wayfinder`, `prototype`, `research`,
+`retro`, `codebase-design`, `improve-architecture`, `domain-modeling`,
+`handoff`, `wait-what`, `to-questionnaire`, `wizard` (including
+`template.sh`), `writing-for-agents`, `route`, and upgrades to `diagnose`,
+`implement` and `review-changes`; plus the references `agent-brief.md`,
+`issue-tracker-github.md`, `code-smells.md` and `pr-description.md`.
+Upstream skills: `grilling`, `domain-modeling`, `triage`, `to-spec`,
+`to-tickets`, `implement-spec`, `wayfinder`, `prototype`, `research`, `retro`,
+`codebase-design`, `improve-codebase-architecture`, `handoff`, `wait-what`,
+`to-questionnaire`, `wizard`, `writing-for-agents`, `ask-matt`,
+`diagnosing-bugs`, `tdd`, `code-review`, `pr`.
 
 ```
 MIT License

@@ -40,6 +40,29 @@ One or two sentences: what this PR does and why it exists.
 - Delete this section if there's nothing to flag.
 ```
 
+## Show, don't just tell
+
+Adapted from Matt Pocock's `pr` skill (MIT; see `THIRD_PARTY_NOTICES.md`).
+Skip preambles; use the project's `GLOSSARY.md` language.
+
+- **Summary — the smallest visual that shows the change.** Logic →
+  pseudocode; runtime flow → a call tree; UI → a component tree; a broad
+  refactor → a shallow file tree; interaction or data flow → a Mermaid
+  diagram; "what changes" → a `diff`-shaped sketch matching the topic (not the
+  literal diff). Show the whole block only when most of it is new or order
+  matters. One or two visuals, never all.
+- **Evidence — before and after.** Screenshots are best for visual changes;
+  execution evidence (the exact test now failing→passing, console output) is
+  next. Show the test in pseudocode.
+- **Merge Danger.** *Door:* **one-way** (destructive or hard to reverse:
+  migrations, deletions, published contracts) or **two-way** (cheap to roll
+  back). *Blast Radius:* one word for the scope of impact (consumers, layout,
+  mobile, data), with ramifications if any.
+
+For autonomous `deliver` PRs, add: **Delivered**, **Decisions the agent
+made**, **Not delivered**, **Environment friction** (anything that slowed the
+run that a `retro` would fix).
+
 ## Rules
 
 - The **Summary** must let a reviewer understand the PR without reading the diff.

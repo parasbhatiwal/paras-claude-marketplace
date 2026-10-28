@@ -112,6 +112,8 @@ fallback and per-developer onboarding: [`examples/ONBOARDING.md`](examples/ONBOA
 
 | Command | Runs | Use when |
 |---|---|---|
+| `/go [anything]` | `route` | **Start here if unsure** — reads the repo and request, picks the flow, runs it |
+| `/triage [#n or "what needs attention"]` | `triage` | Raw incoming issues and PRs |
 | `/work <issue or requirement>` | `work` | **Anything you hand to an agent** — intake, grilling, readiness gate, delivery |
 | `/deliver <epic>` | `deliver` | Run autonomous delivery of `ready-for-agent` tickets |
 | `/feature <ticket>`, `/bug <report>` | `work` | Aliases for `/work` (attended single-session path: ask for `feature-ticket` / `bug-ticket` by name) |
@@ -250,6 +252,38 @@ Cloud runs set `TEAM_AUTONOMOUS=1`; the git guard then lets the agent
 auto-merge into the feature branch but blocks any push or merge to main. See
 `plugins/team-skills/references/autonomous-mode.md` — including turning on
 branch protection on main, which is the real wall.
+
+### Coverage: this plugin vs. AI Hero's skills
+
+Every AI Hero (Matt Pocock) engineering and productivity skill with a general
+use is adapted here (MIT, credited in `THIRD_PARTY_NOTICES.md`), then extended.
+
+| AI Hero | Here | What v2 adds |
+|---|---|---|
+| `ask-matt` (advises) | `route`, `/go` | Reads repo + issue labels, resumes interrupted `deliver`, then **runs** the flow |
+| `grilling`, `grill-me`, `grill-with-docs` | `grill` | Exhaustive checklist, business-question split with blocking vs assumption, folds in `threat-model`/`adr`/`prototype`/`research` |
+| `domain-modeling` | `domain-modeling` | Glossary + ADR rules; `adr` skill for the record |
+| `to-spec`, `to-tickets` | `spec-and-tickets` | Native blocking edges; security/ADR deliverables become tickets |
+| `triage` | `triage` | + feeds `grill`/`handoff-gate`; same state machine and `.out-of-scope/` KB |
+| `implement-spec` | `deliver` | **Autonomous mode enforced by a hook**, stuck rule, one-PR-to-main guarantee |
+| `implement`, `tdd` | `implement` | Seams, vertical slices, no tautological tests — plus a hook-enforced test gate |
+| `diagnosing-bugs` | `diagnose` | Feedback-loop-first, plus root-cause, siblings, blast radius |
+| `code-review` | `review-changes` | Two-axis (Standards + Spec) in parallel, smell baseline, plus principles and security routing |
+| `pr` | `open-pr` + `pr-description` | Same visual/evidence/door sections, plus mandatory human-verification |
+| `wayfinder`, `prototype`, `research`, `retro` | same names | `retro` also reads `deliver` friction and grill gaps |
+| `codebase-design`, `improve-codebase-architecture` | `codebase-design`, `improve-architecture` | — |
+| `handoff`, `wait-what`, `to-questionnaire`, `wizard`, `writing-for-agents` | same names | `to-questionnaire`/`wizard` wired into business issues and human-only tickets |
+| `setup-matt-pocock-skills` | `setup-workflow` | + branch-protection and cloud-readiness checks |
+| `git-guardrails`, `setup-pre-commit` | `guard-git` hook, `examples/githooks` | Always on; tested |
+
+Only here: `handoff-gate` (zero-questions test), `threat-model`,
+`engineering-principles`, `project-context` freshness hook, `ux-audit`,
+`release`, `dependency-upgrade`, quality guards.
+
+**Not ported, deliberately:** course/personal tooling (`teach`,
+`scaffold-exercises`, `migrate-to-shoehorn`, in-progress writing and
+chief-of-staff skills). **Known gap:** AI Hero also supports local-markdown
+and GitLab trackers; this plugin is GitHub-only.
 
 ### The attended delivery workflow (v1 path)
 

@@ -19,6 +19,9 @@ toward asking.
 An issue labelled `needs-triage` (from `intake`). Read it, its comments, and
 prior triage notes first.
 
+Outside a repo (sharpening a plan, a design, a piece of writing), run the same
+interview but stateless: skip the issue, the glossary and the ADRs.
+
 ## Step 1 — Look things up before asking anything
 
 Finding **facts** is your job, never the human's. Explore the codebase
@@ -66,8 +69,16 @@ business question (Step 3).
   becomes a requirement the human has confirmed.
 - **Dependencies:** services, credentials, environments, third-party accounts
   the cloud runner will or will not have. Anything it lacks is a human task.
-- **UI:** if there is a UI, what it looks like and does — prototype it
-  (a throwaway page or script) when words are not enough.
+- **UI:** if there is a UI, what it looks like and does — run the
+  `prototype` skill when words are not enough (the attended grill is the only
+  place a prototype can be judged; the verdict goes in the decision log and
+  the prototype branch is linked from the ticket).
+- **Facts outside the repo** (how a third-party API behaves, what a library
+  supports): run the `research` skill in the background rather than guessing
+  or asking the human.
+- **Module shape:** where a seam should go or how deep a module should be →
+  `codebase-design` vocabulary; several viable interfaces → its
+  design-it-twice procedure.
 - **Testing:** the seams where behavior is verified (prefer one, at the
   highest level that works), prior art, what must never be mocked.
 - **Scope:** what is explicitly out; what is deferred.
@@ -87,7 +98,8 @@ For each, decide **blocking vs non-blocking**:
   irreversible (data shape, money movement, legal commitment). The subtree
   that depends on it cannot be built.
 
-Create **one separate issue per business question** labelled
+When the answer lives with a stakeholder who is not in the room, produce a
+`to-questionnaire` document for the issue. Create **one separate issue per business question** labelled
 `needs-business-input`: the question, why it matters, options with a
 recommendation, who might answer, and which tickets it affects. Link it from
 the parent. A blocking one becomes a blocking edge on the affected tickets;
@@ -100,10 +112,10 @@ unrelated tickets proceed. Tell the human the list at the end of the grill.
 - Stress-test relationships with concrete edge-case scenarios.
 - When the human states how something works, check the code agrees; surface
   contradictions.
-- Write each resolved term to `GLOSSARY.md` the moment it is resolved (a
-  glossary only — no implementation detail; create it lazily).
-- Offer an ADR (run the `adr` skill) only when the decision is hard to
-  reverse, surprising without context, and a real trade-off. All three.
+- Follow the `domain-modeling` skill: write each resolved term to
+  `GLOSSARY.md` the moment it resolves (glossary only; created lazily), and
+  offer an ADR (its `adr` skill) only when the decision is hard to reverse,
+  surprising without context, and a real trade-off — all three.
 
 Glossary and ADR edits are made on the feature branch by `deliver`, not now —
 write them into the brief as a ticket's deliverable. (This stage changes

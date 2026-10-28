@@ -15,7 +15,27 @@ One structured review round on the working diff, before anything is committed.
    unknown — it detects the toolchain in any language) — reviewing red code
    wastes a round.
 3. **Run the built-in `/code-review` skill** at medium effort on the working
-   diff. That is the core of this skill; do not reimplement review logic here.
+   diff — the correctness core; do not reimplement it here.
+3b. **Two-axis review, in parallel subagents** (adapted from Matt Pocock's
+   `code-review` skill, MIT; see `THIRD_PARTY_NOTICES.md`). A change can pass
+   one axis and fail the other, so the axes run separately and are reported
+   separately — never merged or reranked.
+   - **Standards:** does the diff follow this repo's documented standards
+     (`CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `docs/adr/`, the
+     `engineering-principles` skill) plus the smell baseline in
+     `../../references/code-smells.md`? Documented standards can be hard
+     violations; baseline smells are always judgment calls, and a documented
+     repo standard overrides the baseline. Skip anything tooling enforces.
+   - **Spec:** does the diff match what was asked? Source, in order: the
+     ticket's agent brief / the issue named in commits (`Closes #n`); a path
+     the user passed; a spec under `docs/`, `specs/`, `.scratch/`. Report
+     (a) requirements missing or partial, (b) behavior added that was not
+     asked for (scope creep), (c) requirements that look implemented but look
+     wrong — quoting the spec line. No spec found → say "no spec available".
+   Each sub-agent gets the diff command (`git diff <base>...HEAD`), the commit
+   list, and its sources, and reports in under 400 words. Present
+   `## Standards` and `## Spec` side by side, then one line: findings per
+   axis and the worst within each — no single winner across axes.
 4. **Security routing:** if the diff touches any of the following, ALSO run the
    built-in `/security-review` skill:
    - auth, sessions, tokens, permissions

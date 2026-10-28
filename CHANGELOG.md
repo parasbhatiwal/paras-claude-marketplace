@@ -27,6 +27,27 @@ human**. Adapts Matt Pocock's skills (MIT; `THIRD_PARTY_NOTICES.md`).
 - References: `workflow-labels.md`, `agent-brief.md`,
   `issue-tracker-github.md`, `autonomous-mode.md`.
 - `/deliver` command.
+- **`route` skill + `/go`**: the front door. Reads the request, the repo and
+  issue labels; picks the right skill or flow (including resuming an
+  interrupted `deliver`), announces why, and runs it.
+- **Adapted AI Hero skills (MIT):** `triage` (+ `/triage`), `wayfinder`,
+  `prototype`, `research`, `retro`, `codebase-design`, `improve-architecture`,
+  `domain-modeling`, `handoff`, `wait-what`, `to-questionnaire`, `wizard`,
+  `writing-for-agents`, plus `setup-workflow`.
+- `references/code-smells.md` (Fowler smell baseline).
+
+### Improved
+
+- **`diagnose`**: feedback-loop-first (tight, red-capable, deterministic,
+  fast), minimization, ranked falsifiable hypotheses, tagged instrumentation,
+  seam-or-finding, cleanup — plus the existing root-cause, siblings, blast
+  radius.
+- **`implement`**: pre-agreed seams, vertical slices, no tautological tests,
+  verify through the interface, mock only at system boundaries.
+- **`review-changes`**: parallel Standards and Spec axes with the smell
+  baseline, alongside `/code-review`, security routing and the principles pass.
+- **`pr-description`**: smallest-visual summary, before/after evidence,
+  one-way/two-way door and blast radius; autonomous PR sections.
 
 ### Changed
 

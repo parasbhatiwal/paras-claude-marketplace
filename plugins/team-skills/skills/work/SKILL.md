@@ -18,6 +18,10 @@ afterwards.
 Labels and states: `../../references/workflow-labels.md`. GitHub operations:
 `../../references/issue-tracker-github.md`.
 
+Unsure whether this is the right flow? The `route` skill picks one. Bigger
+than one session, or foggy? `wayfinder` first. Issues you did not write,
+piling up? `triage`.
+
 ## Stage 0 — Preconditions
 
 - `gh auth status` must pass and the repo must have a GitHub remote. If not,
@@ -64,6 +68,12 @@ Tell the human exactly what happens next and let them choose:
    still apply because `TEAM_AUTONOMOUS` is not set.
 
 Never start `deliver` in this session without that choice.
+
+## After delivery
+
+When the cloud run (or local `deliver`) ends and the human has reviewed the
+PR, run the `retro` skill over it if the run was rough: friction becomes
+checks, standards and navigation pointers, so the next run starts better.
 
 ## Hard rules
 

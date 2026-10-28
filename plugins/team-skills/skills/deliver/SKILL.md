@@ -97,6 +97,7 @@ remain):
    - **Delivered** — tickets closed, one line each
    - **Decisions the agent made** — assumptions used, judgment calls,
      anything that departed from the brief and why
+   - **Environment friction** — what slowed the run that a `retro` would fix
    - **Not delivered** — stuck or blocked tickets with the issue links and
      the exact question each is waiting on
    - **Human verification** — the mandatory checklist; unticked
