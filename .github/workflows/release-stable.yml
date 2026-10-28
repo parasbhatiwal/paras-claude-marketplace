@@ -1,0 +1,38 @@
+name: release-stable
+
+# Merging to main publishes nothing: users pin the marketplace to `stable`,
+# and Claude Code skips an update whose plugin version string did not change.
+# This automates the step that fails silently when forgotten — and only when
+# it would deliver something (version moved, stable fast-forwardable).
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "plugins/**"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release-stable
+  cancel-in-progress: false
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fast-forward stable when the plugin version moved
+        run: |
+          git fetch origin stable main
+          if node scripts/release-needed.mjs origin/stable origin/main; then
+            git push origin origin/main:refs/heads/stable
+            echo "stable -> $(git rev-parse --short origin/main)"
+          fi
