@@ -105,6 +105,12 @@ version-specific breakage surfaces here and nowhere else.
 
 ## Stage 7 — Merge and PUBLISH
 
+The `release-stable` workflow fast-forwards `stable` by itself after a merge to
+`main` that moved the plugin version. With Actions healthy, merge, wait for it,
+then only verify (`git rev-parse --short origin/main origin/stable`). With
+Actions unavailable (billing, outage), or if the refs do not match, do it by
+hand:
+
 ```sh
 gh pr merge <n> --merge          # merge commit; preserves the logical commits
 git checkout main && git pull --ff-only
@@ -133,17 +139,20 @@ branch, bump the version again, merge, fast-forward. Force-pushing `stable`
 backwards leaves everyone on the bad version with no version change to correct
 them.
 
-## Upstream AI Hero sync
+## Upstream AI Hero sync (automated)
 
-Many skills are adapted from Matt Pocock's `skills` repo (MIT). The weekly
-`upstream-sync` workflow opens/updates one issue, "Upstream changes in
-mattpocock/skills to review", listing changed files against the baseline in
-`upstream.json`. To act on it: clone upstream, read each changed file, port
-what helps (keep the autonomous-mode and handoff adaptations), ship through
-the normal flow with a **minor** bump, then refresh the baseline with
-`node scripts/upstream-diff.mjs <checkout> --write-baseline` in the same PR so
-the issue closes itself. A new upstream skill is either ported or added to
-`ignored` in `upstream.json` with a reason.
+Many skills are adapted from Matt Pocock's `skills` repo (MIT). Weekly, the
+`upstream-sync` workflow diffs upstream against the baseline in
+`upstream.json`; on changes an agent adapts them, the workflow bumps the
+plugin's minor version, refreshes the baseline, and opens ONE PR
+(`upstream-sync/auto`). The agent is confined to content files
+(`scripts/upstream-guard.mjs`): hooks, scripts, tests, workflows and
+repo-level skills are out of reach. **Review that PR as prose** — look for
+lost adaptations (autonomous mode, brief contract, labels) — then merge it;
+`release-stable` fast-forwards `stable` automatically when the version moved.
+If the agent fails, the report lands in an issue instead; port by hand and
+refresh the baseline with `node scripts/upstream-diff.mjs <checkout>
+--write-baseline` in the same PR. Needs the `ANTHROPIC_API_KEY` secret.
 
 ## Rules
 

@@ -38,8 +38,9 @@ hooks that run on other developers' machines. "Done" = merged to `main`
 
 ## Gotchas
 - **Upstream sync:** `upstream.json` pins the AI Hero version/file hashes we adapted from;
-  the weekly `upstream-sync` workflow opens an issue when upstream moves. Refresh the
-  baseline (`scripts/upstream-diff.mjs --write-baseline`) only after porting.
+  the weekly `upstream-sync` workflow has an agent adapt changes into one PR (content files
+  only, enforced by `scripts/upstream-guard.mjs`). Merging a PR that moves the plugin version
+  auto-fast-forwards `stable` via `release-stable.yml`, so the manual step is no longer needed.
 - **Version bump is silent-fail:** unchanged `plugin.json` version = nobody receives the update.
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this
