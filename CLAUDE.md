@@ -37,6 +37,9 @@ hooks that run on other developers' machines. "Done" = merged to `main`
 - Commits carry two `Co-Authored-By` trailers (human from git config + Claude).
 
 ## Gotchas
+- **Upstream sync:** `upstream.json` pins the AI Hero version/file hashes we adapted from;
+  the weekly `upstream-sync` workflow opens an issue when upstream moves. Refresh the
+  baseline (`scripts/upstream-diff.mjs --write-baseline`) only after porting.
 - **Version bump is silent-fail:** unchanged `plugin.json` version = nobody receives the update.
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this

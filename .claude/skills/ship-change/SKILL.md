@@ -133,6 +133,18 @@ branch, bump the version again, merge, fast-forward. Force-pushing `stable`
 backwards leaves everyone on the bad version with no version change to correct
 them.
 
+## Upstream AI Hero sync
+
+Many skills are adapted from Matt Pocock's `skills` repo (MIT). The weekly
+`upstream-sync` workflow opens/updates one issue, "Upstream changes in
+mattpocock/skills to review", listing changed files against the baseline in
+`upstream.json`. To act on it: clone upstream, read each changed file, port
+what helps (keep the autonomous-mode and handoff adaptations), ship through
+the normal flow with a **minor** bump, then refresh the baseline with
+`node scripts/upstream-diff.mjs <checkout> --write-baseline` in the same PR so
+the issue closes itself. A new upstream skill is either ported or added to
+`ignored` in `upstream.json` with a reason.
+
 ## Rules
 
 - No direct commits to `main` or `stable`.

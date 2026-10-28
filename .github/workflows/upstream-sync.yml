@@ -1,0 +1,45 @@
+name: upstream-sync
+
+# Our AI Hero skills are adapted copies, so upstream improvements never reach
+# us by themselves. Once a week, diff upstream against the baseline in
+# upstream.json and keep ONE issue up to date with what moved. Nothing is
+# edited automatically: adapting a change is a judgment call.
+
+on:
+  schedule:
+    - cron: "17 6 * * 1" # Mondays 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Fetch upstream
+        run: git clone --depth 1 https://github.com/mattpocock/skills "$RUNNER_TEMP/upstream"
+      - name: Diff against the recorded baseline
+        run: node scripts/upstream-diff.mjs "$RUNNER_TEMP/upstream" > "$RUNNER_TEMP/report.md"
+      - name: Open or update the tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TITLE: "Upstream changes in mattpocock/skills to review"
+        run: |
+          existing=$(gh issue list --state open --search "\"$TITLE\" in:title" --json number,title \
+            --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
+          if [ ! -s "$RUNNER_TEMP/report.md" ]; then
+            echo "Upstream matches the baseline."
+            [ -n "$existing" ] && gh issue close "$existing" --comment "Upstream matches the baseline again."
+            exit 0
+          fi
+          if [ -n "$existing" ]; then
+            gh issue edit "$existing" --body-file "$RUNNER_TEMP/report.md"
+          else
+            gh issue create --title "$TITLE" --body-file "$RUNNER_TEMP/report.md"
+          fi
