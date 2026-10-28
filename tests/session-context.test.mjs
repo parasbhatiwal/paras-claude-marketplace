@@ -54,12 +54,25 @@ afterEach(() => {
 });
 
 describe("SessionStart context hook", () => {
-  test("stays silent when the context is fresh", () => {
+  test("carries only the workflow nudge when the context is fresh", () => {
     const sha = commit("chore: init", { "README.md": "# hi\n" });
     commit("docs: claude context", { "CLAUDE.md": managed(sha) });
     const r = run();
     assert.equal(r.status, 0);
-    assert.equal(r.context, null);
+    assert.match(r.context, /\broute\b/);
+    assert.match(r.context, /\bwork\b/);
+    assert.doesNotMatch(r.context, /stale|missing|unmanaged/);
+  });
+
+  test("adds the nudge to a freshness notice rather than replacing it", () => {
+    const r = run();
+    assert.match(r.context, /missing/);
+    assert.match(r.context, /\broute\b/);
+  });
+
+  test("the nudge scopes itself to task requests, not questions", () => {
+    commit("chore: init", { "README.md": "# hi\n" });
+    assert.match(run().context, /question/i);
   });
 
   test("nudges when CLAUDE.md is absent", () => {

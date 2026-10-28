@@ -34,6 +34,11 @@ human**. Adapts Matt Pocock's skills (MIT; `THIRD_PARTY_NOTICES.md`).
   `prototype`, `research`, `retro`, `codebase-design`, `improve-architecture`,
   `domain-modeling`, `handoff`, `wait-what`, `to-questionnaire`, `wizard`,
   `writing-for-agents`, plus `setup-workflow`.
+- **Workflow nudge (SessionStart hook):** every session in a git repo is told
+  to route task requests through `route`/`work` before writing code, scoped so
+  plain questions are answered directly. The `project-context` skill and the
+  `CLAUDE.md` template carry the same line, so the entry point is stated, not
+  merely hoped for from skill-description matching.
 - `references/code-smells.md` (Fowler smell baseline).
 
 ### Improved

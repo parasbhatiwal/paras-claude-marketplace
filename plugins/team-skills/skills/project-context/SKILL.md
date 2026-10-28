@@ -77,7 +77,9 @@ Keep it under ~200 lines. Ruthlessly. Sections in this order:
 <Required env var NAMES, local setup, what must be running for tests.>
 
 ## Workflow
-This repo uses the team workflow: `/feature`, `/bug`, TDD, gated commits.
+This repo uses the team workflow: hand any task to `/go` (the `route` skill)
+or `/work` - it grills the requirement first, then delivers; TDD, gated
+commits. Don't start coding a task that hasn't been through the grill.
 Standards: the `engineering-principles` skill.
 <!-- claude-context:end -->
 
