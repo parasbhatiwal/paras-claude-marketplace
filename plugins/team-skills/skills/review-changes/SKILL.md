@@ -32,7 +32,7 @@ One structured review round on the working diff, before anything is committed.
      (a) requirements missing or partial, (b) behavior added that was not
      asked for (scope creep), (c) requirements that look implemented but look
      wrong — quoting the spec line. No spec found → say "no spec available".
-   Each sub-agent gets the diff command (`git diff <base>...HEAD`), the commit
+   Start every sub-agent with a fresh context window. Each gets the diff command (`git diff <base>...HEAD`), the commit
    list, and its sources, and reports in under 400 words. Present
    `## Standards` and `## Spec` side by side, then one line: findings per
    axis and the worst within each — no single winner across axes.

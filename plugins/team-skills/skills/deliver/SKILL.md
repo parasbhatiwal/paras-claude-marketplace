@@ -16,6 +16,7 @@ Autonomy rules (what is auto-approved, what the hooks block, the stuck rule):
 `../../references/autonomous-mode.md`. Read it first. Ticket briefs are
 the contract; read `CLAUDE.md` and the epic spec as context pointers —
 subagent messages carry pointers, not copies of what the tracker already says.
+Start every subagent with a fresh context window.
 
 ## Stage 0 — Preflight
 
@@ -49,7 +50,7 @@ Loop until the frontier is empty:
 1. **Frontier** = open `ready-for-agent` sub-issues without `agent-working`
    whose blockers are all closed. Claim each (add `agent-working`, re-read to
    confirm the claim won).
-2. **Implementer subagents**, in the background, one per ticket, each in its
+2. **Implementer subagents**, in the background, a fresh one per ticket, each in its
    own worktree on `feat/<epic#>-<slug>--t<sub#>` cut from the integration
    branch tip. Each implementer:
    - confirms its base is the integration branch, resetting onto it if not;

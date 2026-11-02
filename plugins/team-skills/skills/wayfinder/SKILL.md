@@ -89,7 +89,7 @@ far.
 3. **Create the map** (Destination, Notes, fog in *Not yet specified*).
 4. **Create the specifiable tickets**, then wire blocking edges in a **second
    pass** (ids first; a placeholder `#n` auto-links to an unrelated issue).
-5. **Fire a research subagent** per research ticket, each pushing findings to
+5. **Fire a research subagent** (fresh context window) per research ticket, each pushing findings to
    a throwaway `research/<name>` branch (no PR) with a pointer from the ticket.
 6. Stop. Charting is one session's work.
 
@@ -97,7 +97,7 @@ far.
 
 1. Load the map (low resolution — not every ticket body).
 2. Choose the ticket: the named one, else the first frontier ticket. Claim it.
-3. Resolve it as its labelled type; zoom into related tickets on demand.
+3. Resolve it as the type its `wayfinder:<type>` label names (the body never states it); zoom into related tickets on demand.
 4. Post the answer as a resolution comment, **close**, append a context
    pointer to Decisions so far.
 5. Add newly surfaced tickets, graduate fog, rule out-of-scope work out,

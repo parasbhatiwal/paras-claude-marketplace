@@ -7,6 +7,20 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.4.0] — 2026-11-02
+
+### Changed
+
+- **Sub-agents start with a fresh context window.** `review-changes`,
+  `codebase-design`, `deliver`, `improve-architecture`, `research`, `wayfinder`
+  and `grill` now say so explicitly, so reviewers, designers and implementers
+  are not biased by the parent session. `deliver` uses a fresh implementer per
+  ticket.
+- **`wayfinder`** resolves a ticket by reading its `wayfinder:<type>` label,
+  since the body never states the type.
+
+Adapted from upstream `skills` 1.3.2.
+
 ## [2.3.0] — 2026-10-28
 
 ### Changed
