@@ -8,7 +8,7 @@ description: Use this skill when a decision waits on a fact outside the repo - h
 Adapted from Matt Pocock's `research` skill (MIT; see
 `THIRD_PARTY_NOTICES.md`).
 
-Spin up a **background agent** so you keep working while it reads. Its job:
+Spin up a **background agent** so you keep working while it reads. Start it with a fresh context window. Its job:
 
 1. Investigate the question against **primary sources** — official docs,
    source code, specs, first-party APIs — not a secondary write-up of them.

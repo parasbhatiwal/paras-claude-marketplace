@@ -49,7 +49,8 @@ Loop until the frontier is empty:
 1. **Frontier** = open `ready-for-agent` sub-issues without `agent-working`
    whose blockers are all closed. Claim each (add `agent-working`, re-read to
    confirm the claim won).
-2. **Implementer subagents**, in the background, one per ticket, each in its
+2. **Implementer subagents**, a fresh one (new context window) per ticket, in
+   the background, each in its
    own worktree on `feat/<epic#>-<slug>--t<sub#>` cut from the integration
    branch tip. Each implementer:
    - confirms its base is the integration branch, resetting onto it if not;
@@ -88,7 +89,7 @@ remain):
 
 1. Full suite, lint, typecheck on the integration branch (`run-tests`).
 2. `review-changes` over the whole integration diff; fix every confirmed
-   finding in one implementer. Judgment-call findings go in the PR body under
+   finding in one fresh implementer. Judgment-call findings go in the PR body under
    *Decisions for the reviewer*, not silently decided.
    **Manual test offer — attended runs only.** If `TEAM_AUTONOMOUS` is not `1`
    (you are on the user's machine) and the feature has a web UI, ask one

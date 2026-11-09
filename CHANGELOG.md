@@ -7,6 +7,21 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.4.0] — 2026-11-09
+
+### Changed
+
+- **Subagents start with a fresh context window.** `deliver` (implementers and
+  the review-fix implementer), `review-changes`, `research`, `grill`,
+  `codebase-design`, `improve-architecture` and `wayfinder` now say so
+  explicitly, so delegated work is not polluted by the orchestrator's context.
+  Adapted from upstream `skills` 1.3.2.
+- **`review-changes`** issues both axis sub-agents together in the foreground
+  and requires `CLAUDE.md` / `CODING_STANDARDS.md` / `CONTRIBUTING.md` on the
+  Standards source list when present.
+- **`wayfinder`** tells the solver to read a ticket's `wayfinder:<type>` label
+  to know how to resolve it, since the body never states the type.
+
 ## [2.3.0] — 2026-10-28
 
 ### Changed
