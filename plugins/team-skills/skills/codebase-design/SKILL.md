@@ -71,7 +71,7 @@ the interface.
 
 When exploring alternative interfaces for a chosen candidate (your first idea
 is unlikely to be the best): frame the constraints, dependencies (by category
-above) and a rough sketch for the user; then spawn 3+ subagents in parallel,
+above) and a rough sketch for the user; then spawn 3+ subagents in parallel, each with a fresh context window,
 each designing a **radically different** interface under a different
 constraint — (1) minimize: 1–3 entry points, max leverage each; (2) maximize
 flexibility and extension; (3) optimize the most common caller so the default
