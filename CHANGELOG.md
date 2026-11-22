@@ -7,6 +7,14 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.11.0] — 2026-11-22
+
+### Added
+
+- **The plugin manifests now declare the MIT license** (Claude, Codex and Cursor),
+  matching the repository's `LICENSE`. The license is declared once in the Claude
+  manifest and `validate` fails if the Codex or Cursor manifest differs or omits it.
+
 ## [2.10.0] — 2026-11-22
 
 ### Added

@@ -44,6 +44,15 @@ function checkAgreement(label, manifest, claude, err) {
         `\`${claude.version}\` — every manifest must carry the same version`
     );
   }
+  // The license is declared once, in the Claude manifest, and copied everywhere.
+  // Nothing is required of the others when the Claude manifest declares none.
+  if (claude.license !== undefined && manifest.license !== claude.license) {
+    err(
+      manifest.license === undefined
+        ? `${label}: missing \`license\` (must equal the Claude plugin license \`${claude.license}\`)`
+        : `${label}: license \`${manifest.license}\` != Claude plugin license \`${claude.license}\``
+    );
+  }
 }
 
 const CURSOR_ROOT_VAR = "${CURSOR_PLUGIN_ROOT}";
