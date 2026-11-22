@@ -231,6 +231,9 @@ Sources: <https://cursor.com/docs/context/rules>,
 | Codex `SessionStart` output for adding context | Session nudge is best effort on Codex |
 | Cursor reading `CLAUDE.md` | Rely on `AGENTS.md` only |
 | Cursor branch pinning on import | Document the limit; do not claim `stable` pinning for Cursor |
+| Whether an empty `commands` array or an empty hooks object really disables default folder discovery | Both manifests declare them empty anyway, because default discovery would load this plugin's Claude-format `commands/` and `hooks/hooks.json` (which refer to the Claude plugin-root variable). A manifest path is documented to replace discovery, so this is the safest declaration; revisit when real hooks ship |
+| Whether Cursor's marketplace `source` accepts a leading `./` | Written as `plugins/team-skills`, the form the official examples use |
+| Allowed values of Codex `policy.installation`, `policy.authentication` and `category` | Only values shown in the official examples are used: `AVAILABLE`, `ON_INSTALL`, `Productivity` |
 
 ## Hook contract in one table
 

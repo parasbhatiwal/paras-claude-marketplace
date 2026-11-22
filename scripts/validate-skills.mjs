@@ -9,6 +9,8 @@
  *  - skills that reference another skill reference one that EXISTS
  *  - skills that reference a bundled file (`./x` or `../x`) reference one that EXISTS
  *  - hooks.json (if present) parses and referenced hook scripts exist
+ *  - Codex and Cursor manifests (when present) are well formed and agree with
+ *    the Claude plugin on name and version (see tool-manifests.mjs)
  *
  * `validate(root)` is exported for tests; running the file executes it against
  * the repo root and exits non-zero with a readable error list on any failure.
@@ -17,6 +19,7 @@
 import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { validatePluginManifests, validateMarketplaces } from "./tool-manifests.mjs";
 
 /** Skills shipped by Claude Code itself — always valid reference targets. */
 const BUILTIN_SKILLS = new Set([
@@ -148,6 +151,7 @@ export function validate(root) {
     return fields;
   };
 
+  const knownPlugins = [];
   for (const { dir: pluginDir, declaredName } of pluginDirs) {
     const label = pluginDir.replace(root + "/", "");
     const manifestPath = join(pluginDir, ".claude-plugin", "plugin.json");
@@ -167,6 +171,10 @@ export function validate(root) {
         }
         if (manifest.version && !/^\d+\.\d+\.\d+/.test(manifest.version)) {
           err(`${label}/plugin.json: \`version\` must be semver, got \`${manifest.version}\``);
+        }
+        if (manifest.name && manifest.version) {
+          knownPlugins.push({ dir: pluginDir, name: manifest.name, version: manifest.version });
+          validatePluginManifests({ root, pluginDir, claude: manifest, err });
         }
       }
     }
@@ -208,6 +216,14 @@ export function validate(root) {
       }
     }
   }
+
+  // --- Codex and Cursor marketplaces ---------------------------------------
+  validateMarketplaces({
+    root,
+    plugins: knownPlugins,
+    claudeMarketplaceName: marketplace?.name,
+    err,
+  });
 
   // --- repo-level skills (.claude/skills) ---------------------------------
   // Not shipped to anyone, but they run in every session opened on this repo,

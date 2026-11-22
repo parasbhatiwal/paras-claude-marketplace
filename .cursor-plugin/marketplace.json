@@ -1,0 +1,12 @@
+{
+  "name": "parasbhatiwal",
+  "owner": {
+    "name": "parasbhatiwal"
+  },
+  "plugins": [
+    {
+      "name": "team-skills",
+      "source": "plugins/team-skills"
+    }
+  ]
+}
