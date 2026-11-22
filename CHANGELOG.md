@@ -7,6 +7,35 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.5.0] — 2026-11-22
+
+### Added
+
+- **Codex and Cursor can install the plugin.** New manifests sit beside the
+  Claude ones: a Codex plugin manifest and repo marketplace, and a Cursor plugin
+  manifest and marketplace. Every manifest carries the same version, and
+  `validate` fails on a mismatch or a missing required field.
+- **Agent-neutral commit trailer.** The agent co-author trailer is recognised by
+  name (Claude, Codex or Cursor, any address) instead of the Claude address, in
+  the guard, the `commit-msg` hook and the CI template. Set
+  `TEAM_AGENT_TRAILER_NAMES` to change the accepted names.
+- **README "Works with" section**, per-tool install and invocation notes, a
+  compatibility report issue form, and a reference of the Codex and Cursor
+  contracts taken from official docs.
+- **Advisory Codex CLI smoke test** in CI (not a required check).
+- `validate` now also checks relative links in the top-level docs and that
+  repo-level skills are linked into `.agents/skills` for Codex.
+
+### Changed
+
+- The version-bump check treats a change to any Codex or Cursor manifest as a
+  plugin change.
+
+### Notes
+
+- Codex and Cursor support is best effort and not verified by the maintainer;
+  hooks for them are not part of this release.
+
 ## [2.4.0] — 2026-11-16
 
 ### Changed

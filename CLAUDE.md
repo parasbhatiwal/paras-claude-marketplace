@@ -1,12 +1,13 @@
 # paras-claude-marketplace — context for Claude
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=60d95ce4738dd61e4c8f24c93cefb56723978c86 generated=2026-11-22 -->
+<!-- claude-context: sha=488fde5d71e3f8d279a43eeae1c9e6c10aad77c3 generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
 `team-skills`: engineering-workflow skills, slash commands, and git-guard
-hooks that run on other developers' machines. "Done" = merged to `main`
+hooks that run on other developers' machines. Codex and Cursor can install the
+same skills (best effort; hooks are Claude-only so far). "Done" = merged to `main`
 **and** fast-forwarded to `stable`, with the plugin version bumped.
 
 ## Commands
@@ -25,7 +26,12 @@ hooks that run on other developers' machines. "Done" = merged to `main`
   `context-freshness.mjs`, `quality.mjs`) + thin I/O wrappers (`guard-git.mjs`,
   `guard-quality.mjs`, `session-context.mjs`). Keep rules pure and testable.
 - `examples/` — language-agnostic templates teams copy into their projects.
-- `scripts/` — the validator and version-bump check used by CI.
+- `scripts/` — the validator and version-bump check used by CI; `tool-manifests.mjs`
+  and `repo-docs.mjs` hold the Codex/Cursor manifest and doc-link rules;
+  `codex-smoke.mjs` runs the real Codex CLI (advisory CI job).
+- Tool manifests: Claude `.claude-plugin/`, Codex root `plugin.json` +
+  `.agents/plugins/marketplace.json`, Cursor `.cursor-plugin/`. Facts and
+  unconfirmed items: `plugins/team-skills/references/agent-tool-contracts.md`.
 - Docs: `README.md` is the newcomer-facing front door; maintainer flow lives in
   `CONTRIBUTING.md`, per-skill deep dives in `docs/skills-guide.md`. Edit those,
   not README, for detail. CHANGELOG links to README's "How updates reach you" anchor.
@@ -37,7 +43,8 @@ hooks that run on other developers' machines. "Done" = merged to `main`
 - Cross-reference skills as "`x` skill"; the validator fails if `x` doesn't exist
   (even inside an attribution sentence). Reference files via explicit `../../references/...`.
 - Any change under `hooks/` or `scripts/` needs tests in `tests/`.
-- Commits carry two `Co-Authored-By` trailers (human from git config + Claude).
+- Commits carry two `Co-Authored-By` trailers: the human (git config) and the agent
+  that wrote it, matched by name (Claude, Codex, Cursor; `TEAM_AGENT_TRAILER_NAMES`).
 
 ## Gotchas
 - **Upstream sync:** `upstream.json` pins the AI Hero version/file hashes we adapted from;
@@ -48,6 +55,11 @@ hooks that run on other developers' machines. "Done" = merged to `main`
   pull requests" is on; when off, the run pushes `upstream-sync/auto`, opens an issue instead,
   and the PR must be opened by hand.
 - **Version bump is silent-fail:** unchanged `plugin.json` version = nobody receives the update.
+  Bump the Claude, Codex and Cursor plugin manifests to the SAME number; `validate` fails otherwise.
+- **`.agents/skills/ship-change` is a symlink** to `.claude/skills/ship-change` (Codex does not read
+  `.claude/skills`); `validate` fails on a missing, broken or copied link.
+- Cursor and Codex auto-discover `hooks/hooks.json` and `commands/`, which are Claude-format; their
+  manifests declare both empty on purpose. Don't remove that without shipping real hooks for them.
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this
   working tree — hook changes here don't affect your own session until released.
@@ -56,7 +68,8 @@ hooks that run on other developers' machines. "Done" = merged to `main`
 - Local Node is newer than CI's Node 20; version-specific breakage shows only in CI.
 
 ## Environment
-Node >=20. `TEAM_AUTONOMOUS=1` (set by a cloud runtime, never by hand) enables
+Node >=20. `TEAM_AGENT_TRAILER_NAMES` (comma list, replaces the default agent names).
+`TEAM_AUTONOMOUS=1` (set by a cloud runtime, never by hand) enables
 autonomous mode in the guard. `TEAM_SELF_MERGE_ALLOWLIST` overrides who may self-merge.
 
 ## Workflow
