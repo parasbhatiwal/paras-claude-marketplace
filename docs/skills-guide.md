@@ -118,7 +118,7 @@ use is adapted here (MIT, credited in `THIRD_PARTY_NOTICES.md`), then extended.
 | `diagnosing-bugs` | `diagnose` | Feedback-loop-first, plus root-cause, siblings, blast radius |
 | `code-review` | `review-changes` | Two-axis (Standards + Spec) in parallel, smell baseline, plus principles and security routing |
 | `pr` | `open-pr` + `pr-description` | Same visual/evidence/door sections, plus mandatory human-verification |
-| `wayfinder`, `prototype`, `research`, `retro` | same names | `retro` also reads `deliver` friction and grill gaps |
+| `wayfinder`, `prototype`, `research`, `retro` | same names | `retro` also reads the PR's *Workflow struggles* section and grill gaps |
 | `codebase-design`, `improve-codebase-architecture` | `codebase-design`, `improve-architecture` | — |
 | `handoff`, `wait-what`, `to-questionnaire`, `wizard`, `writing-for-agents` | same names | `to-questionnaire`/`wizard` wired into business issues and human-only tickets |
 | `setup-matt-pocock-skills` | `setup-workflow` | + branch-protection and cloud-readiness checks |

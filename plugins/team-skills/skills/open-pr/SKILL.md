@@ -20,13 +20,11 @@ Raising a PR is a gated, ask-first action.
    (`feat(cart): add quantity stepper`) — format in
    `../../references/conventional-commits.md` (relative to this skill's
    directory).
-2. **Body**: build it to the structure in `../../references/pr-description.md`
-   (Summary / Changes / Testing / Notes), derived from the real diff against
-   the base branch.
-   Add a **Workflow struggles** section (format in the same reference): the
-   points where the workflow itself made you stall, go back or guess, or where
-   you had to choose a reading of an unclear instruction, brief or ticket; or
-   `None encountered`. Never include secrets or environment values.
+2. **Body**: build it to the structure in `../../references/pr-description.md`,
+   derived from the real diff against the base branch. Sections in order:
+   Summary, Changes, Testing, Notes / risks, **Workflow struggles** (rules and
+   redaction in that reference; `None encountered` if clean), then Human
+   verification last (step 4).
 3. **Ticket link**: if the task came from a GitHub Issue, add `Closes #<n>`
    (use `gh issue list`/context to confirm the number). If there is no issue,
    skip — do not invent references.

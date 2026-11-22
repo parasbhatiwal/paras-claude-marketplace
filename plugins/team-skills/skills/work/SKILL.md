@@ -72,12 +72,10 @@ Never start `deliver` in this session without that choice.
 
 ## Workflow struggles
 
-Log every point where the workflow itself made you stall, go back to an
-earlier stage, guess, or choose a reading of unclear text (format in
-`../../references/pr-description.md`). Stages 1-4 open no PR, so post them as
-a "Workflow struggles" comment on the issue or epic (`None encountered` if
-clean); the final PR copies them into its "Workflow struggles" section. Never
-include secrets or environment values.
+Before Stage 5, post any struggles from Stages 1-4 as a comment on the epic (or
+the single issue you are handling), following "Workflow struggles" in
+`../../references/pr-description.md`. `deliver` copies them into the final PR.
+
 
 ## After delivery
 

@@ -71,9 +71,12 @@ Loop until the frontier is empty:
 3. **Merger**: once CI is green on a subtask PR, merge it into the integration
    branch (`gh pr merge --merge`). Red CI → the implementer fixes the cause;
    never merge red, never bypass.
-   The orchestrator merges the subtask PRs' entries into the final PR's
-   "Workflow struggles" section (Stage 3), including its own: stuck rule hits,
-   second implementer attempts, gates needing more than one fix cycle.
+   The orchestrator (deliver) collects the entries in Stage 3: it reads the
+   comments on the epic and every sub-issue and the body of every subtask PR,
+   picks entries out by the `Workflow struggles` heading, adds its own (stuck
+   rule hits, second implementer attempts, gates needing more than one fix
+   cycle), and copies all of them into the final PR. Rules and redaction:
+   `../../references/pr-description.md`.
 4. A merge unlocks blocked tickets → recompute the frontier and start them.
    Remove `agent-working` from the closed subtask.
 
@@ -115,12 +118,12 @@ remain):
 5. Push; mark the draft PR **ready** (or create it with `open-pr`). Body: the
    team PR structure plus:
    - **Delivered** — tickets closed, one line each
-   - **Decisions the agent made** — assumptions used, judgment calls,
-     anything that departed from the brief and why
-   - **Decisions for the reviewer** — judgment-call findings left open
-   - **Workflow struggles** — the merged entries from every subtask PR and
-     from the epic's pre-PR "Workflow struggles" comments, in the format of
-     `../../references/pr-description.md`; `None encountered` if clean
+   - **Decisions the agent made** — assumptions used and choices made inside
+     the brief, anything that departed from it and why
+   - **Decisions for the reviewer** — judgment calls the human must confirm
+   - **Workflow struggles** — deliver copies in the entries it collected
+     (see Stage 2), in the format of `../../references/pr-description.md`;
+     `None encountered` if clean
    - **Not delivered** — stuck or blocked tickets with the issue links and
      the exact question each is waiting on
    - **Human verification** — the mandatory checklist; unticked

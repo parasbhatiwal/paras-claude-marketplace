@@ -54,14 +54,11 @@ without posting the brief in the same step.
   business issues, the assumptions, how a run is started
   (`../../references/autonomous-mode.md`).
 
-## Workflow struggles
+## Record workflow struggles
 
-Log any point where this stage's own instructions made you stall, go back or
-guess, or where you had to choose a reading of unclear text. This stage opens
-no PR: post the entries as a "Workflow struggles" comment on the issue or epic
-(`None encountered` if clean), in the format of
-`../../references/pr-description.md`. The final PR copies them in. Never
-include secrets or environment values.
+Follow "Workflow struggles" in `../../references/pr-description.md`: post any
+struggles from this stage as a comment on the epic (or the single issue) before
+the hand-off below; `deliver` copies them into the final PR.
 
 ## Output
 
