@@ -8,6 +8,10 @@ description: Use this skill to implement ready-for-agent tickets with no human i
 Adapted from Matt Pocock's spec-implementation skill (MIT; see
 `THIRD_PARTY_NOTICES.md`).
 
+> **Cloud delivery is Claude Code only.** Autonomous mode, and the hooks that
+> enforce it, exist only for Claude Code today. In Codex and Cursor run this skill
+> attended in your own session; the commit, push and PR gates still ask first.
+
 The tickets are a **task graph**, not a list of steps. The goal is the whole
 feature on one **integration branch**, ending in **one PR to the default
 branch** — the single point where a human looks.

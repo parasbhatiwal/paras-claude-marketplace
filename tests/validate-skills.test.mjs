@@ -156,9 +156,14 @@ describe("cross-references", () => {
     assert.match(validate(root).join("\n"), /references skill `ghost`, which does not exist/);
   });
 
-  test("accepts references to built-in Claude Code skills", () => {
+  test("accepts references to Claude-provided skills inside a Claude Code note", () => {
     scaffold(root, {
-      skills: { alpha: skill("alpha", "Run the `/code-review` skill, then `/security-review`.") },
+      skills: {
+        alpha: skill(
+          "alpha",
+          "Run your tool's code review (Claude Code: the `/code-review` skill, then `/security-review`)."
+        ),
+      },
     });
     assert.deepEqual(validate(root), []);
   });
