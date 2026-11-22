@@ -120,3 +120,53 @@ describe("SessionStart context hook", () => {
     assert.equal(r.status, 0);
   });
 });
+
+describe("SessionStart context hook: AGENTS.md is canonical", () => {
+  test("is quiet when a migrated repo's AGENTS.md is fresh and CLAUDE.md just imports it", () => {
+    const sha = commit("chore: init", { "README.md": "# hi\n" });
+    commit("docs: context", { "AGENTS.md": managed(sha), "CLAUDE.md": "@AGENTS.md\n" });
+    const r = run();
+    assert.equal(r.status, 0);
+    assert.doesNotMatch(r.context, /stale|missing|unmanaged/);
+  });
+
+  test("names AGENTS.md when a migrated repo's context has drifted", () => {
+    const sha = commit("chore: init", { "README.md": "# hi\n" });
+    commit("docs: context", { "AGENTS.md": managed(sha), "CLAUDE.md": "@AGENTS.md\n" });
+    commit("build: add manifest", { "package.json": "{}\n" });
+    const r = run();
+    assert.match(r.context, /AGENTS\.md is stale/);
+    assert.match(r.context, /package\.json/);
+  });
+
+  test("an old CLAUDE.md fingerprint does not make a fresh AGENTS.md look stale", () => {
+    const old = commit("chore: init", { "README.md": "# hi\n" });
+    commit("build: add manifest", { "package.json": "{}\n" });
+    const sha = commit("docs: context", {
+      "AGENTS.md": managed(old),
+      "CLAUDE.md": managed("0123456789abcdef0123456789abcdef01234567"),
+    });
+    commit("docs: refresh", { "AGENTS.md": managed(sha) });
+    assert.doesNotMatch(run().context, /stale|missing|unmanaged/);
+  });
+
+  test("falls back to a managed CLAUDE.md in a repo that has not migrated", () => {
+    const sha = commit("chore: init", { "README.md": "# hi\n" });
+    commit("docs: claude context", { "CLAUDE.md": managed(sha) });
+    commit("build: add manifest", { "package.json": "{}\n" });
+    assert.match(run().context, /CLAUDE\.md is stale/);
+  });
+
+  test("uses the managed CLAUDE.md when AGENTS.md is hand-written", () => {
+    const sha = commit("chore: init", { "README.md": "# hi\n" });
+    commit("docs: context", { "AGENTS.md": "# hand written\n", "CLAUDE.md": managed(sha) });
+    assert.doesNotMatch(run().context, /unmanaged|missing/);
+  });
+
+  test("asks for AGENTS.md when neither file exists", () => {
+    commit("chore: init", { "README.md": "# hi\n" });
+    const r = run();
+    assert.match(r.context, /AGENTS\.md is missing/);
+    assert.match(r.context, /generate AGENTS\.md/);
+  });
+});

@@ -4,6 +4,9 @@
 > it scans the repo, fills the sections below from what is actually there, and
 > stamps the freshness fingerprint the SessionStart hook checks. Use this
 > template only when writing one by hand.
+>
+> Save it as `AGENTS.md` at the repo root (Claude Code, Codex and Cursor all read
+> it), and add a `CLAUDE.md` whose only content is the line `@AGENTS.md`.
 
 <!-- claude-context:begin -->
 <!-- claude-context: sha=<HEAD sha> generated=<YYYY-MM-DD> -->

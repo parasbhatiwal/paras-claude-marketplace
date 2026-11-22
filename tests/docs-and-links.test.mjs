@@ -229,3 +229,28 @@ describe("contributor docs", () => {
     assert.match(text, /Windows/);
   });
 });
+
+describe("project context template and skill", () => {
+  test("the example template is AGENTS.md.template and says how to wire CLAUDE.md", () => {
+    assert.ok(existsSync(join(REPO_ROOT, "examples/AGENTS.md.template")));
+    assert.ok(!existsSync(join(REPO_ROOT, "examples/CLAUDE.md.template")));
+    const text = read("examples/AGENTS.md.template");
+    assert.match(text, /Save it as `AGENTS\.md`/);
+    assert.match(text, /`@AGENTS\.md`/);
+  });
+
+  test("project-context writes AGENTS.md, asks before migrating and preserves human text", () => {
+    const text = read("plugins/team-skills/skills/project-context/SKILL.md");
+    assert.match(text, /Write it to `AGENTS\.md`/);
+    assert.match(text, /\*\*Ask first\.\*\*/);
+    assert.match(text, /byte for byte/);
+    assert.match(text, /@AGENTS\.md/);
+    assert.match(text, /falling\s+back to an unmigrated CLAUDE\.md/);
+  });
+
+  test("bootstrap-project points at the renamed template", () => {
+    const text = read("plugins/team-skills/skills/bootstrap-project/SKILL.md");
+    assert.match(text, /examples\/AGENTS\.md\.template/);
+    assert.doesNotMatch(text, /CLAUDE\.md\.template/);
+  });
+});
