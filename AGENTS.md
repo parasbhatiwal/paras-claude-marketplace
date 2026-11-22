@@ -1,7 +1,7 @@
 # paras-claude-marketplace — context for agents
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=51e8ca5a0a8f333436b82c0f0442e9a42f298035 generated=2026-11-22 -->
+<!-- claude-context: sha=423740ff81208d7622fc96064da1f6ab85d8aa70 generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,

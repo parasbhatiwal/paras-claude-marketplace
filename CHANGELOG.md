@@ -30,8 +30,6 @@ the trust bypass flag skips them, so they are not a hard boundary: git hooks
 and CI remain the real wall. Claude Code's hooks are unchanged, and the Codex
 plugin manifest still registers no hooks (the template is the delivery path).
 
-<!-- 2.9.0 goes here (Cursor hooks, released from a parallel PR) -->
-
 ## [2.8.0] — 2026-11-22
 
 ### Added

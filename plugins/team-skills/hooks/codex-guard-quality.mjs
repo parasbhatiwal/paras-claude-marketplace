@@ -12,10 +12,13 @@
  *     the rule module's own exemption);
  *   - otherwise the same rule on the same file is refused twice (explain, then
  *     insist) and let through on the third attempt, recorded in
- *     `.claude/engineering-overrides.md` at the git root so the override is
- *     visible in review.
+ *     `.agents/engineering-overrides.md` at the git root (not Claude's `.claude/`
+ *     folder: a Codex repo should not grow one) so the override is visible in review.
  *
  * Attempt counts live per session in the OS temp directory, never in the repo.
+ * No session_id in the payload: keyed by a hash of cwd plus today's date.
+ * Only EDIT tools reach this hook: edits made through shell commands (heredocs,
+ * tee, sed -i) bypass it.
  * When the payload lacks the fields the adapter needs, it warns and allows.
  *
  * Exit codes: 0 = allow, 2 = block with the reason on stderr.
@@ -24,6 +27,7 @@
 import { execFileSync } from "node:child_process";
 import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
+import { createHash } from "node:crypto";
 import { dirname, join } from "node:path";
 
 import { attemptKey, renderOverrideRecord, renderVerdict, verdictFor } from "./escalation.mjs";
@@ -59,11 +63,19 @@ for (const finding of verdict.findings) {
 // ---------------------------------------------------------------------------
 // How often have we already refused these exact rules for these exact files?
 
-const statePath = join(
-  tmpdir(),
-  "team-skills",
-  `codex-${String(normalized.sessionId ?? "unknown").replace(/[^\w-]/g, "")}.json`,
-);
+// Without a session_id the ladder is keyed by a hash of the working directory
+// and today's date: two projects never share a counter, and a new day starts a
+// fresh argument. (A shared literal key would let one repo's refusals count
+// toward another's override.)
+const sessionKey =
+  typeof normalized.sessionId === "string" && normalized.sessionId
+    ? normalized.sessionId.replace(/[^\w-]/g, "")
+    : `cwd-${createHash("sha256")
+        .update(`${normalized.cwd ?? process.cwd()}\n${new Date().toISOString().slice(0, 10)}`)
+        .digest("hex")
+        .slice(0, 16)}`;
+
+const statePath = join(tmpdir(), "team-skills", `codex-${sessionKey}.json`);
 
 const readState = () => {
   try {
@@ -122,7 +134,7 @@ const gitRoot = (() => {
 })();
 
 if (gitRoot) {
-  const ledger = join(gitRoot, ".claude", "engineering-overrides.md");
+  const ledger = join(gitRoot, ".agents", "engineering-overrides.md");
   try {
     mkdirSync(dirname(ledger), { recursive: true });
     if (!existsSync(ledger)) {

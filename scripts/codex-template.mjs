@@ -17,6 +17,28 @@ import { join } from "node:path";
 
 const LAUNCHER = "team-skills-hook.sh";
 
+/** Documented Codex hook events (agent-tool-contracts.md). */
+const EVENTS = new Set([
+  "SessionStart", "SessionEnd", "PreToolUse", "PermissionRequest", "PostToolUse", "PreCompact",
+  "PostCompact", "UserPromptSubmit", "PreModelRequest", "PostModelRequest", "SubagentStart",
+  "SubagentStop", "Stop", "Interrupt",
+]);
+/** Events whose entries select a tool and so need a matcher. */
+const NEEDS_MATCHER = new Set(["PreToolUse", "PermissionRequest", "PostToolUse"]);
+
+/** Where each wrapper may be wired: event, and (for tool events) what the matcher must cover. */
+const WIRING = {
+  "codex-guard-git.mjs": { event: "PreToolUse", covers: ["Bash"], say: "a Bash matcher under PreToolUse" },
+  "codex-guard-quality.mjs": {
+    event: "PreToolUse",
+    covers: ["apply_patch", "Edit", "Write"],
+    say: "an apply_patch/Edit/Write matcher under PreToolUse",
+  },
+  "codex-session-context.mjs": { event: "SessionStart", say: "the SessionStart event" },
+};
+
+const matcherParts = (matcher) => String(matcher ?? "").split("|").map((m) => m.trim()).filter(Boolean);
+
 export function validateCodexTemplate(root, err) {
   const dir = join(root, "examples", "codex");
   const hooksPath = join(dir, "hooks.json");
@@ -39,11 +61,17 @@ export function validateCodexTemplate(root, err) {
   }
 
   for (const [event, groups] of Object.entries(config.hooks)) {
+    if (!EVENTS.has(event)) {
+      err(`${label}: unknown event \`${event}\` (documented events: ${[...EVENTS].join(", ")})`);
+    }
     if (!Array.isArray(groups)) {
       err(`${label}: \`hooks.${event}\` must be an array of groups`);
       continue;
     }
     for (const group of groups) {
+      if (NEEDS_MATCHER.has(event) && matcherParts(group?.matcher).length === 0) {
+        err(`${label}: a \`${event}\` group needs a non-empty \`matcher\``);
+      }
       if (!Array.isArray(group?.hooks)) {
         err(`${label}: a \`${event}\` group is missing its \`hooks\` array`);
         continue;
@@ -64,6 +92,17 @@ export function validateCodexTemplate(root, err) {
           err(`${label}: command names no wrapper script: ${hook.command}`);
         } else if (!existsSync(join(root, "plugins", "team-skills", "hooks", wrapper))) {
           err(`${label}: wrapper ${wrapper} does not exist in plugins/team-skills/hooks`);
+        }
+        const rule = WIRING[wrapper];
+        if (rule) {
+          const parts = matcherParts(group.matcher);
+          const wrongEvent = event !== rule.event;
+          const wrongMatcher =
+            rule.covers &&
+            (parts.length === 0 || parts.some((p) => !rule.covers.includes(p)));
+          if (wrongEvent || wrongMatcher) {
+            err(`${label}: ${wrapper} must be wired to ${rule.say}, found \`${event}\` with matcher \`${group.matcher ?? ""}\``);
+          }
         }
       }
     }

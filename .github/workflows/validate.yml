@@ -20,10 +20,10 @@ jobs:
       - name: Syntax-check the shell templates
         run: |
           for f in examples/githooks/* examples/*.sh; do
-            [ -f "$f" ] && sh -n "$f"
+            if [ -f "$f" ]; then sh -n "$f"; fi
           done
           for f in examples/*/*.sh; do
-            [ -f "$f" ] && sh -n "$f"
+            if [ -f "$f" ]; then sh -n "$f"; fi
           done
       - name: Lint the shell templates
         # -x follows the sourced _lib.sh; run from the hooks directory so the
@@ -35,7 +35,7 @@ jobs:
           # Per-tool template directories (examples/<tool>/*.sh), run from their own directory.
           for d in examples/*/; do
             for f in "$d"*.sh; do
-              [ -f "$f" ] && (cd "$d" && shellcheck -s sh -x "$(basename "$f")")
+              if [ -f "$f" ]; then (cd "$d" && shellcheck -s sh -x "$(basename "$f")"); fi
             done
           done
       - name: Validate marketplace, plugins, skills, hooks

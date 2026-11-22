@@ -74,6 +74,12 @@ describe("README and docs state the Codex hook facts", () => {
     assert.match(codex, /best effort/i);
   });
 
+  test("Codex subsection says edits made through shell commands bypass the quality guard", () => {
+    assert.match(codex, /heredoc|tee|sed -i/i);
+    assert.match(codex, /bypass/i);
+    assert.match(codex, /\.agents\/engineering-overrides\.md/);
+  });
+
   test("the Codex table row says the hooks are a copy-in template, best effort", () => {
     const row = section.split("\n").find((l) => /^\|\s*Codex/.test(l)) ?? "";
     assert.match(row, /template/i);
@@ -88,7 +94,8 @@ describe("validateCodexTemplate", () => {
     validateCodexTemplate(root, (m) => out.push(m));
     return out;
   };
-  const scaffold = ({ hooks, launcher = true, wrapper = true } = {}) => {
+  const hook = (wrapper) => ({ type: "command", command: `sh .codex/team-skills-hook.sh ${wrapper}`, timeout: 30 });
+  const scaffold = ({ hooks, launcher = true, wrapper = true, extraWrappers = ["codex-guard-quality.mjs", "codex-session-context.mjs"] } = {}) => {
     mkdirSync(join(root, "examples", "codex"), { recursive: true });
     mkdirSync(join(root, "plugins", "team-skills", "hooks"), { recursive: true });
     writeFileSync(
@@ -108,6 +115,7 @@ describe("validateCodexTemplate", () => {
     );
     if (launcher) writeFileSync(join(root, "examples", "codex", "team-skills-hook.sh"), "#!/bin/sh\n");
     if (wrapper) writeFileSync(join(root, "plugins", "team-skills", "hooks", "codex-guard-git.mjs"), "");
+    for (const w of extraWrappers) writeFileSync(join(root, "plugins", "team-skills", "hooks", w), "");
   };
 
   beforeEach(() => {
@@ -162,6 +170,46 @@ describe("validateCodexTemplate", () => {
     const out = errors().join("\n");
     assert.match(out, /type/);
     assert.match(out, /timeout/);
+  });
+
+  test("flags a misspelled event name", () => {
+    scaffold({ hooks: { hooks: { PreToolUsee: [{ matcher: "Bash", hooks: [hook("codex-guard-git.mjs")] }] } } });
+    assert.match(errors().join("\n"), /PreToolUsee/);
+  });
+
+  test("flags a PreToolUse entry with no matcher", () => {
+    scaffold({ hooks: { hooks: { PreToolUse: [{ hooks: [hook("codex-guard-git.mjs")] }] } } });
+    assert.match(errors().join("\n"), /matcher/);
+  });
+
+  test("flags the git wrapper wired to an edit matcher", () => {
+    scaffold({ hooks: { hooks: { PreToolUse: [{ matcher: "apply_patch|Edit|Write", hooks: [hook("codex-guard-git.mjs")] }] } } });
+    assert.match(errors().join("\n"), /codex-guard-git\.mjs.*Bash/);
+  });
+
+  test("flags the quality wrapper wired to Bash", () => {
+    scaffold({ hooks: { hooks: { PreToolUse: [{ matcher: "Bash", hooks: [hook("codex-guard-quality.mjs")] }] } } });
+    assert.match(errors().join("\n"), /codex-guard-quality\.mjs/);
+  });
+
+  test("flags the session wrapper under PreToolUse", () => {
+    scaffold({ hooks: { hooks: { PreToolUse: [{ matcher: "Bash", hooks: [hook("codex-session-context.mjs")] }] } } });
+    assert.match(errors().join("\n"), /codex-session-context\.mjs.*SessionStart/);
+  });
+
+  test("accepts the wrappers under their proper events and matchers", () => {
+    scaffold({
+      hooks: {
+        hooks: {
+          SessionStart: [{ hooks: [hook("codex-session-context.mjs")] }],
+          PreToolUse: [
+            { matcher: "Bash", hooks: [hook("codex-guard-git.mjs")] },
+            { matcher: "apply_patch|Edit|Write", hooks: [hook("codex-guard-quality.mjs")] },
+          ],
+        },
+      },
+    });
+    assert.deepEqual(errors(), []);
   });
 
   test("flags a missing top-level hooks object", () => {

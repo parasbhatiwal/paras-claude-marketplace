@@ -147,6 +147,12 @@ from Codex's documentation, not from a recorded session.
 4. Start a new session. If the plugin or `node` cannot be found, the launcher
    prints `guard inactive: ...` and allows the call; it never blocks.
 
+What the quality guard sees: only edit tools (`apply_patch`, `Edit`, `Write`).
+Edits made through shell commands (heredocs, `tee`, `sed -i`) bypass it. When it
+overrides a rule after repeated attempts it records that in
+`.agents/engineering-overrides.md` (not a `.claude` folder). Also best effort,
+not verified by the maintainer.
+
 Limits to know about: the trust bypass flag (`--dangerously-bypass-hook-trust`)
 skips these hooks entirely, so they are **not a hard enforcement boundary**.
 **Git hooks and CI remain the real wall**: install the committed
