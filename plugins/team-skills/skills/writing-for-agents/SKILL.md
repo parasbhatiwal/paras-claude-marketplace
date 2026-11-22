@@ -1,6 +1,6 @@
 ---
 name: writing-for-agents
-description: Use this skill when creating or editing a document an agent consumes - a skill, CLAUDE.md or AGENTS.md, a doc reached by a pointer. Covers context pointers, the two loads, the information hierarchy, completion criteria, leading words, and pruning.
+description: Use this skill when creating or editing a document an agent consumes - a skill, an AGENTS.md steering file, a doc reached by a pointer. Covers context pointers, the two loads, the information hierarchy, completion criteria, leading words, and pruning.
 ---
 
 # Writing for agents
@@ -15,7 +15,7 @@ the same *process* every run rather than producing the same output.
 
 A **context pointer** is a reference held in context that names out-of-context
 material and encodes the condition for reaching it — a skill description, a
-line in `CLAUDE.md` naming a doc. Its *wording*, not its target, decides when
+line in `AGENTS.md` naming a doc. Its *wording*, not its target, decides when
 and how reliably the agent reaches the material. A must-have target behind a
 weak pointer is a variance bug: sharpen the wording first; inline only if
 sharpening fails. A pointer says what the material is and lists the
@@ -25,7 +25,7 @@ already carries.
 
 ## The two loads
 
-- **Context load** — always-loaded material (a `CLAUDE.md` line, a skill
+- **Context load** — always-loaded material (a `AGENTS.md` line, a skill
   description) costs tokens and attention every turn whether or not it fires.
 - **Cognitive load** — the human is the index: which documents exist and when
   to reach for each. Spend it where human judgment matters.

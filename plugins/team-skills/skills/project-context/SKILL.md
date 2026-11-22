@@ -1,6 +1,6 @@
 ---
 name: project-context
-description: Use this skill to generate or refresh a project's AGENTS.md (the context file Claude Code, Codex and Cursor read) by scanning the codebase ("set up AGENTS.md", "set up CLAUDE.md", "document this project for agents", "refresh project context", "the context is stale"), and to migrate an existing CLAUDE.md into it. Produces high-signal context - commands, architecture, boundaries, conventions, gotchas - and maintains a freshness fingerprint so the file is updated when the project drifts rather than rotting silently.
+description: Use this skill to generate or refresh a project's AGENTS.md (the context file Claude Code, Codex and Cursor read) by scanning the codebase ("set up AGENTS.md", "set up CLAUDE.md", "document this project for agents", "refresh project context", "the context is stale"), and to migrate an unmigrated CLAUDE.md into it. Produces high-signal context - commands, architecture, boundaries, conventions, gotchas - and maintains a freshness fingerprint so the file is updated when the project drifts rather than rotting silently.
 ---
 
 # Project Context (AGENTS.md)
@@ -14,8 +14,8 @@ nothing.
 
 **Write only what cannot be inferred cheaply from the code.**
 
-This skill has three modes — **generate** (no AGENTS.md or CLAUDE.md, or an
-unmanaged one), **refresh** (a managed one has drifted) and **migrate** (a
+This skill has three modes — **generate** (neither AGENTS.md nor an unmigrated CLAUDE.md exists, or the
+one that does is unmanaged), **refresh** (a managed one has drifted) and **migrate** (a
 managed CLAUDE.md moves into AGENTS.md; see below). All start by scanning; none
 guesses.
 
@@ -103,10 +103,10 @@ real HEAD sha (`git rev-parse HEAD`) and today's date. The markers keep the
 `CLAUDE.md` is then a single line, `@AGENTS.md`, so Claude Code loads the same
 content and nothing is written twice.
 
-## Migrate mode — an existing managed CLAUDE.md
+## Migrate mode — moving an unmigrated CLAUDE.md
 
-When the repo has a CLAUDE.md that carries a `claude-context` fingerprint (or any
-hand-written content) and no AGENTS.md:
+When the repo has an unmigrated CLAUDE.md that carries a `claude-context`
+fingerprint (or any hand-written content) and no AGENTS.md:
 
 1. **Ask first.** Say what will happen: the whole file moves to AGENTS.md and
    CLAUDE.md becomes a one-line import. Do nothing until the user agrees.
@@ -120,7 +120,7 @@ hand-written content) and no AGENTS.md:
 5. If both files already exist with content, stop and ask: merging two context
    files is a human decision.
 
-Until a project migrates, the freshness hook keeps reading its CLAUDE.md, so
+Until a project migrates, the freshness hook falls back to its CLAUDE.md, so
 nothing breaks in the meantime.
 
 ## Refresh mode
@@ -153,7 +153,7 @@ nothing breaks in the meantime.
   API spec, rather than summarizing them here.
 - Write for a reader with no history on the project and a limited window: the
   first 20 lines should let someone make a correct small change.
-- If the repo already has a hand-written AGENTS.md or CLAUDE.md with no markers, do not
+- If the repo already has a hand-written AGENTS.md (or an unmigrated CLAUDE.md) with no markers, do not
   clobber it: wrap or append the managed region and keep every existing line.
 
 ## Keeping it fresh

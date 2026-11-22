@@ -12,6 +12,10 @@
  *  - A reference to a Claude-provided command (see CLAUDE_PROVIDED_COMMANDS) is
  *    valid only inside such a note, or on an attribution line that credits an
  *    upstream skill of the same name.
+ *  - The project context lives in AGENTS.md. CLAUDE.md may be mentioned only
+ *    where the same paragraph explains the one-line `@AGENTS.md` import or the
+ *    fallback for a project that has not migrated, so no skill tells the reader
+ *    to read, write or refresh CLAUDE.md as if it were the context.
  */
 
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
@@ -41,6 +45,9 @@ const PHRASES = [
 
 /** Files that exist because of a Claude-only feature; phrases are allowed there. */
 const EXEMPT = [/^skills\/browser-verify\//, /^skills\/deliver\/SKILL\.md$/, /^commands\/verify\.md$/];
+/** Where CLAUDE.md is the subject on purpose: documenting what each tool reads. */
+const CONTEXT_EXEMPT = [/^references\/agent-tool-contracts\.md$/];
+const CONTEXT_EXPLANATION = /@AGENTS\.md|unmigrated|not (?:yet )?migrated|fall(?:s|ing)? back|one-line (?:import|pointer)/i;
 /** Skills that must declare themselves Claude-only up front. */
 const MUST_DECLARE = ["skills/browser-verify/SKILL.md", "skills/deliver/SKILL.md"];
 const DECLARATION_LINES = 16;
@@ -74,6 +81,22 @@ function markdownFiles(dir) {
   return out;
 }
 
+/** Flags a paragraph that names CLAUDE.md without explaining the import or fallback. */
+function checkContextFile({ text, rel, label, err }) {
+  let start = 0;
+  for (const block of text.split(/\n\s*\n/)) {
+    const blockStart = start;
+    start += block.length + 2;
+    if (!/CLAUDE\.md/.test(block) || CONTEXT_EXPLANATION.test(block)) continue;
+    const offset = block.split("\n").findIndex((l) => /CLAUDE\.md/.test(l));
+    const line = text.slice(0, blockStart).split("\n").length + offset;
+    err(
+      `${label}/${rel}:${line}: the project context lives in AGENTS.md — say AGENTS.md, ` +
+        "or explain the `@AGENTS.md` import or the unmigrated-project fallback in the same paragraph"
+    );
+  }
+}
+
 export function validateNeutralWording({ pluginDir, label, err }) {
   const files = ["skills", "references", "commands"].flatMap((d) => markdownFiles(join(pluginDir, d)));
 
@@ -87,6 +110,7 @@ export function validateNeutralWording({ pluginDir, label, err }) {
         err(`${label}/${rel}: this skill is Claude-only by design; say "Claude Code only" in its first ${DECLARATION_LINES - 1} lines`);
       }
     }
+    if (!CONTEXT_EXEMPT.some((re) => re.test(rel))) checkContextFile({ text, rel, label, err });
     if (EXEMPT.some((re) => re.test(rel))) continue;
 
     withoutNotes(text)

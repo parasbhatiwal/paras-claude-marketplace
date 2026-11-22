@@ -144,3 +144,49 @@ describe("the real repo", () => {
     assert.match(text, /\(Claude Code:[^)]*`\/security-review`/s);
   });
 });
+
+describe("the context file is AGENTS.md", () => {
+  test("a skill that tells the reader to use CLAUDE.md is flagged", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "Refresh `CLAUDE.md` first, in the same change."));
+    const errs = errorsMatching(/alpha\/SKILL\.md:\d+.*AGENTS\.md/);
+    assert.equal(errs.length, 1, errs.join("\n"));
+  });
+
+  test("references and commands are checked too", () => {
+    w(`${P}/references/notes.md`, "Read `CLAUDE.md` before starting.\n");
+    w(`${P}/commands/ctx.md`, "---\ndescription: d\n---\nWrite CLAUDE.md now.\n");
+    assert.equal(errorsMatching(/references\/notes\.md:1.*AGENTS\.md/).length, 1);
+    assert.equal(errorsMatching(/commands\/ctx\.md:4.*AGENTS\.md/).length, 1);
+  });
+
+  test("a paragraph explaining the one-line import is fine", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "`CLAUDE.md` holds only the line `@AGENTS.md`, so Claude Code loads the same file."));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("a paragraph explaining the fallback for unmigrated projects is fine", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "Read AGENTS.md, falling back to `CLAUDE.md` in a project that has\nnot migrated."));
+    w(`${P}/skills/beta/SKILL.md`, skill("beta", "An unmigrated project keeps its context in `CLAUDE.md`."));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("the marker must be in the same paragraph, not elsewhere in the file", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "Mention `@AGENTS.md` here.\n\nThen refresh `CLAUDE.md` before you push."));
+    assert.equal(errorsMatching(/alpha\/SKILL\.md:\d+.*AGENTS\.md/).length, 1);
+  });
+
+  test("the tool contracts reference may discuss CLAUDE.md freely", () => {
+    w(`${P}/references/agent-tool-contracts.md`, "Codex does not read `CLAUDE.md`.\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("AGENTS.md mentions are of course fine", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "Refresh `AGENTS.md` in the same change."));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("the real plugin has no stray instruction to use CLAUDE.md", () => {
+    const stray = validate(REPO_ROOT).filter((e) => /AGENTS\.md/.test(e));
+    assert.deepEqual(stray, []);
+  });
+});

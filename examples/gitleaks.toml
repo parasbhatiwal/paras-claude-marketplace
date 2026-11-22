@@ -11,7 +11,7 @@
 #
 # Excluding file globs is how a secret scanner ends up scanning nothing that
 # matters. Markdown is where connection strings land while someone documents
-# an architecture (ADRs, CLAUDE.md, runbooks), and test files and fixtures are
+# an architecture (ADRs, AGENTS.md, runbooks), and test files and fixtures are
 # the single most common home for a real credential "just for the integration
 # test". Both were previously excluded here; both are exactly where secrets
 # hide.

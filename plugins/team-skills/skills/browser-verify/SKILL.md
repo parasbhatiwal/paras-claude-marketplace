@@ -50,7 +50,7 @@ user's yes or edits — they may add a flow or drop one.
   `git worktree add` into a temp directory on that branch (or `gh pr checkout`
   inside one), and install dependencies there. Say which branch you are
   testing so results are attributable.
-- **Start the app** with the command from `CLAUDE.md` (Claude Code: or the built-in `run`
+- **Start the app** with the command from `AGENTS.md` (Claude Code: or the built-in `run`
   skill); wait until the URL answers. Note the port.
 - Use **local** URLs. Anything else (staging, production) only if the user
   names it, and then without destructive actions.
