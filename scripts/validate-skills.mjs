@@ -9,6 +9,8 @@
  *  - skills that reference another skill reference one that EXISTS
  *  - skills that reference a bundled file (`./x` or `../x`) reference one that EXISTS
  *  - hooks.json (if present) parses and referenced hook scripts exist
+ *  - repo-level skills are linked into .agents/skills for Codex, and relative
+ *    links in README, CONTRIBUTING and docs/ resolve (see repo-docs.mjs)
  *  - Codex and Cursor manifests (when present) are well formed and agree with
  *    the Claude plugin on name and version (see tool-manifests.mjs)
  *
@@ -20,6 +22,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validatePluginManifests, validateMarketplaces } from "./tool-manifests.mjs";
+import { validateAgentSkillLinks, validateDocLinks } from "./repo-docs.mjs";
 
 /** Skills shipped by Claude Code itself — always valid reference targets. */
 const BUILTIN_SKILLS = new Set([
@@ -237,6 +240,9 @@ export function validate(root) {
     ]);
     validateSkills(repoSkills, known, err, parseFrontmatter);
   }
+
+  validateAgentSkillLinks(root, err);
+  validateDocLinks(root, err);
 
   return errors;
 }
