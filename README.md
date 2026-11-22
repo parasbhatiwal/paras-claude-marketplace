@@ -97,14 +97,14 @@ try it, please send a
 |---|---|---|---|---|
 | Claude Code | All 42, plus the 13 slash commands | Yes | [Install](#install) above | Used and maintained here |
 | Codex | All 42 | Not yet; planned | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
-| Cursor | All 42 | Not yet; planned | Import the repo (see below) | Best effort, not verified by the maintainer |
+| Cursor | All 42 | Best effort (git guard, quality guard, session nudge) | Import the repo (see below) | Best effort, not verified by the maintainer |
 
 An advisory CI job installs the plugin with the real Codex CLI to catch
 manifest and install breakage; it does not run skills inside a session.
 
-Claude-only for now: the in-session guard hooks (hooks for Codex and Cursor are
-planned, not yet available), cloud (autonomous) delivery, and `/verify` browser
-testing, which needs Claude in Chrome. The committed git hooks and CI templates in
+Claude-only for now: cloud (autonomous) delivery, and `/verify` browser
+testing, which needs Claude in Chrome. The in-session guard hooks run best
+effort on Cursor and are planned, not yet available, for Codex. The committed git hooks and CI templates in
 [`examples/`](examples) work with any tool and are the real enforcement wall;
 the in-session hooks are an extra layer.
 
@@ -143,6 +143,16 @@ Claude Code reaches the same file through a one-line `@AGENTS.md` import in
 | `/work` | `/work` |
 | `/deliver` | `/deliver` (attended only) |
 | `/triage` | `/triage` |
+
+**Guard hooks (best effort, not verified by the maintainer):** the plugin ships
+Cursor-format hooks (`hooks/cursor-hooks.json`) for the git guard on shell
+commands, the quality guard on file writes and the session context nudge. They
+are built from Cursor's documentation only; nobody on the project can run
+Cursor, so treat them as an extra layer that may not fire. The committed git
+hooks and CI in [`examples/`](examples) remain the real wall. Cursor cloud
+agents do not run the session hook. Cursor may also import a project's own
+`.claude/settings.json` hooks, so a guard can run twice; that is harmless
+because blocking is idempotent.
 
 **Branch limit:** Cursor has no documented way to pin a branch when importing a
 repo, so it may follow the default branch (`main`), which can be ahead of

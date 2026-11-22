@@ -1,0 +1,30 @@
+{
+  "version": 1,
+  "hooks": {
+    "beforeShellExecution": [
+      {
+        "type": "command",
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-guard-git.mjs\"",
+        "timeout": 30,
+        "failClosed": false
+      }
+    ],
+    "preToolUse": [
+      {
+        "type": "command",
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-guard-quality.mjs\"",
+        "timeout": 30,
+        "failClosed": false,
+        "matcher": "Write|Edit|StrReplace|MultiEdit|NotebookEdit|ApplyPatch"
+      }
+    ],
+    "sessionStart": [
+      {
+        "type": "command",
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-session-context.mjs\"",
+        "timeout": 30,
+        "failClosed": false
+      }
+    ]
+  }
+}

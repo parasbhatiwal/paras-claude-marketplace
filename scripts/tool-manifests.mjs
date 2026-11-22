@@ -11,7 +11,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { join, resolve, relative } from "node:path";
+import { join, resolve, relative, sep } from "node:path";
 
 export const CODEX_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 
@@ -46,6 +46,55 @@ function checkAgreement(label, manifest, claude, err) {
   }
 }
 
+const CURSOR_ROOT_VAR = "${CURSOR_PLUGIN_ROOT}";
+
+/**
+ * The Cursor manifest's `hooks` field: a path (replaces default discovery of the
+ * Claude-format hooks/hooks.json) or an inline object. Either way the config
+ * needs `version`, and every command must reach an existing script through the
+ * Cursor plugin root variable.
+ */
+function checkCursorHooks({ pluginDir, label, hooks, err }) {
+  let config = hooks;
+  let where = `${label}: \`hooks\``;
+  if (typeof hooks === "string") {
+    const file = resolve(pluginDir, hooks);
+    where = `${label}: hooks file ${hooks}`;
+    if (file !== resolve(pluginDir) && !file.startsWith(resolve(pluginDir) + sep)) {
+      err(`${where} must stay inside the plugin directory`);
+      return;
+    }
+    if (!existsSync(file)) {
+      err(`${where} does not exist`);
+      return;
+    }
+    config = readJson(file, relative(resolve(pluginDir, ".."), file), err);
+    if (config === null) return;
+  }
+  if (config === null || typeof config !== "object" || Array.isArray(config)) {
+    err(`${where} must be a path or an object`);
+    return;
+  }
+  if (config.version === undefined) err(`${where}: missing \`version\``);
+  for (const [event, entries] of Object.entries(config.hooks ?? {})) {
+    for (const entry of Array.isArray(entries) ? entries : []) {
+      if (!nonEmpty(entry?.command)) {
+        err(`${where}: ${event} entry missing \`command\``);
+        continue;
+      }
+      const refs = [...entry.command.matchAll(/\$\{CURSOR_PLUGIN_ROOT\}\/([^\s"']+)/g)];
+      if (refs.length === 0) {
+        err(`${where}: ${event} command must reference a script under ${CURSOR_ROOT_VAR}`);
+      }
+      for (const [, script] of refs) {
+        if (!existsSync(resolve(pluginDir, script))) {
+          err(`${where}: ${event} command script ${script} does not exist`);
+        }
+      }
+    }
+  }
+}
+
 /** Per-plugin manifests: the Codex portable plugin.json and the Cursor plugin.json. */
 export function validatePluginManifests({ root, pluginDir, claude, err }) {
   const label = relative(root, pluginDir);
@@ -77,6 +126,9 @@ export function validatePluginManifests({ root, pluginDir, claude, err }) {
       err(`${l}: \`author.name\` is required when \`author\` is present`);
     }
     checkAgreement(l, cursor, claude, err);
+    if (cursor.hooks !== undefined) {
+      checkCursorHooks({ pluginDir, label: l, hooks: cursor.hooks, err });
+    }
   }
 }
 

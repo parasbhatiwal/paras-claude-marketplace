@@ -68,7 +68,8 @@ env var *names*. Content between `<!-- claude-context:begin/end -->` is
 Claude-managed; everything outside is yours and is never rewritten. It stamps
 a fingerprint, and a `SessionStart` hook nudges when the context has drifted —
 commits piled up, structural files changed, or it's simply old. Silent when
-fresh.
+fresh. On Cursor the same nudge runs through a best-effort `sessionStart` hook
+(not verified by the maintainer; Cursor cloud agents skip it).
 
 ## The v2 workflow: grill once, deliver without you
 
