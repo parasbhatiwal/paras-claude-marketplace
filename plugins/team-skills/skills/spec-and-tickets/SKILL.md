@@ -68,6 +68,12 @@ sub-issue of the epic, with native blocking edges (see
 Acceptance criteria, Blocked by. Label each `needs-triage` — `handoff-gate`
 applies the final state. Do not close or modify the epic beyond the spec.
 
+## Record workflow struggles
+
+Follow "Workflow struggles" in `../../references/pr-description.md`: post any
+struggles from this stage as a comment on the epic (or the single issue) before
+the hand-off below; `deliver` copies them into the final PR.
+
 ## Output
 
 Epic number, ticket list with edges, the business-input issues and which

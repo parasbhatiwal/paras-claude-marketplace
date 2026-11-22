@@ -7,7 +7,7 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
-## [2.7.0] — 2026-11-22
+## [2.8.0] — 2026-11-22
 
 ### Added
 
@@ -15,9 +15,25 @@ Notable changes to the `team-skills` plugin. Format follows
   (`hooks/hook-adapters.mjs`) that turns each tool's hook payload into what the
   existing git and quality rules already take, and builds the block or
   fail-open response. **No hook is wired up for Cursor or Codex yet, so nothing
-  changes for you in any tool in this release.** Claude Code's hooks are
-  untouched. Codex and Cursor payload handling is built from official
+  changes for you in any tool in this release.** Claude Code's hook behavior is
+  unchanged. Codex and Cursor payload handling is built from official
   documentation only: best effort, not verified by the maintainer.
+- `guard-git` now builds its policy dependencies through a shared module
+  (`hooks/policy-deps.mjs`) so the Cursor and Codex hooks can use exactly the
+  same ones. Claude Code's behavior is unchanged and its tests are untouched.
+
+## [2.7.0] — 2026-11-22
+
+### Changed
+
+- **"Workflow struggles" replaces the old friction section** in every PR the
+  workflow produces. Each entry records a point where a skill, hook, gate or
+  brief made the agent stall, go back or guess: kind, where, what happened,
+  cost, workaround, suggested fix (or `None encountered`). Stages that open no
+  PR post theirs as an issue comment that the final PR copies. Added to
+  `open-pr`, `deliver`, `work`, `grill`, `spec-and-tickets`, `handoff-gate`,
+  the PR description reference and the example pull request template; `retro`
+  reads it as primary input.
 
 ## [2.6.0] — 2026-11-22
 

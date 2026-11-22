@@ -194,6 +194,13 @@ without you, usually in a cloud session.
 If a ticket's brief leaves a question open, `deliver` never guesses: it marks
 that ticket `needs-info` and carries on with the rest.
 
+Every PR the workflow produces has a **Workflow struggles** section: where a
+skill, hook, gate or brief made the agent stall, go back or guess, each entry
+with kind, where, what happened, cost, workaround and suggested fix (or `None
+encountered`). Stages before delivery post theirs as a comment on the issue, and
+the final PR copies them in. Hand those PR links to Claude and it improves the
+skills (`retro` reads the section).
+
 Prefer to watch every step in one session? Ask for the `feature-ticket` or
 `bug-ticket` skill by name. Commit, push, and PR creation still ask first.
 
