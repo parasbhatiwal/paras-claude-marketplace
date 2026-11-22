@@ -15,8 +15,11 @@ future runs go better. Read `writing-for-agents` first for the writing bar.
 1. Read the primary sources for the session the user names (default: this
    one). For a past session, search the session logs on this machine. For a
    `deliver` run, also read the epic, the final PR's *Decisions the agent
-   made* and *Not delivered* sections, and every `needs-info` comment — they
-   are the friction the agent hit.
+   made*, *Workflow struggles* and *Not delivered* sections, and every
+   `needs-info` comment. The *Workflow struggles* section (and the epic's
+   "Workflow struggles" comments) is primary input: each entry names the kind,
+   cost and a suggested fix, so start from entries with cost `lost-time` or
+   `blocked` and from kinds that repeat.
 2. Look for candidates in these categories:
    - **Navigation** — how hard was it to find the right files? Hidden
      dependencies? A *navigation pointer* would help when the session spent a

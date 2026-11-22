@@ -38,6 +38,14 @@ One or two sentences: what this PR does and why it exists.
 
 - Migrations, config/env changes, feature flags, or follow-up work.
 - Delete this section if there's nothing to flag.
+
+## Workflow struggles
+
+- Entries as defined in "Workflow struggles" below, or `None encountered`.
+
+## Human verification
+
+- The mandatory checklist from the `open-pr` skill (always last, unticked).
 ```
 
 ## Show, don't just tell
@@ -59,9 +67,59 @@ Skip preambles; use the project's `GLOSSARY.md` language.
   back). *Blast Radius:* one word for the scope of impact (consumers, layout,
   mobile, data), with ramifications if any.
 
-For autonomous `deliver` PRs, add: **Delivered**, **Decisions the agent
-made**, **Not delivered**, **Environment friction** (anything that slowed the
-run that a `retro` would fix).
+For autonomous `deliver` PRs, add these sections after Notes / risks and
+before Workflow struggles: **Delivered**; **Decisions the agent made** (choices
+made inside the brief); **Decisions for the reviewer** (judgment calls the
+human must confirm); **Not delivered**.
+
+## Workflow struggles
+
+Every PR the workflow produces carries this section, placed after Notes /
+risks and before Human verification, so the skills can be improved from real
+PRs (the `retro` skill reads it as primary input).
+
+A struggle is a point where the workflow itself (a skill's instructions, a
+hook or gate, a reference, the grill or handoff) made an agent stall, retry,
+work around it, guess, hit the stuck rule, or go back to an earlier stage; or
+where the agent was unsure what a skill, brief or ticket meant and had to
+choose a reading. Ordinary code difficulty and bugs are not struggles.
+
+Log these even when resolved: returning to an earlier stage; the stuck rule or
+a `needs-info` label; a second implementer attempt; a gate needing more than
+one fix cycle; a hook or guard block; every ambiguity (name the unclear text
+and the reading chosen). Log everything with a cost rather than filtering.
+
+Each entry has six fields:
+
+- **kind**: one of `backtrack`, `ambiguity`, `gate-or-hook-block`,
+  `missing-info`, `tooling`, `other`
+- **where**: the stage and skill
+- **what happened**
+- **cost**: one of `minor`, `lost-time`, `blocked`
+- **workaround**: what the agent did instead
+- **suggested fix**: what change to the workflow would prevent it
+
+A clean run still shows the section, with `None encountered`.
+
+### Redaction
+
+Noise is fine, secrets never. Entries never contain secrets, tokens,
+credentials, environment values, private paths or customer content. Quote the
+minimum needed to name the unclear text; summarise error output instead of
+pasting it. Assume the PR or issue is public.
+
+### When and where
+
+- Implementers record each struggle at the moment it happens (fresh context
+  forgets) and list them in their subtask PR body.
+- Pre-PR stages (`work`, `grill`, `spec-and-tickets`, `handoff-gate`) post
+  theirs as one comment headed `Workflow struggles` on the epic issue, or on
+  the single issue `work` is handling when there is no epic.
+- `deliver` collects them: it reads the comments on the epic and on every
+  sub-issue, and the body of every subtask PR, picks out entries under the
+  `Workflow struggles` heading, adds its own (stuck rule, second attempts,
+  gates needing more than one fix cycle), and copies all of them into the
+  final PR's section.
 
 ## Rules
 

@@ -7,6 +7,19 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.7.0] — 2026-11-22
+
+### Changed
+
+- **"Workflow struggles" replaces the old friction section** in every PR the
+  workflow produces. Each entry records a point where a skill, hook, gate or
+  brief made the agent stall, go back or guess: kind, where, what happened,
+  cost, workaround, suggested fix (or `None encountered`). Stages that open no
+  PR post theirs as an issue comment that the final PR copies. Added to
+  `open-pr`, `deliver`, `work`, `grill`, `spec-and-tickets`, `handoff-gate`,
+  the PR description reference and the example pull request template; `retro`
+  reads it as primary input.
+
 ## [2.6.0] — 2026-11-22
 
 ### Added

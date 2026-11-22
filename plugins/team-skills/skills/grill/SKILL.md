@@ -130,7 +130,10 @@ Do not act until the human confirms shared understanding. Then:
    prose, no file paths.
 2. Summarize in the chat: decisions count, assumptions, business issues
    raised, what remains blocking.
-3. Hand off to `spec-and-tickets`.
+3. Post any workflow struggles from this stage as a comment on the epic (or
+   the single issue): follow "Workflow struggles" in
+   `../../references/pr-description.md`. `deliver` copies them into the final PR.
+4. Hand off to `spec-and-tickets`.
 
 ## Rules
 

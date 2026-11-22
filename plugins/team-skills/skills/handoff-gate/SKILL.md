@@ -54,6 +54,12 @@ without posting the brief in the same step.
   business issues, the assumptions, how a run is started
   (`../../references/autonomous-mode.md`).
 
+## Record workflow struggles
+
+Follow "Workflow struggles" in `../../references/pr-description.md`: post any
+struggles from this stage as a comment on the epic (or the single issue) before
+the hand-off below; `deliver` copies them into the final PR.
+
 ## Output
 
 A table: ticket, state, blockers, brief posted. Then return to `work` Stage 5.
