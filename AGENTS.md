@@ -1,13 +1,15 @@
 # paras-claude-marketplace — context for agents
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=907e3a6494d9af9a3c28759b83b23ac132efff16 generated=2026-11-22 -->
+<!-- claude-context: sha=07eee697c54e7209d762e1379e27834282967ef1 generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
 `team-skills`: engineering-workflow skills, slash commands, and git-guard
 hooks that run on other developers' machines. Codex and Cursor can install the
-same skills (best effort; hooks are Claude-only so far). "Done" = merged to `main`
+same skills and run best-effort guard hooks (Cursor via the plugin, Codex via the
+copy-in template in `examples/codex`); none of that is verified in the real tools.
+"Done" = merged to `main`
 **and** fast-forwarded to `stable`, with the plugin version bumped.
 
 ## Commands
@@ -77,7 +79,8 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
   `.claude/skills`); `validate` fails on a missing, broken or copied link.
 - Cursor and Codex auto-discover `hooks/hooks.json` and `commands/`, which are Claude-format. The
   Cursor manifest points `hooks` at `hooks/cursor-hooks.json` (a path replaces discovery) and keeps
-  `commands` empty; the Codex manifest declares both empty on purpose until Codex hooks ship.
+  `commands` empty; the Codex manifest declares both empty on purpose (Codex hooks ship as the
+  copy-in template, because plugin-registered hooks are only documented for manual desktop installs).
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this
   working tree — hook changes here don't affect your own session until released.
