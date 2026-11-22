@@ -8,6 +8,13 @@ are very welcome as plain PRs.
 Prerequisites: Node >= 20 (CI runs Node 20), `git`, and the GitHub CLI.
 There is nothing to `npm install` — the repo has zero dependencies.
 
+Codex does not read `.claude/skills`, so the repo-level skills are exposed to it
+through symlinks in `.agents/skills` (for example `.agents/skills/ship-change`
+points at `.claude/skills/ship-change`). There is one copy of each skill. `npm
+run validate` fails if a link is missing, broken or a copy. On Windows, git needs
+symlink support (Developer Mode and `git config core.symlinks true`); without it
+the link checks out as a plain text file and the check fails.
+
 Ask Claude to **"ship this change"** and the repo-level `ship-change` skill
 (in `.claude/skills/`) drives the whole flow below. It exists because two of
 these steps fail *silently* — nothing errors, the change just never arrives.
@@ -40,13 +47,28 @@ not repeated here so the two cannot drift apart.
 
 ## What CI checks
 
-Three workflows run here. `upstream-sync.yml` (weekly) and `release-stable.yml`
+Four workflows run here. `upstream-sync.yml` (weekly) and `release-stable.yml`
 (on merge) are described in [the v2 workflow](docs/skills-guide.md#the-v2-workflow-grill-once-deliver-without-you)
 and `ship-change`. `validate.yml` runs on every PR: syntax-checks the scripts, shellchecks the
 shell templates, runs the validator (manifests, frontmatter, every referenced
 skill exists, every explicitly-relative reference resolves, plugin names
 agree, `.claude/skills/` held to the same bar), runs the full test suite, and
 fails the PR if `skills/` or `hooks/` changed without a version bump.
+
+`codex-smoke.yml` is **advisory**: branch protection requires only `validate`, so it
+can fail without blocking a merge. It installs the open-source Codex CLI into a
+temp directory and runs `scripts/codex-smoke.mjs`, which adds this repo as a
+local marketplace, installs the plugin, and checks that Codex lists it at the
+Claude plugin's version and caches every skill. It uses a throwaway `CODEX_HOME`,
+no network beyond the npm install, and no credentials. Run it yourself with:
+
+```sh
+npm install --prefix /tmp/codex @openai/codex
+node scripts/codex-smoke.mjs --codex /tmp/codex/node_modules/.bin/codex
+```
+
+It does not run skills inside a Codex session; it catches manifest and install
+breakage only.
 
 CI is the **only** place Node 20 is exercised — local Node is newer, so
 version-specific breakage surfaces there and nowhere else.

@@ -3,7 +3,8 @@
 #
 #   1. Both co-author trailers are present:
 #        Co-Authored-By: <human name> <human email>
-#        Co-Authored-By: Claude <noreply@anthropic.com>
+#        Co-Authored-By: <agent name> <address>   (Claude, Codex or Cursor, set
+#                                                 TEAM_AGENT_TRAILER_NAMES to change)
 #   2. TDD test-presence: if the staged diff changes logic source, it must also
 #      change a test — unless the message carries a `Justified-Exception:`
 #      trailer, which CI audits and which requires a `break-glass` PR label.
@@ -21,15 +22,19 @@ case "$first_line" in
 esac
 
 # ------------------------------------------------------------- co-authorship
-# The Claude trailer is identified by its canonical address, so a human who
-# happens to be named Claude still counts as the human co-author.
-if ! grep -qi '^Co-Authored-By:.*noreply@anthropic\.com' "$msg_file"; then
-  echo "✗ commit rejected: missing 'Co-Authored-By: Claude <noreply@anthropic.com>' trailer." >&2
-  echo "  Team policy: all work is done with Claude. Use the commit-changes skill." >&2
+# The agent trailer is identified by NAME (see agent_trailer_regex in _lib.sh),
+# not by address, so it works for whichever agent wrote the commit. Every other
+# Co-Authored-By trailer is the human one.
+agent_re=$(agent_trailer_regex)
+
+if ! grep -Eqi "$agent_re" "$msg_file"; then
+  echo "✗ commit rejected: missing agent co-author trailer, e.g. 'Co-Authored-By: Claude <noreply@anthropic.com>'." >&2
+  echo "  Name whichever agent wrote the commit (default names: Claude, Codex, Cursor;" >&2
+  echo "  override with TEAM_AGENT_TRAILER_NAMES). Use the commit-changes skill." >&2
   exit 1
 fi
 
-if ! grep -i '^Co-Authored-By:' "$msg_file" | grep -qvi 'noreply@anthropic\.com'; then
+if ! grep -i '^Co-Authored-By:' "$msg_file" | grep -Eqvi "$agent_re"; then
   echo "✗ commit rejected: missing human 'Co-Authored-By: <name> <email>' trailer." >&2
   echo "  Add yourself: Co-Authored-By: $(git config user.name) <$(git config user.email)>" >&2
   exit 1

@@ -61,3 +61,54 @@ describe("checkBumps", () => {
     assert.deepEqual(checkBumps(["README.md"], versions("0.2.0", "0.2.0")), []);
   });
 });
+
+describe("tool manifests count as plugin changes", () => {
+  const plugin = ["plugins/team-skills"];
+
+  for (const file of [
+    "plugins/team-skills/plugin.json",
+    "plugins/team-skills/.cursor-plugin/plugin.json",
+  ]) {
+    test(`flags ${file}`, () => {
+      assert.deepEqual(pluginsNeedingBump([file], plugin), ["plugins/team-skills"]);
+    });
+  }
+
+  for (const file of [".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json"]) {
+    test(`flags every plugin when ${file} changes`, () => {
+      assert.deepEqual(pluginsNeedingBump([file], ["plugins/a", "plugins/b"]), [
+        "plugins/a",
+        "plugins/b",
+      ]);
+    });
+  }
+
+  test("a root marketplace change flags nothing when no plugins are known", () => {
+    assert.deepEqual(pluginsNeedingBump([".agents/plugins/marketplace.json"]), []);
+  });
+
+  test("does not flag the Claude manifest itself (that is the bump)", () => {
+    assert.deepEqual(
+      pluginsNeedingBump(["plugins/team-skills/.claude-plugin/plugin.json"], plugin),
+      []
+    );
+  });
+
+  test("fails when a Cursor manifest changed but the version did not", () => {
+    const errors = checkBumps(
+      ["plugins/team-skills/.cursor-plugin/plugin.json"],
+      versions("1.0.0", "1.0.0"),
+      plugin
+    );
+    assert.equal(errors.length, 1);
+    assert.match(errors[0], /still 1\.0\.0/);
+  });
+
+  test("passes when a root marketplace changed and the version moved", () => {
+    assert.deepEqual(
+      checkBumps([".agents/plugins/marketplace.json"], versions("1.0.0", "1.1.0"), plugin),
+      []
+    );
+  });
+});
+

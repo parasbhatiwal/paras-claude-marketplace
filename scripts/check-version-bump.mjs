@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /**
  * Guards against silent plugin updates: if a PR changes anything a developer
- * actually executes (skills or hooks), the plugin's `version` must change too.
+ * actually executes (skills or hooks) or that decides what each tool installs
+ * (tool manifests), the plugin's `version` must change too.
  * Without this, teammates pull new behavior while `/plugin` still reports the
  * same version, and there is nothing to point at when a change misbehaves.
  *
@@ -9,16 +10,27 @@
  */
 
 import { execSync } from "node:child_process";
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync, existsSync } from "node:fs";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 
-/** Files whose change requires a version bump, keyed by owning plugin dir. */
-export function pluginsNeedingBump(changedFiles) {
+/**
+ * Files whose change requires a version bump, keyed by owning plugin dir:
+ * the skills and hooks a developer executes, and every tool manifest that
+ * decides what Codex or Cursor install. Root-level marketplace files belong to
+ * no single plugin, so a change to one flags every known plugin directory.
+ *
+ * The Claude plugin manifest is deliberately absent: editing it IS the bump.
+ */
+const PLUGIN_FILES = /^(plugins\/[^/]+)\/(?:(?:skills|hooks)\/|plugin\.json$|\.cursor-plugin\/plugin\.json$)/;
+const ROOT_MARKETPLACES = new Set([".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json"]);
+
+export function pluginsNeedingBump(changedFiles, pluginDirs = []) {
   const plugins = new Set();
   for (const file of changedFiles) {
-    const m = file.match(/^(plugins\/[^/]+)\/(skills|hooks)\//);
+    const m = file.match(PLUGIN_FILES);
     if (m) plugins.add(m[1]);
+    else if (ROOT_MARKETPLACES.has(file)) for (const dir of pluginDirs) plugins.add(dir);
   }
   return [...plugins].sort();
 }
@@ -26,16 +38,17 @@ export function pluginsNeedingBump(changedFiles) {
 /**
  * @returns {string[]} human-readable errors (empty when the PR is compliant)
  */
-export function checkBumps(changedFiles, readVersion) {
+export function checkBumps(changedFiles, readVersion, pluginDirs = []) {
   const errors = [];
-  for (const pluginDir of pluginsNeedingBump(changedFiles)) {
+  for (const pluginDir of pluginsNeedingBump(changedFiles, pluginDirs)) {
     const base = readVersion(pluginDir, "base");
     const head = readVersion(pluginDir, "head");
     if (base === null) continue; // new plugin — nothing to compare against
     if (base === head) {
       errors.push(
-        `${pluginDir}: skills/hooks changed but version is still ${head} — ` +
-          `bump \`version\` in ${pluginDir}/.claude-plugin/plugin.json`
+        `${pluginDir}: skills, hooks or tool manifests changed but version is still ${head} — ` +
+          `bump \`version\` in ${pluginDir}/.claude-plugin/plugin.json ` +
+          "(and every other manifest, which must carry the same number)"
       );
     }
   }
@@ -62,7 +75,14 @@ if (isMain) {
     }
   };
 
-  const errors = checkBumps(changed, readVersion);
+  const pluginsRoot = join(root, "plugins");
+  const pluginDirs = existsSync(pluginsRoot)
+    ? readdirSync(pluginsRoot)
+        .filter((d) => existsSync(join(pluginsRoot, d, ".claude-plugin", "plugin.json")))
+        .map((d) => `plugins/${d}`)
+    : [];
+
+  const errors = checkBumps(changed, readVersion, pluginDirs);
   if (errors.length) {
     for (const e of errors) console.error(`::error::${e}`);
     process.exit(1);

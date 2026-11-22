@@ -15,6 +15,22 @@
 
 have() { command -v "$1" >/dev/null 2>&1; }
 
+# Regex (for grep -Ei) matching a Co-Authored-By trailer written by an AI agent.
+# The agent's name is the part before `<address>`: it must equal one of the
+# accepted names, or start with one followed by a space, so "Claude Sonnet 5.5"
+# counts and "Claudette" does not. The address is not checked; this guards
+# against forgetting the trailer, not against forging it.
+#
+# Names come from TEAM_AGENT_TRAILER_NAMES (comma-separated). An override
+# REPLACES the defaults; keep this logic in step with hooks/policy.mjs and the
+# CI template.
+agent_trailer_regex() {
+  names=${TEAM_AGENT_TRAILER_NAMES:-Claude,Codex,Cursor}
+  alt=$(printf '%s' "$names" | sed 's/[^A-Za-z0-9 ._,-]//g; s/ *, */|/g; s/^|*//; s/|*$//; s/\./\\./g')
+  [ -n "$alt" ] || alt='Claude|Codex|Cursor'
+  printf '^Co-Authored-By:[[:space:]]*(%s)([[:space:]]|<|$)' "$alt"
+}
+
 # --------------------------------------------------------------- stack detect
 detect_stack() {
   if [ -f package.json ]; then echo node

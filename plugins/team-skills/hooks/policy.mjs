@@ -13,8 +13,29 @@
 /** Accounts allowed to merge their OWN pull requests. */
 export const DEFAULT_SELF_MERGE_ALLOWLIST = ["parasbhatiwal"];
 
-/** Canonical Claude co-author address. The trailer must carry it verbatim. */
-export const CLAUDE_TRAILER_EMAIL = "noreply@anthropic.com";
+/**
+ * Names the agent co-author trailer may carry. A trailer is the agent's when
+ * its name is one of these (case-insensitive) or starts with one followed by a
+ * space, so "Claude Sonnet 5.5" counts and "Claudette" does not. The address is
+ * not checked. This is a convention check against forgetting the trailer, not a
+ * defence against someone forging it.
+ *
+ * Override with TEAM_AGENT_TRAILER_NAMES (comma-separated); an override
+ * REPLACES this list. Trade-off: a human whose name starts with one of these
+ * words is read as the agent, so list the names you want recognised explicitly.
+ */
+export const DEFAULT_AGENT_TRAILER_NAMES = ["Claude", "Codex", "Cursor"];
+
+export const parseAgentNames = (raw) => {
+  // Same cleaning as the shell hook and the CI template (letters, digits, space,
+  // dot, underscore, hyphen), so one TEAM_AGENT_TRAILER_NAMES value means the
+  // same thing in all three.
+  const names = (raw ?? "")
+    .split(",")
+    .map((s) => s.replace(/[^A-Za-z0-9 ._-]/g, "").trim())
+    .filter(Boolean);
+  return names.length ? names : DEFAULT_AGENT_TRAILER_NAMES;
+};
 
 export const parseAllowlist = (raw) =>
   (raw ?? "")
@@ -45,7 +66,18 @@ const GH_PR_MERGE = /\bgh\s+pr\s+merge\b(?:\s+(\d+|\S*#\d+|https?:\/\/\S+))?/;
 // two trailers written as `...\nCo-Authored-By: ...` collapse into one match.
 const CO_AUTHOR_TRAILER = /Co-Authored-By:[^\n\\]*/gi;
 
-const isClaudeTrailer = (line) => new RegExp(CLAUDE_TRAILER_EMAIL, "i").test(line);
+/** True when the trailer's name (the part before `<address>`) is an agent's. */
+const isAgentTrailer = (line, names) => {
+  const name = line
+    .replace(/^Co-Authored-By:\s*/i, "")
+    .replace(/<.*$/, "")
+    .trim()
+    .toLowerCase();
+  return names.some((n) => {
+    const agent = n.toLowerCase();
+    return name === agent || name.startsWith(`${agent} `);
+  });
+};
 
 /**
  * Heredoc bodies, which are data being written rather than commands being run.
@@ -73,6 +105,7 @@ const block = (reason) => ({ action: "block", reason });
  * @param {string} command  the Bash command Claude is about to run
  * @param {object} deps
  * @param {() => string|null} [deps.getMerger]    resolves the current gh user
+ * @param {string[]} [deps.agentTrailerNames]      accepted agent trailer names
  * @param {(ref: string) => string|null} [deps.getPrAuthor]  resolves a PR author
  * @param {string[]} [deps.allowlist]             self-merge allowlist
  * @param {boolean} [deps.autonomous]  true when the runtime (env, never the
@@ -180,14 +213,16 @@ export function evaluateCommand(command, deps = {}) {
     // committed commit-msg git hook enforces the same rule at commit time.
     if (hasInlineMessage) {
       const trailers = raw.match(CO_AUTHOR_TRAILER) ?? [];
-      const hasClaude = trailers.some(isClaudeTrailer);
-      const hasHuman = trailers.some((l) => !isClaudeTrailer(l));
-      if (!hasClaude || !hasHuman) {
+      const names = deps.agentTrailerNames ?? DEFAULT_AGENT_TRAILER_NAMES;
+      const hasAgent = trailers.some((l) => isAgentTrailer(l, names));
+      const hasHuman = trailers.some((l) => !isAgentTrailer(l, names));
+      if (!hasAgent || !hasHuman) {
         return block(
           "commit message must contain BOTH trailers:\n" +
             "  Co-Authored-By: <human name> <human email>   (from git config)\n" +
-            `  Co-Authored-By: Claude <${CLAUDE_TRAILER_EMAIL}>\n` +
-            "Use the commit-changes skill to draft a compliant message."
+            `  Co-Authored-By: <agent name> <address>       (any of: ${names.join(", ")})\n` +
+            "The agent trailer names whichever agent wrote the commit; override the accepted\n" +
+            "names with TEAM_AGENT_TRAILER_NAMES. Use the commit-changes skill to draft a compliant message."
         );
       }
     }
