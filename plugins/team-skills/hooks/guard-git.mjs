@@ -10,25 +10,10 @@
  *   0 = allow, 2 = block (stderr shown to Claude).
  */
 
-import { execSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { readFileSync } from "node:fs";
 
-import { assessContextFreshness } from "./context-freshness.mjs";
-import {
-  evaluateCommand,
-  parseAllowlist,
-  parseAgentNames,
-  DEFAULT_SELF_MERGE_ALLOWLIST,
-} from "./policy.mjs";
-import { repositoryFacts } from "./repo-facts.mjs";
-
-// Override for testing or when the owner account changes:
-//   TEAM_SELF_MERGE_ALLOWLIST="alice,bob"
-const allowlist = process.env.TEAM_SELF_MERGE_ALLOWLIST
-  ? parseAllowlist(process.env.TEAM_SELF_MERGE_ALLOWLIST)
-  : DEFAULT_SELF_MERGE_ALLOWLIST;
+import { evaluateCommand } from "./policy.mjs";
+import { buildPolicyDeps, rememberContextRaised } from "./policy-deps.mjs";
 
 let input = "";
 try {
@@ -39,83 +24,24 @@ try {
 
 let command = "";
 let cwd = process.cwd();
+let sessionId = "unknown";
 try {
   const payload = JSON.parse(input);
   command = String(payload?.tool_input?.command ?? "");
   if (payload?.cwd) cwd = payload.cwd;
+  sessionId = payload?.session_id ?? "unknown";
 } catch {
   process.exit(0); // unparseable payload — do not block unrelated tooling
 }
 
-const gh = (args) => {
-  try {
-    return execSync(`gh ${args}`, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }).trim();
-  } catch {
-    return null;
-  }
-};
-
-/**
- * Whether stale context has already been raised in this session.
- *
- * Kept beside the quality guard's own ladder state, and for the same reason:
- * a rule that fires on every push until a document is perfect stops being a
- * reminder and becomes an obstacle, and obstacles get removed. This asks once.
- */
-const raisedPath = join(
-  tmpdir(),
-  "team-skills",
-  `${String(payloadSessionId()).replace(/[^\w-]/g, "")}.context-raised`,
-);
-
-function payloadSessionId() {
-  try {
-    return JSON.parse(input)?.session_id ?? "unknown";
-  } catch {
-    return "unknown";
-  }
-}
-
-// Set by the cloud runtime's environment, never by the agent: the hook reads
-// its own process env, so `TEAM_AUTONOMOUS=1 git push` typed in a command does
-// not reach it. See references/autonomous-mode.md.
-const autonomous = process.env.TEAM_AUTONOMOUS === "1";
-
-// Names the agent co-author trailer may carry; see policy.mjs.
-const agentTrailerNames = parseAgentNames(process.env.TEAM_AGENT_TRAILER_NAMES);
-
-const verdict = evaluateCommand(command, {
-  autonomous,
-  agentTrailerNames,
-  getCurrentBranch: () => {
-    try {
-      return execSync("git rev-parse --abbrev-ref HEAD", { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
-    } catch {
-      return null;
-    }
-  },
-  getPrBase: (ref) => gh(`pr view${ref ? ` ${ref}` : ""} --json baseRefName --jq .baseRefName`),
-  allowlist,
-  getMerger: () => gh("api user --jq .login"),
-  getPrAuthor: (ref) => gh(`pr view${ref ? ` ${ref}` : ""} --json author --jq .author.login`),
-  contextAlreadyRaised: existsSync(raisedPath),
-  getContextFreshness: () => {
-    const facts = repositoryFacts(cwd);
-    return facts ? assessContextFreshness(facts) : null;
-  },
-});
+// The dependency wiring (git, gh, allowlist, autonomous flag, the once-per-
+// session context reminder) is shared with the Cursor and Codex wrappers.
+const verdict = evaluateCommand(command, buildPolicyDeps({ cwd, env: process.env, sessionId }));
 
 if (verdict.action === "block") {
   // Remember that context was raised, so the next push is not stopped by the
-  // same reminder. Best-effort: failing to remember only means asking twice.
-  if (/CLAUDE\.md is (stale|missing)/.test(verdict.reason)) {
-    try {
-      mkdirSync(dirname(raisedPath), { recursive: true });
-      writeFileSync(raisedPath, new Date().toISOString());
-    } catch {
-      // why: a guard that cannot write its own scratch file must still guard
-    }
-  }
+  // same reminder.
+  rememberContextRaised({ sessionId, reason: verdict.reason });
 
   process.stderr.write(`[team-skills guard] BLOCKED: ${verdict.reason}\n`);
   process.exit(2);

@@ -1,7 +1,7 @@
 # paras-claude-marketplace — context for agents
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=ee97a33cab183cd1573d373575575f59cdb40779 generated=2026-11-22 -->
+<!-- claude-context: sha=b6f0d0e0d5cd0397015070525947f6817f0d8465 generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
@@ -23,8 +23,11 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
 - `plugins/team-skills/skills/<name>/SKILL.md` — the skills; `commands/` are thin
   entry points; `references/` are shared docs skills point at.
 - `plugins/team-skills/hooks/` — pure rule modules (`policy.mjs`,
-  `context-freshness.mjs`, `quality.mjs`, `hook-adapters.mjs` for Cursor/Codex payloads) + thin I/O wrappers (`guard-git.mjs`,
+  `context-freshness.mjs`, `quality.mjs`) + thin I/O wrappers (`guard-git.mjs`,
   `guard-quality.mjs`, `session-context.mjs`). Keep rules pure and testable.
+  `policy-deps.mjs` builds the git/gh dependencies the policy needs, shared by
+  every wrapper. `hook-adapters.mjs`: Cursor/Codex payload adapters (not yet wired
+  to a hook; see `references/agent-tool-contracts.md`).
 - `examples/` — language-agnostic templates teams copy into their projects.
 - `scripts/` — the validator and version-bump check used by CI; `tool-manifests.mjs`
   and `repo-docs.mjs` hold the Codex/Cursor manifest and doc-link rules;
