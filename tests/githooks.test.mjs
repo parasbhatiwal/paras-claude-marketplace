@@ -6,7 +6,7 @@
 import { test, describe, beforeEach, afterEach } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync, execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, rmSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -33,12 +33,13 @@ const stage = (files) => {
 };
 
 /** Runs the commit-msg hook against a message; returns {status, stderr}. */
-const commitMsg = (message) => {
+const commitMsg = (message, env = {}) => {
   const msgFile = join(repo, ".git", "COMMIT_EDITMSG_TEST");
   writeFileSync(msgFile, message);
   return spawnSync("sh", [join(HOOKS, "commit-msg"), msgFile], {
     cwd: repo,
     encoding: "utf8",
+    env: { ...process.env, ...env },
   });
 };
 
@@ -65,7 +66,7 @@ describe("commit-msg: co-author trailers", () => {
     stage({ "docs/readme.md": "# hi\n" });
     const r = commitMsg("docs: add readme\n");
     assert.equal(r.status, 1);
-    assert.match(r.stderr, /missing 'Co-Authored-By: Claude/);
+    assert.match(r.stderr, /missing .*agent co-author/);
   });
 
   test("rejects a message missing the human trailer", () => {
@@ -77,13 +78,43 @@ describe("commit-msg: co-author trailers", () => {
     assert.match(r.stderr, /missing human/);
   });
 
-  test("counts a human literally named Claude as the human trailer", () => {
+  test("accepts a Codex or Cursor agent trailer with any address", () => {
     stage({ "docs/readme.md": "# hi\n" });
-    const r = commitMsg(
-      "docs: add readme\n\nCo-Authored-By: Claude Dupont <claude@example.com>\n" +
-        "Co-Authored-By: Claude <noreply@anthropic.com>\n"
+    for (const agent of ["Codex <codex@example.com>", "Cursor Agent <a@cursor.example>"]) {
+      const r = commitMsg(
+        `docs: add readme\n\nCo-Authored-By: Paras <paras@example.com>\nCo-Authored-By: ${agent}\n`
+      );
+      assert.equal(r.status, 0, agent);
+    }
+  });
+
+  test("matches agent names case-insensitively and by whole word", () => {
+    stage({ "docs/readme.md": "# hi\n" });
+    const ok = commitMsg(
+      "docs: add readme\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: CLAUDE Sonnet 5.5 <x@y.z>\n"
     );
-    assert.equal(r.status, 0);
+    assert.equal(ok.status, 0);
+    const bad = commitMsg(
+      "docs: add readme\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: Claudette <c@example.com>\n"
+    );
+    assert.equal(bad.status, 1);
+    assert.match(bad.stderr, /missing .*agent co-author/);
+  });
+
+  test("rejects an agent trailer with no human trailer", () => {
+    stage({ "docs/readme.md": "# hi\n" });
+    const r = commitMsg("docs: add readme\n\nCo-Authored-By: Codex <codex@example.com>\n");
+    assert.equal(r.status, 1);
+    assert.match(r.stderr, /missing human/);
+  });
+
+  test("an overridden TEAM_AGENT_TRAILER_NAMES replaces the defaults", () => {
+    stage({ "docs/readme.md": "# hi\n" });
+    const aider =
+      "docs: add readme\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: Aider <a@example.com>\n";
+    assert.equal(commitMsg(aider).status, 1);
+    assert.equal(commitMsg(aider, { TEAM_AGENT_TRAILER_NAMES: "Aider" }).status, 0);
+    assert.equal(commitMsg(withTrailers("docs: add readme"), { TEAM_AGENT_TRAILER_NAMES: "Aider" }).status, 1);
   });
 
   test("exempts merge and autosquash commits", () => {
@@ -207,5 +238,21 @@ describe("commit-msg: TDD test-presence gate", () => {
     stage({ "src/cart.ts": "export const total = () => 1;\n" });
     const r = commitMsg(withTrailers("fix(cart): hotfix total", "Justified-Exception:"));
     assert.equal(r.status, 1);
+  });
+});
+
+describe("the CI template agrees with the hook and the policy module", () => {
+  const ci = readFileSync(
+    resolve(HOOKS, "../github-workflows/commit-policy.yml"),
+    "utf8"
+  );
+
+  test("uses the same override variable and default names", () => {
+    assert.match(ci, /TEAM_AGENT_TRAILER_NAMES/);
+    assert.match(ci, /Claude,Codex,Cursor/);
+  });
+
+  test("no longer insists on the Claude name specifically", () => {
+    assert.doesNotMatch(ci, /missing Claude co-author trailer/);
   });
 });

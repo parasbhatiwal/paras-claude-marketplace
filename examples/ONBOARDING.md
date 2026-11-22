@@ -119,7 +119,9 @@ once; Claude consults it on every design, implementation, and review.
 - **TDD**: failing test first; source changes without tests are blocked by the
   `commit-msg` hook AND in CI (diff coverage ≥ 90% on changed lines).
 - **Attribution**: every commit needs BOTH `Co-Authored-By:` trailers — you
-  and Claude. The `commit-changes` skill writes them for you.
+  and the agent that wrote it (Claude, Codex or Cursor, matched by name; set
+  `TEAM_AGENT_TRAILER_NAMES` to change the list). The `commit-changes` skill
+  writes them for you.
 - **Green to ship**: full suite must pass to commit and to push.
 - **No bypasses**: `--no-verify` is blocked. The escape hatch is a
   `Justified-Exception: <reason>` trailer in the commit message (hotfix /

@@ -10,17 +10,23 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Every commit carries both Co-Authored-By trailers
+      - name: Every commit carries a human and an agent Co-Authored-By trailer
+        env:
+          # Same rule as the commit-msg hook and policy.mjs. An override REPLACES
+          # the defaults. Set the repository variable to change it.
+          TEAM_AGENT_TRAILER_NAMES: ${{ vars.TEAM_AGENT_TRAILER_NAMES || 'Claude,Codex,Cursor' }}
         run: |
           set -e
+          alt=$(printf '%s' "$TEAM_AGENT_TRAILER_NAMES" | sed 's/[^A-Za-z0-9 _,-]//g; s/ *, */|/g; s/^|*//; s/|*$//')
+          agent_re="^Co-Authored-By:[[:space:]]*(${alt})([[:space:]]|<|$)"
           fail=0
           for sha in $(git rev-list origin/${{ github.base_ref }}..HEAD --no-merges); do
             body=$(git log -1 --format=%B "$sha")
             subject=$(git log -1 --format=%s "$sha")
             case "$subject" in fixup!*|squash!*) continue ;; esac
-            echo "$body" | grep -qi '^Co-Authored-By:.*Claude' \
-              || { echo "::error::commit $sha missing Claude co-author trailer: $subject"; fail=1; }
-            echo "$body" | grep -i '^Co-Authored-By:' | grep -qvi 'Claude' \
+            echo "$body" | grep -Eqi "$agent_re" \
+              || { echo "::error::commit $sha missing agent co-author trailer ($TEAM_AGENT_TRAILER_NAMES): $subject"; fail=1; }
+            echo "$body" | grep -i '^Co-Authored-By:' | grep -Eqvi "$agent_re" \
               || { echo "::error::commit $sha missing human co-author trailer: $subject"; fail=1; }
           done
           exit $fail
