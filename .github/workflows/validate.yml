@@ -22,6 +22,9 @@ jobs:
           for f in examples/githooks/* examples/*.sh; do
             [ -f "$f" ] && sh -n "$f"
           done
+          for f in examples/*/*.sh; do
+            [ -f "$f" ] && sh -n "$f"
+          done
       - name: Lint the shell templates
         # -x follows the sourced _lib.sh; run from the hooks directory so the
         # `# shellcheck source=_lib.sh` directives resolve.
@@ -29,6 +32,12 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           (cd examples/githooks && shellcheck -s sh -x _lib.sh commit-msg pre-commit pre-push)
           shellcheck -s sh examples/*.sh
+          # Per-tool template directories (examples/<tool>/*.sh), run from their own directory.
+          for d in examples/*/; do
+            for f in "$d"*.sh; do
+              [ -f "$f" ] && (cd "$d" && shellcheck -s sh -x "$(basename "$f")")
+            done
+          done
       - name: Validate marketplace, plugins, skills, hooks
         run: npm run validate
       # The shipped gitleaks config is a security control with its own tests;

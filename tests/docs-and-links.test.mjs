@@ -202,8 +202,12 @@ describe("README support table", () => {
     assert.match(section, /\/work/);
   });
 
-  test("does not claim hooks work in Cursor or Codex yet", () => {
-    assert.match(section, /hooks?[^.]*(not yet|planned)/i);
+  test("does not claim hooks work in Cursor yet; Codex hooks are a copy-in template", () => {
+    const cursorRow = section.split("\n").find((l) => /^\|\s*Cursor/.test(l)) ?? "";
+    assert.match(cursorRow, /Not yet; planned/i);
+    const codexRow = section.split("\n").find((l) => /^\|\s*Codex/.test(l)) ?? "";
+    assert.match(codexRow, /template/i);
+    assert.doesNotMatch(codexRow, /Not yet; planned/i);
   });
 });
 
