@@ -82,7 +82,7 @@ function markdownFiles(dir) {
 }
 
 /** Flags a paragraph that names CLAUDE.md without explaining the import or fallback. */
-function checkContextFile({ text, rel, label, err }) {
+export function checkContextFile({ text, rel, label, err }) {
   let start = 0;
   for (const block of text.split(/\n\s*\n/)) {
     const blockStart = start;
@@ -91,7 +91,7 @@ function checkContextFile({ text, rel, label, err }) {
     const offset = block.split("\n").findIndex((l) => /CLAUDE\.md/.test(l));
     const line = text.slice(0, blockStart).split("\n").length + offset;
     err(
-      `${label}/${rel}:${line}: the project context lives in AGENTS.md — say AGENTS.md, ` +
+      `${label ? `${label}/` : ""}${rel}:${line}: the project context lives in AGENTS.md — say AGENTS.md, ` +
         "or explain the `@AGENTS.md` import or the unmigrated-project fallback in the same paragraph"
     );
   }

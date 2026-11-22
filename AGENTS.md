@@ -1,7 +1,7 @@
-# paras-claude-marketplace — context for Claude
+# paras-claude-marketplace — context for agents
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=488fde5d71e3f8d279a43eeae1c9e6c10aad77c3 generated=2026-11-22 -->
+<!-- claude-context: sha=f3a66e09d14778fb200979c5ddcc9d4a1fdbb5fd generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
@@ -28,10 +28,13 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
 - `examples/` — language-agnostic templates teams copy into their projects.
 - `scripts/` — the validator and version-bump check used by CI; `tool-manifests.mjs`
   and `repo-docs.mjs` hold the Codex/Cursor manifest and doc-link rules;
-  `codex-smoke.mjs` runs the real Codex CLI (advisory CI job).
+  `neutral-wording.mjs` holds the tool-neutral wording rules; `codex-smoke.mjs` runs the real
+  Codex CLI (advisory CI job).
 - Tool manifests: Claude `.claude-plugin/`, Codex root `plugin.json` +
   `.agents/plugins/marketplace.json`, Cursor `.cursor-plugin/`. Facts and
   unconfirmed items: `plugins/team-skills/references/agent-tool-contracts.md`.
+- Context: this file (`AGENTS.md`) is canonical and read by Claude Code, Codex and Cursor;
+  `CLAUDE.md` is only the one-line `@AGENTS.md` import. Never write context into `CLAUDE.md`.
 - Docs: `README.md` is the newcomer-facing front door; maintainer flow lives in
   `CONTRIBUTING.md`, per-skill deep dives in `docs/skills-guide.md`. Edit those,
   not README, for detail. CHANGELOG links to README's "How updates reach you" anchor.
@@ -42,6 +45,9 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
 - Skill `name` equals its directory; `description` is trigger-shaped, 40–1024 chars.
 - Cross-reference skills as "`x` skill"; the validator fails if `x` doesn't exist
   (even inside an attribution sentence). Reference files via explicit `../../references/...`.
+- Skills stay tool-neutral: Claude-only names (`/code-review`, Claude in Chrome, the Claude
+  trailer) go in a `(Claude Code: ...)` note, and the context file is called `AGENTS.md`.
+  `validate` enforces both; `browser-verify` and `deliver` are Claude-only by design.
 - Any change under `hooks/` or `scripts/` needs tests in `tests/`.
 - Commits carry two `Co-Authored-By` trailers: the human (git config) and the agent
   that wrote it, matched by name (Claude, Codex, Cursor; `TEAM_AGENT_TRAILER_NAMES`).
@@ -63,6 +69,10 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this
   working tree — hook changes here don't affect your own session until released.
+  After the AGENTS.md migration your session still runs an older cached plugin version that
+  reads only `CLAUDE.md`: it finds the one-line import, may call the context "unmanaged", and
+  the push reminder stays quiet (it fires only for stale or missing). Run
+  `/plugin update team-skills@parasbhatiwal` to get the hook that reads `AGENTS.md`.
 - The guard scans command text: write test fixtures containing forbidden flags in
   heredocs or assemble the string, or the guard blocks your own commit.
 - Local Node is newer than CI's Node 20; version-specific breakage shows only in CI.
