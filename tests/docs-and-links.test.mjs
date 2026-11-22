@@ -202,8 +202,12 @@ describe("README support table", () => {
     assert.match(section, /\/work/);
   });
 
-  test("does not claim hooks work in Cursor or Codex yet", () => {
-    assert.match(section, /hooks?[^.]*(not yet|planned)/i);
+  test("labels Cursor hooks best effort and Codex hooks as planned", () => {
+    assert.match(section, /Cursor \| All 42 \| Best effort/);
+    assert.match(section, /Codex \| All 42 \| Not yet; planned/);
+    assert.match(section, /guard hooks[^.]*best\s+effort on Cursor[^.]*planned, not yet available, for Codex/i);
+    assert.match(section, /git\s+hooks and CI[^.]*real wall/i);
+    assert.match(section, /idempotent/i);
   });
 });
 

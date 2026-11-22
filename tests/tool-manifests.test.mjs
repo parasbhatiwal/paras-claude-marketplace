@@ -104,6 +104,8 @@ describe("the real repo", () => {
   });
 
   test("never lets Cursor or Codex auto-load the Claude-format hooks or commands", () => {
+    // Codex hooks stay empty (a later ticket decides them). Cursor points at its
+    // own hooks file, which replaces default discovery of hooks/hooks.json.
     const codex = JSON.parse(
       readFileSync(join(REPO_ROOT, "plugins/team-skills/plugin.json"), "utf8")
     );
@@ -112,7 +114,12 @@ describe("the real repo", () => {
       readFileSync(join(REPO_ROOT, "plugins/team-skills/.cursor-plugin/plugin.json"), "utf8")
     );
     assert.deepEqual(cursor.commands, []);
-    assert.deepEqual(cursor.hooks, { version: 1, hooks: {} });
+    assert.equal(cursor.hooks, "./hooks/cursor-hooks.json");
+    const config = JSON.parse(
+      readFileSync(join(REPO_ROOT, "plugins/team-skills", cursor.hooks), "utf8")
+    );
+    assert.equal(config.version, 1);
+    assert.ok(Object.keys(config.hooks).length > 0);
   });
 
   test("every manifest carries the Claude plugin version", () => {
@@ -214,6 +221,112 @@ describe("Cursor plugin manifest", () => {
   test("fails when an author has no name", () => {
     edit(root, PATHS.cursorPlugin, (j) => (j.author = { email: "x@example.com" }));
     assert.equal(errorsMatching(/author\.name/).length, 1);
+  });
+});
+
+describe("Cursor hooks config", () => {
+  const HOOKS_PATH = "plugins/demo/hooks/cursor-hooks.json";
+  const withHooks = (config = {
+    version: 1,
+    hooks: {
+      beforeShellExecution: [
+        { type: "command", command: 'node "${CURSOR_PLUGIN_ROOT}/hooks/guard.mjs"' },
+      ],
+    },
+  }) => {
+    mkdirSync(join(root, "plugins/demo/hooks"), { recursive: true });
+    writeFileSync(join(root, "plugins/demo/hooks/guard.mjs"), "// guard\n");
+    writeJson(join(root, HOOKS_PATH), config);
+    edit(root, PATHS.cursorPlugin, (j) => (j.hooks = "./hooks/cursor-hooks.json"));
+  };
+
+  test("a valid config whose commands reference existing scripts validates clean", () => {
+    withHooks();
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("fails when the manifest hook path does not exist", () => {
+    edit(root, PATHS.cursorPlugin, (j) => (j.hooks = "./hooks/nope.json"));
+    assert.equal(errorsMatching(/hooks.*nope\.json.*does not exist/).length, 1);
+  });
+
+  test("fails when the manifest hook path escapes the plugin directory", () => {
+    edit(root, PATHS.cursorPlugin, (j) => (j.hooks = "../../.cursor-plugin/marketplace.json"));
+    assert.equal(errorsMatching(/hooks.*inside the plugin/).length, 1);
+  });
+
+  test("fails when the hooks file is not valid JSON", () => {
+    withHooks();
+    writeFileSync(join(root, HOOKS_PATH), "{ nope");
+    assert.equal(errorsMatching(/cursor-hooks\.json.*cannot parse/).length, 1);
+  });
+
+  test("fails when the hooks file has no version", () => {
+    withHooks({ hooks: {} });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*version/).length, 1);
+  });
+
+  test("fails when a command references a script that does not exist", () => {
+    withHooks({
+      version: 1,
+      hooks: {
+        beforeShellExecution: [
+          { type: "command", command: 'node "${CURSOR_PLUGIN_ROOT}/hooks/missing.mjs"' },
+        ],
+      },
+    });
+    assert.equal(errorsMatching(/missing\.mjs.*does not exist/).length, 1);
+  });
+
+  test("fails when a command does not use the Cursor plugin root variable", () => {
+    withHooks({
+      version: 1,
+      hooks: {
+        sessionStart: [{ type: "command", command: 'node "${CLAUDE_PLUGIN_ROOT}/hooks/guard.mjs"' }],
+      },
+    });
+    assert.equal(errorsMatching(/CURSOR_PLUGIN_ROOT/).length, 1);
+  });
+
+  test("fails when a command script escapes the plugin directory", () => {
+    withHooks({
+      version: 1,
+      hooks: {
+        sessionStart: [{ type: "command", command: 'node "${CURSOR_PLUGIN_ROOT}/../../.cursor-plugin/marketplace.json"' }],
+      },
+    });
+    assert.equal(errorsMatching(/sessionStart.*inside the plugin/).length, 1);
+  });
+
+  test("fails when the hooks key is misspelled", () => {
+    withHooks({ version: 1, hook: { sessionStart: [] } });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*`hooks`.*object/).length, 1);
+  });
+
+  test("fails when an event is an object instead of an array", () => {
+    withHooks({
+      version: 1,
+      hooks: { sessionStart: { type: "command", command: 'node "${CURSOR_PLUGIN_ROOT}/hooks/guard.mjs"' } },
+    });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*sessionStart.*array/).length, 1);
+  });
+
+  test("fails when an entry is not an object", () => {
+    withHooks({ version: 1, hooks: { sessionStart: ["node x"] } });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*sessionStart.*object/).length, 1);
+  });
+
+  test("fails on a prompt-type entry (plugin hooks run command hooks only)", () => {
+    withHooks({
+      version: 1,
+      hooks: { preToolUse: [{ type: "prompt", prompt: "is this safe?", command: 'node "${CURSOR_PLUGIN_ROOT}/hooks/guard.mjs"' }] },
+    });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*preToolUse.*type.*command/).length, 1);
+  });
+
+  test("fails when a hook entry has no command", () => {
+    withHooks({ version: 1, hooks: { sessionStart: [{ type: "command" }] } });
+    assert.equal(errorsMatching(/missing `command`/).length, 1);
   });
 });
 

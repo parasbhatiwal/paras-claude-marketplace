@@ -18,9 +18,12 @@
  *     { kind: "edit", edits: [{ filePath, added, removed }], cwd, sessionId }
  *     { kind: "ignore" }                 known event, a tool the guard does not cover
  *     { kind: "unrecognised", reason }   unparseable or unknown; the caller fails open
- *   guardPayload(tool, raw, { policy }) -> { exitCode, stderr, sessionId?, reason?, findings? }
+ *   guardPayload(tool, raw, { policy }) -> { exitCode, stderr, sessionId?, cwd?, reason?, findings? }
  *     adapts, then runs the real `evaluateCommand` (shell) or `findViolations`
- *     (edits). Blocks carry `sessionId` and `reason`; edit blocks add `findings`.
+ *     (edits). Blocks carry `sessionId`, `cwd` (resolved) and `reason`; edit
+ *     blocks add `findings`.
+ *   workspaceDirs(payload), resolveCwd(payload): cwd, else workspace_roots
+ *     (file:// URIs converted, junk skipped); `adaptPayload` already uses it.
  *   allowResult(), blockResult(reason), failOpenResult(why)   result helpers.
  *
  *   `tool` is "cursor" or "codex". `raw` is the stdin text or a parsed object.
@@ -51,6 +54,8 @@
  * because it needs per-session state. Without it a legitimate exception can
  * never be justified and a blocked retry loops forever.
  */
+
+import { fileURLToPath } from "node:url";
 
 import { evaluateCommand } from "./policy.mjs";
 import { findViolations } from "./quality.mjs";
@@ -129,16 +134,41 @@ function editsFromInput(input) {
   return e ? [e] : null;
 }
 
+/** A directory string from a payload: plain paths pass, `file://` URIs become paths. */
+function dirFromEntry(entry) {
+  if (typeof entry !== "string" || entry === "") return null;
+  if (!entry.startsWith("file:")) return entry;
+  try {
+    return fileURLToPath(entry);
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Candidate working directories of a payload, best first: `cwd`, then every
+ * entry of `workspace_roots`. `file://` URIs are converted to paths; non-string,
+ * empty and malformed entries are skipped. Callers that care which candidate is
+ * a git repository (the session hook) walk the list.
+ */
+export function workspaceDirs(payload) {
+  const roots = Array.isArray(payload?.workspace_roots) ? payload.workspace_roots : [];
+  return [payload?.cwd, ...roots].map(dirFromEntry).filter((d) => d !== null);
+}
+
+/** The first candidate of `workspaceDirs`, or undefined. */
+export const resolveCwd = (payload) => workspaceDirs(payload)[0];
+
 function shellFrom(command, payload, sessionId) {
   if (typeof command !== "string") return unrecognised("no command string in the payload");
-  return { kind: "shell", command, cwd: payload.cwd, sessionId };
+  return { kind: "shell", command, cwd: resolveCwd(payload), sessionId };
 }
 
 function editFrom(edits, payload, sessionId, what) {
   if (!edits || edits.length === 0) {
     return unrecognised(`${what} carried no file path and text the guard can read`);
   }
-  return { kind: "edit", edits, cwd: payload.cwd, sessionId };
+  return { kind: "edit", edits, cwd: resolveCwd(payload), sessionId };
 }
 
 /** Cursor preToolUse tool names treated as file edits. Documentation-derived, unconfirmed. */
@@ -226,7 +256,7 @@ export function guardPayload(tool, raw, options = {}) {
   if (n.kind === "shell") {
     const verdict = evaluateCommand(n.command, supplied);
     return verdict.action === "block"
-      ? { ...blockResult(verdict.reason), sessionId: n.sessionId, reason: verdict.reason }
+      ? { ...blockResult(verdict.reason), sessionId: n.sessionId, cwd: n.cwd, reason: verdict.reason }
       : allowResult();
   }
 
@@ -237,5 +267,5 @@ export function guardPayload(tool, raw, options = {}) {
   const reason = findings
     .map((f) => `${f.filePath}${f.line ? `:${f.line}` : ""} [${f.ruleId}] ${f.why}`)
     .join("\n");
-  return { ...blockResult(reason), sessionId: n.sessionId, reason, findings };
+  return { ...blockResult(reason), sessionId: n.sessionId, cwd: n.cwd, reason, findings };
 }
