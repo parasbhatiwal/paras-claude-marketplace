@@ -1,5 +1,5 @@
 ---
-description: Generate or refresh this project's CLAUDE.md by scanning the codebase, preserving human-written sections
+description: Generate or refresh this project's AGENTS.md by scanning the codebase, preserving human-written sections
 argument-hint: [optional area to focus the refresh on]
 ---
 

@@ -32,7 +32,7 @@ future runs go better. Read `writing-for-agents` first for the writing bar.
      job); default to building the check over writing a rule. **Judgment
      call** (cross-file consistency, "matches the surrounding style") → a
      rule in the engineering standards.
-   - **Steering files** — instructions in `CLAUDE.md` / global files that
+   - **Steering files** — instructions in `AGENTS.md` / global files that
      should move to standards or checks; oversized files.
    - **Tool economy** — expensive calls that could be streamlined.
    - **No-ops** — instructions that change no behavior.
@@ -40,7 +40,7 @@ future runs go better. Read `writing-for-agents` first for the writing bar.
      (dev-server logs, read-only access to a third-party service).
    - **Grill gaps** (v2 workflow) — a question the agent hit that the grill
      should have asked. The fix is a line in the `grill` checklist or the
-     project's `CLAUDE.md`, not a patch to the code.
+     project's `AGENTS.md`, not a patch to the code.
 3. Present candidates in severity order.
 
 ## Reference
@@ -49,7 +49,7 @@ Work passes through **implementation** (the most context pressure: explore,
 write, debug) and **review** (least: it receives a diff). So impose coding
 standards in *review*, not on the implementer.
 
-- `CLAUDE.md` is pushed into every session: use it very sparingly, mostly for
+- `AGENTS.md` is pushed into every session: use it very sparingly, mostly for
   navigation pointers.
 - Standards are read during review, not implementation.
 - Docs are reference files reached by pointer; look for existing docs before

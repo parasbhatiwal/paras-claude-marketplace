@@ -9,7 +9,7 @@ Decisions that are expensive to reverse — a datastore, an auth model, a
 boundary, a protocol, a deliberate deviation from team standards — get a short
 record written **at the time the decision is made**. ADRs are what stop a team
 relitigating the same choice every six months, and they are the highest-value
-context `project-context` feeds into CLAUDE.md.
+context `project-context` feeds into AGENTS.md.
 
 ## When an ADR is required
 
@@ -88,7 +88,7 @@ we are accepting as a risk, and what would make us revisit this.>
 - **<option>** — …
 ```
 
-4. Link it: reference the ADR number in the PR body and in `CLAUDE.md` /
+4. Link it: reference the ADR number in the PR body and in `AGENTS.md` /
    `docs/engineering-rules.md` where the decision shows up.
 
 ## Superseding

@@ -24,7 +24,7 @@ and the task maps to one, note the issue number now — `open-pr` will link it
 Create `feat/<slug>` from the up-to-date default branch (slug from the ticket,
 kebab-case, short). All work happens on this branch.
 
-If the repo has no `CLAUDE.md` (or the session's context check flagged it as
+If the repo has no `AGENTS.md` (or the session's context check flagged it as
 stale), run `project-context` first — every later stage is better with it.
 The standards for every stage below come from `engineering-principles`.
 
@@ -63,7 +63,7 @@ do not ask again. No web UI → do not ask.
 
 ## Stage 4 — Commit
 
-**Refresh `CLAUDE.md` first, in the same change.** A feature just made
+**Refresh `AGENTS.md` first, in the same change.** A feature just made
 something about the project untrue — a new command, a new module, a new
 convention, a gotcha found the hard way while building it. Run
 `project-context` in refresh mode before `commit-changes`, so the description

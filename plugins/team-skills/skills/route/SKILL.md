@@ -17,7 +17,7 @@ its `SKILL.md`: the table below is for orientation only.
 
 1. **The request.** Issue number / URL, pasted ticket, a sentence, or nothing.
 2. **The repo.** `git status`, current branch, `git log -5`, open PRs for the
-   branch (`gh pr list --head <branch>`), whether `CLAUDE.md` exists and is
+   branch (`gh pr list --head <branch>`), whether `AGENTS.md` exists and is
    fresh, whether `GLOSSARY.md` / `docs/adr/` exist.
 3. **The issue, if there is one.** Labels tell you the state:
    `workflow-labels.md` (`../../references/workflow-labels.md`). An issue
@@ -49,12 +49,12 @@ its `SKILL.md`: the table below is for orientation only.
 | New repo | `bootstrap-project` |
 | Dependencies / CVEs | `dependency-upgrade` |
 | Cutting a version | `release` |
-| `CLAUDE.md` missing or stale | `project-context` |
+| `AGENTS.md` missing or stale | `project-context` |
 | A build just ended, especially a rough one | `retro` |
 | Context is bloated and the work continues elsewhere | `handoff` |
 | The user did not follow your last message | `wait-what` |
 | First use in this repo | `setup-workflow` |
-| Writing a skill, `CLAUDE.md` or other agent-facing doc | `writing-for-agents` |
+| Writing a skill, `AGENTS.md` or other agent-facing doc | `writing-for-agents` |
 
 ## Step 3 — Resolve conflicts
 

@@ -25,7 +25,7 @@ interview but stateless: skip the issue, the glossary and the ADRs.
 ## Step 1 — Look things up before asking anything
 
 Finding **facts** is your job, never the human's. Explore the codebase
-(dispatch fresh-context sub-agents for broad searches), `CLAUDE.md`, `GLOSSARY.md`,
+(dispatch fresh-context sub-agents for broad searches), `AGENTS.md`, `GLOSSARY.md`,
 `docs/adr/`, existing tests, and prior art. Check whether it already exists.
 Only **decisions** go to the human.
 

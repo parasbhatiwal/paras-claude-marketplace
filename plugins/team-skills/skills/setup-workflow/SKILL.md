@@ -23,7 +23,7 @@ differently.
    warn clearly: for autonomous runs, protection is the real wall and the
    session hook is only a second one. Offer the exact settings; the human
    applies them.
-4. **Project files, lazily.** `CLAUDE.md` via `project-context`. Create
+4. **Project files, lazily.** `AGENTS.md` via `project-context`. Create
    `GLOSSARY.md`, `docs/adr/` and `.out-of-scope/` only when first needed, not
    now. If a legacy `CONTEXT.md` / `CONTEXT-MAP.md` exists, offer to `git mv`
    it to its `GLOSSARY` name and update references to the old name.

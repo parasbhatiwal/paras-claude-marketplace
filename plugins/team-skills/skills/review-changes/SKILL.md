@@ -24,7 +24,7 @@ One structured review round on the working diff, before anything is committed.
    separately — never merged or reranked. Start every sub-agent with a fresh
    context window.
    - **Standards:** does the diff follow this repo's documented standards
-     (`CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `docs/adr/`, the
+     (`AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `docs/adr/`, the
      `engineering-principles` skill) plus the smell baseline in
      `../../references/code-smells.md`? Documented standards can be hard
      violations; baseline smells are always judgment calls, and a documented

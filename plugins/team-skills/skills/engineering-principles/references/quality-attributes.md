@@ -66,7 +66,7 @@ Cross-cutting properties that are cheap to design in and expensive to retrofit.
 
 - Optimize for the reader. Code is read far more often than written; the
   audience is a tired teammate at 2am — and increasingly a model with a
-  limited window, which is what `project-context` and CLAUDE.md serve.
+  limited window, which is what `project-context` and AGENTS.md serve.
 - Consistency beats personal preference. Formatting and lint rules are
   automated (Prettier/Black/gofmt + a strict linter) so style is never a
   review topic; the CI check is the arbiter.
