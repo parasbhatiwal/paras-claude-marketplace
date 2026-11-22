@@ -76,9 +76,25 @@ function checkCursorHooks({ pluginDir, label, hooks, err }) {
     return;
   }
   if (config.version === undefined) err(`${where}: missing \`version\``);
-  for (const [event, entries] of Object.entries(config.hooks ?? {})) {
-    for (const entry of Array.isArray(entries) ? entries : []) {
-      if (!nonEmpty(entry?.command)) {
+  if (config.hooks === null || typeof config.hooks !== "object" || Array.isArray(config.hooks)) {
+    err(`${where}: \`hooks\` must be an object keyed by event name`);
+    return;
+  }
+  const pluginRoot = resolve(pluginDir);
+  for (const [event, entries] of Object.entries(config.hooks)) {
+    if (!Array.isArray(entries)) {
+      err(`${where}: event ${event} must be an array of hook entries`);
+      continue;
+    }
+    for (const entry of entries) {
+      if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+        err(`${where}: ${event} entry must be an object`);
+        continue;
+      }
+      if (entry.type !== undefined && entry.type !== "command") {
+        err(`${where}: ${event} entry \`type\` must be "command" (plugin hooks run command hooks only)`);
+      }
+      if (!nonEmpty(entry.command)) {
         err(`${where}: ${event} entry missing \`command\``);
         continue;
       }
@@ -87,7 +103,10 @@ function checkCursorHooks({ pluginDir, label, hooks, err }) {
         err(`${where}: ${event} command must reference a script under ${CURSOR_ROOT_VAR}`);
       }
       for (const [, script] of refs) {
-        if (!existsSync(resolve(pluginDir, script))) {
+        const target = resolve(pluginRoot, script);
+        if (!target.startsWith(pluginRoot + sep)) {
+          err(`${where}: ${event} command script ${script} must stay inside the plugin directory`);
+        } else if (!existsSync(target)) {
           err(`${where}: ${event} command script ${script} does not exist`);
         }
       }

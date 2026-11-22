@@ -288,6 +288,42 @@ describe("Cursor hooks config", () => {
     assert.equal(errorsMatching(/CURSOR_PLUGIN_ROOT/).length, 1);
   });
 
+  test("fails when a command script escapes the plugin directory", () => {
+    withHooks({
+      version: 1,
+      hooks: {
+        sessionStart: [{ type: "command", command: 'node "${CURSOR_PLUGIN_ROOT}/../../.cursor-plugin/marketplace.json"' }],
+      },
+    });
+    assert.equal(errorsMatching(/sessionStart.*inside the plugin/).length, 1);
+  });
+
+  test("fails when the hooks key is misspelled", () => {
+    withHooks({ version: 1, hook: { sessionStart: [] } });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*`hooks`.*object/).length, 1);
+  });
+
+  test("fails when an event is an object instead of an array", () => {
+    withHooks({
+      version: 1,
+      hooks: { sessionStart: { type: "command", command: 'node "${CURSOR_PLUGIN_ROOT}/hooks/guard.mjs"' } },
+    });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*sessionStart.*array/).length, 1);
+  });
+
+  test("fails when an entry is not an object", () => {
+    withHooks({ version: 1, hooks: { sessionStart: ["node x"] } });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*sessionStart.*object/).length, 1);
+  });
+
+  test("fails on a prompt-type entry (plugin hooks run command hooks only)", () => {
+    withHooks({
+      version: 1,
+      hooks: { preToolUse: [{ type: "prompt", prompt: "is this safe?", command: 'node "${CURSOR_PLUGIN_ROOT}/hooks/guard.mjs"' }] },
+    });
+    assert.equal(errorsMatching(/cursor-hooks\.json.*preToolUse.*type.*command/).length, 1);
+  });
+
   test("fails when a hook entry has no command", () => {
     withHooks({ version: 1, hooks: { sessionStart: [{ type: "command" }] } });
     assert.equal(errorsMatching(/missing `command`/).length, 1);

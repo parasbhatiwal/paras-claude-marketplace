@@ -12,6 +12,13 @@
     "preToolUse": [
       {
         "type": "command",
+        "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-guard-git.mjs\"",
+        "timeout": 30,
+        "failClosed": false,
+        "matcher": "Shell"
+      },
+      {
+        "type": "command",
         "command": "node \"${CURSOR_PLUGIN_ROOT}/hooks/cursor-guard-quality.mjs\"",
         "timeout": 30,
         "failClosed": false,

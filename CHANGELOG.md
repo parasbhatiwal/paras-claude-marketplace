@@ -22,8 +22,18 @@ Notable changes to the `team-skills` plugin. Format follows
   run twice; that is harmless because blocking is idempotent. The git hooks and
   CI remain the real wall. Codex hooks are still planned. Claude Code is unchanged.
 - `validate` checks the Cursor manifest's hooks path exists, parses, has
-  `version`, and that every command references an existing script under
-  `${CURSOR_PLUGIN_ROOT}`.
+  `version` and a `hooks` object of event arrays, that every entry is a
+  `command` hook, and that every command references an existing script inside
+  the plugin under `${CURSOR_PLUGIN_ROOT}`.
+
+### Changed
+
+- The quality guard's escalation ladder is now one shared module used by Claude
+  Code and Cursor (and Codex next). Claude Code behaviour is unchanged. The
+  ladder now counts only findings it blocks, records each override once per
+  session, and treats `a.ts`, `./a.ts` and the absolute path as the same file.
+- The Cursor git guard also runs on `preToolUse` for `Shell`, and the working
+  directory falls back to the workspace roots (including `file://` URIs).
 
 ## [2.8.0] — 2026-11-22
 

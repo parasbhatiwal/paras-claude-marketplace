@@ -14,7 +14,7 @@ import { spawnSync, execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync, existsSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve, dirname } from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 const HOOKS = resolve(dirname(fileURLToPath(import.meta.url)), "../plugins/team-skills/hooks");
 const GIT_HOOK = join(HOOKS, "cursor-guard-git.mjs");
@@ -64,6 +64,15 @@ describe("cursor-guard-git.mjs (beforeShellExecution)", () => {
     const r = run(GIT_HOOK, "not json");
     assert.equal(r.status, 0);
     assert.match(r.stderr, INACTIVE);
+  });
+
+  test("a git guard runs on preToolUse for Shell too, wired in the hooks config", () => {
+    const config = JSON.parse(readFileSync(join(HOOKS, "cursor-hooks.json"), "utf8"));
+    const shellPre = config.hooks.preToolUse.find(
+      (h) => /cursor-guard-git\.mjs/.test(h.command) && h.matcher === "Shell",
+    );
+    assert.ok(shellPre, "cursor-guard-git.mjs must be wired on preToolUse with matcher Shell");
+    assert.ok(config.hooks.beforeShellExecution.some((h) => /cursor-guard-git\.mjs/.test(h.command)));
   });
 
   test("the same rule applies through preToolUse on Shell", () => {
@@ -185,6 +194,28 @@ describe("cursor-session-context.mjs (sessionStart)", () => {
       JSON.stringify({ hook_event_name: "sessionStart", workspace_roots: [repo] }),
     );
     assert.match(JSON.parse(r.stdout).additional_context, /Team workflow/);
+  });
+
+  test("accepts a file:// URI workspace root", () => {
+    const r = run(
+      SESSION_HOOK,
+      JSON.stringify({ hook_event_name: "sessionStart", workspace_roots: [pathToFileURL(repo).href] }),
+    );
+    assert.match(JSON.parse(r.stdout).additional_context, /Team workflow/);
+  });
+
+  test("tries the next workspace root when the first is not a git repository", () => {
+    const plain = mkdtempSync(join(tmpdir(), "cursor-plain-"));
+    try {
+      const r = run(
+        SESSION_HOOK,
+        JSON.stringify({ hook_event_name: "sessionStart", workspace_roots: [plain, repo] }),
+        { GIT_CEILING_DIRECTORIES: tmpdir() },
+      );
+      assert.match(JSON.parse(r.stdout).additional_context, /Team workflow/);
+    } finally {
+      rmSync(plain, { recursive: true, force: true });
+    }
   });
 
   test("outside a git repository it is silent", () => {

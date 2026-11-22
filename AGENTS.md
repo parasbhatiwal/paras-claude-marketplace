@@ -1,7 +1,7 @@
 # paras-claude-marketplace — context for agents
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=51e8ca5a0a8f333436b82c0f0442e9a42f298035 generated=2026-11-22 -->
+<!-- claude-context: sha=5cbd2898619a735dab5471d39f217424e2c099de generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
@@ -29,7 +29,9 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
   every wrapper. `hook-adapters.mjs`: Cursor/Codex payload adapters.
   Cursor wrappers `cursor-guard-git.mjs`, `cursor-guard-quality.mjs`,
   `cursor-session-context.mjs` are listed in `hooks/cursor-hooks.json` (the Cursor manifest's
-  `hooks` path); `quality-ladder.mjs` applies the escalation ladder for adapter-based wrappers.
+  `hooks` path); `quality-ladder.mjs` is the ONE escalation ladder
+  (`applyLadder({tool, findings, sessionId, cwd})`) shared by `guard-quality.mjs` (Claude) and the
+  Cursor and Codex quality wrappers; its state files are prefixed per tool.
   Codex hooks are not wired yet; see `references/agent-tool-contracts.md`.
 - `examples/` — language-agnostic templates teams copy into their projects.
 - `scripts/` — the validator and version-bump check used by CI; `tool-manifests.mjs`

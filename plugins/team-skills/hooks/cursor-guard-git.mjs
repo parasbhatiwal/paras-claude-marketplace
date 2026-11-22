@@ -2,7 +2,9 @@
 /**
  * Cursor hook: git guard for shell commands (`beforeShellExecution`, and
  * `preToolUse` on `Shell`). Thin wrapper; rules are in `policy.mjs`, payload
- * reading in `hook-adapters.mjs`. Best effort, built from Cursor's documentation
+ * reading in `hook-adapters.mjs`. It is wired on both events because Cursor may
+ * route shell commands through either; if both fire, the second run reaches the
+ * same verdict (blocking is idempotent), so running twice is harmless. Best effort, built from Cursor's documentation
  * and not verified by the maintainer. Exit 2 blocks; anything else fails open.
  */
 
