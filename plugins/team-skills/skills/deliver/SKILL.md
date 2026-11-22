@@ -49,7 +49,7 @@ Loop until the frontier is empty:
 1. **Frontier** = open `ready-for-agent` sub-issues without `agent-working`
    whose blockers are all closed. Claim each (add `agent-working`, re-read to
    confirm the claim won).
-2. **Implementer subagents**, in the background, one per ticket, each in its
+2. **Implementer subagents**, in the background, a fresh one per ticket, each in its
    own worktree on `feat/<epic#>-<slug>--t<sub#>` cut from the integration
    branch tip. Each implementer:
    - confirms its base is the integration branch, resetting onto it if not;

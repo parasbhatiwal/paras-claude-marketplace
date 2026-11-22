@@ -20,7 +20,7 @@ If the user named a direction, take it. Otherwise read `git log --oneline` a
 good way back to find hot spots — files and areas that keep coming up — and
 let them pull attention first.
 
-Spawn a subagent to walk the code organically, noting friction:
+Spawn a subagent with a fresh context window to walk the code organically, noting friction:
 
 - understanding one concept means bouncing between many small modules;
 - **shallow** modules (interface nearly as complex as implementation);

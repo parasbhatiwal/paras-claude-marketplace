@@ -19,7 +19,8 @@ One structured review round on the working diff, before anything is committed.
 3b. **Two-axis review, in parallel subagents** (adapted from Matt Pocock's
    `code-review` skill, MIT; see `THIRD_PARTY_NOTICES.md`). A change can pass
    one axis and fail the other, so the axes run separately and are reported
-   separately — never merged or reranked.
+   separately — never merged or reranked. Start every sub-agent with a fresh
+   context window.
    - **Standards:** does the diff follow this repo's documented standards
      (`CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `docs/adr/`, the
      `engineering-principles` skill) plus the smell baseline in
