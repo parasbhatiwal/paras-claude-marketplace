@@ -5,6 +5,12 @@ what each group of skills guarantees, how the workflows chain together, and how
 this plugin relates to the [AI Hero](https://github.com/mattpocock/skills)
 skills it adapts.
 
+> **Invoking skills by tool.** The skills are shared. Claude Code has slash
+> commands (`/work`, `/go`, ...); Codex invokes a skill with a `$` mention
+> (`$work`, `$route`); Cursor types `/` and the skill name (`/work`, `/route`).
+> The README's [Works with](../README.md#works-with) section has the full table
+> and the limits of each tool.
+
 ## Standards
 
 **`engineering-principles`** — the single source of truth. `SKILL.md` holds

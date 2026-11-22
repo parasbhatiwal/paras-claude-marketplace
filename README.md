@@ -5,7 +5,9 @@ settle the requirements first, build with tests first, and let hooks and CI —
 not documents nobody re-reads — enforce the rules.**
 
 It ships as one plugin, `team-skills`: 42 skills, 13 slash commands, and a set
-of git-guard hooks. It works in any language and on any project.
+of git-guard hooks. It works in any language and on any project. It is built
+for Claude Code; Codex and Cursor can use the skills too, on a best-effort
+basis (see [Works with](#works-with)).
 
 > **New to Claude Code plugins?** A *plugin* bundles skills (instructions
 > Claude follows for a kind of task), slash commands, and hooks (scripts that
@@ -18,6 +20,7 @@ of git-guard hooks. It works in any language and on any project.
 
 - [Why this exists](#why-this-exists)
 - [Install](#install)
+- [Works with](#works-with)
 - [Your first five minutes](#your-first-five-minutes)
 - [How the workflow works](#how-the-workflow-works)
 - [Commands](#commands)
@@ -55,7 +58,8 @@ You don't need to adopt all of it. Each skill also works on its own, by name.
 
 ## Install
 
-You need Claude Code and `git`. For the full workflow you also need the
+You need Claude Code (or see [Works with](#works-with) for Codex and Cursor) and
+`git`. For the full workflow you also need the
 [GitHub CLI](https://cli.github.com) signed in (`gh auth login`), because
 issues, labels, and PRs are driven through it. No access grant is needed; the
 repo is public.
@@ -77,6 +81,68 @@ teammates get it), or **Local** (you, this repo, not shared).
 
 Check it worked with `/plugin` → **Installed**. Scripted install and
 per-developer onboarding: [`examples/ONBOARDING.md`](examples/ONBOARDING.md).
+
+---
+
+## Works with
+
+The skills are one shared set of `SKILL.md` files that all three tools can read.
+Everything else (slash commands, the in-session guard hooks, cloud delivery) is
+Claude Code only today. **The maintainer cannot run Codex or Cursor**, so every
+non-Claude row below is best effort and not verified by the maintainer. If you
+try it, please send a
+[compatibility report](https://github.com/parasbhatiwal/paras-claude-marketplace/issues/new?template=compatibility-report.yml).
+
+| Tool | Skills | In-session guard hooks | Install | Verification |
+|---|---|---|---|---|
+| Claude Code | All 42, plus the 13 slash commands | Yes | [Install](#install) above | Used and maintained here |
+| Codex | All 42 | Not yet; planned | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
+| Cursor | All 42 | Not yet; planned | Import the repo (see below) | Best effort, not verified by the maintainer |
+
+Claude-only for now: the in-session guard hooks (hooks for Codex and Cursor are
+planned, not yet available), cloud (autonomous) delivery, and `/verify` browser
+testing, which needs Claude in Chrome. The committed git hooks and CI templates in
+[`examples/`](examples) work with any tool and are the real enforcement wall;
+the in-session hooks are an extra layer.
+
+### Codex
+
+1. Add the marketplace pinned to the `stable` branch:
+   `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable`
+2. In a Codex session, open the plugins command, install `team-skills`, then
+   start a new session.
+3. Run a skill by mentioning it with `$`, for example `$work add saved payment
+   methods`. Codex has no slash commands for this plugin, so:
+
+| Claude Code | Codex |
+|---|---|
+| `/go` | `$route` |
+| `/work` | `$work` |
+| `/deliver` | `$deliver` (attended only) |
+| `/triage` | `$triage` |
+
+Codex reads `AGENTS.md`, not `CLAUDE.md`, so project context may not be picked up
+until a later release.
+
+### Cursor
+
+1. In Cursor, open **Customize**, choose to import from a GitHub repository, and
+   enter `parasbhatiwal/paras-claude-marketplace`. (Teams and Enterprise plans
+   can also add it as a team marketplace from the dashboard.) Install
+   `team-skills`.
+2. Run a skill by typing `/` and its name, for example `/work add saved payment
+   methods`. Cursor does not get the slash commands, so:
+
+| Claude Code | Cursor |
+|---|---|
+| `/go` | `/route` |
+| `/work` | `/work` |
+| `/deliver` | `/deliver` (attended only) |
+| `/triage` | `/triage` |
+
+**Branch limit:** Cursor has no documented way to pin a branch when importing a
+repo, so it may follow the default branch (`main`), which can be ahead of
+`stable`. Codex can pin `stable` with `--ref stable`, as above.
 
 ---
 

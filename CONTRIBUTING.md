@@ -8,6 +8,13 @@ are very welcome as plain PRs.
 Prerequisites: Node >= 20 (CI runs Node 20), `git`, and the GitHub CLI.
 There is nothing to `npm install` — the repo has zero dependencies.
 
+Codex does not read `.claude/skills`, so the repo-level skills are exposed to it
+through symlinks in `.agents/skills` (for example `.agents/skills/ship-change`
+points at `.claude/skills/ship-change`). There is one copy of each skill. `npm
+run validate` fails if a link is missing, broken or a copy. On Windows, git needs
+symlink support (Developer Mode and `git config core.symlinks true`); without it
+the link checks out as a plain text file and the check fails.
+
 Ask Claude to **"ship this change"** and the repo-level `ship-change` skill
 (in `.claude/skills/`) drives the whole flow below. It exists because two of
 these steps fail *silently* — nothing errors, the change just never arrives.
