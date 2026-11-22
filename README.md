@@ -31,7 +31,7 @@ basis (see [Works with](#works-with)).
 - [Staying up to date](#how-updates-reach-you)
 - [Troubleshooting](#troubleshooting)
 - [Repo layout](#repo-layout)
-- [Contributing and credits](#contributing-and-credits)
+- [Contributing, license and credits](#contributing-license-and-credits)
 
 ---
 
@@ -476,10 +476,13 @@ upstream.json                        pinned AI Hero version and file hashes
 
 ---
 
-## Contributing and credits
+## Contributing, license and credits
 
 - **Contributing:** see [`CONTRIBUTING.md`](CONTRIBUTING.md) for the flow, what
   CI checks, and how repo protection works. Small fixes are welcome as plain PRs.
+- **License:** [MIT](LICENSE), Copyright (c) 2026 Paras Bhatiwal. The skills adapted
+  from other projects keep their original MIT notice in
+  [`plugins/team-skills/THIRD_PARTY_NOTICES.md`](plugins/team-skills/THIRD_PARTY_NOTICES.md).
 - **Credits:** many skills are adapted from Matt Pocock's
   [AI Hero skills](https://github.com/mattpocock/skills) (MIT), extended with
   autonomous delivery, hook enforcement, and more. Attribution is in

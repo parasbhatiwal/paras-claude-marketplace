@@ -308,3 +308,23 @@ describe("top-level docs name AGENTS.md as the context file", () => {
     assert.deepEqual(validate(REPO_ROOT).filter((e) => /AGENTS\.md/.test(e)), []);
   });
 });
+
+describe("license", () => {
+  test("the repo ships an MIT LICENSE under the maintainer's name", () => {
+    const text = read("LICENSE");
+    assert.match(text, /^MIT License/);
+    assert.match(text, /Copyright \(c\) 2026 Paras Bhatiwal/);
+    assert.match(text, /Permission is hereby granted, free of charge/);
+    assert.match(text, /THE SOFTWARE IS PROVIDED "AS IS"/);
+  });
+
+  test("the README states the license and links the file", () => {
+    const readme = read("README.md");
+    assert.match(readme, /\*\*License:\*\*[^\n]*MIT/);
+    assert.match(readme, /\]\(LICENSE\)/);
+  });
+
+  test("the README says the adapted skills keep their original MIT notice", () => {
+    assert.match(read("README.md"), /THIRD_PARTY_NOTICES\.md/);
+  });
+});
