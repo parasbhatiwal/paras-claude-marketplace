@@ -7,6 +7,18 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.7.0] — 2026-11-22
+
+### Added
+
+- Internal groundwork for guard hooks on Cursor and Codex: a pure adapter module
+  (`hooks/hook-adapters.mjs`) that turns each tool's hook payload into what the
+  existing git and quality rules already take, and builds the block or
+  fail-open response. **No hook is wired up for Cursor or Codex yet, so nothing
+  changes for you in any tool in this release.** Claude Code's hooks are
+  untouched. Codex and Cursor payload handling is built from official
+  documentation only: best effort, not verified by the maintainer.
+
 ## [2.6.0] — 2026-11-22
 
 ### Added

@@ -1,7 +1,7 @@
 # paras-claude-marketplace — context for agents
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=ff01260333268783a01e62b7deff9534b1e01554 generated=2026-11-22 -->
+<!-- claude-context: sha=ee97a33cab183cd1573d373575575f59cdb40779 generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
@@ -23,7 +23,7 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
 - `plugins/team-skills/skills/<name>/SKILL.md` — the skills; `commands/` are thin
   entry points; `references/` are shared docs skills point at.
 - `plugins/team-skills/hooks/` — pure rule modules (`policy.mjs`,
-  `context-freshness.mjs`, `quality.mjs`) + thin I/O wrappers (`guard-git.mjs`,
+  `context-freshness.mjs`, `quality.mjs`, `hook-adapters.mjs` for Cursor/Codex payloads) + thin I/O wrappers (`guard-git.mjs`,
   `guard-quality.mjs`, `session-context.mjs`). Keep rules pure and testable.
 - `examples/` — language-agnostic templates teams copy into their projects.
 - `scripts/` — the validator and version-bump check used by CI; `tool-manifests.mjs`
