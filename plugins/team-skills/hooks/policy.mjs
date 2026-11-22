@@ -112,8 +112,8 @@ const block = (reason) => ({ action: "block", reason });
  *        command text) says no human is at the keyboard. See "autonomous mode".
  * @param {() => string|null} [deps.getCurrentBranch]  checked-out branch
  * @param {(ref: string|null) => string|null} [deps.getPrBase]  a PR's base branch
- * @param {() => {status: string, reasons: string[], action: string|null}|null} [deps.getContextFreshness]
- *        assesses CLAUDE.md against the repository. Injected rather than read
+ * @param {() => {status: string, reasons: string[], action: string|null, file?: string}|null} [deps.getContextFreshness]
+ *        assesses the context file (AGENTS.md, else CLAUDE.md) against the repository. Injected rather than read
  *        here so this module stays pure and testable.
  * @param {boolean} [deps.contextAlreadyRaised]   true once this session has been
  *        told about stale context, so the second push is not blocked again
@@ -238,7 +238,7 @@ export function evaluateCommand(command, deps = {}) {
     }
   }
 
-  // --- CLAUDE.md must describe what is being pushed ------------------------
+  // --- the context file (AGENTS.md / CLAUDE.md) must describe what is pushed -
   //
   // Stale context is the defect that costs the most and shows up the least:
   // every later session starts by believing something that is no longer true,
@@ -252,12 +252,12 @@ export function evaluateCommand(command, deps = {}) {
   // being unable to ship until a document is perfect is how a rule like this
   // gets removed entirely.
   // Skipped in autonomous mode: there is no one to read the reminder, and
-  // `deliver` refreshes CLAUDE.md once, on the integration branch, instead.
+  // `deliver` refreshes the context file once, on the integration branch, instead.
   if (PUSH.test(cmd) && !contextAlreadyRaised && !autonomous) {
     const freshness = getContextFreshness();
     if (freshness && (freshness.status === "stale" || freshness.status === "missing")) {
       return block(
-        `CLAUDE.md is ${freshness.status} — ${freshness.reasons.join("; ")}.\n\n` +
+        `${freshness.file ?? "CLAUDE.md"} is ${freshness.status} — ${freshness.reasons.join("; ")}.\n\n` +
           `${freshness.action}\n\n` +
           "Every session after this one starts by reading that file. Pushing work it\n" +
           "does not describe means the next person — or the next you — begins from\n" +

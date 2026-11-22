@@ -401,3 +401,24 @@ describe("agent trailer names", () => {
     assert.deepEqual(parseAgentNames(undefined), DEFAULT_AGENT_TRAILER_NAMES);
   });
 });
+
+describe("the push reminder names the context file", () => {
+  test("says AGENTS.md when that is the stale file", () => {
+    const r = reason("git push origin feat/x", {
+      getContextFreshness: () => ({
+        status: "stale",
+        reasons: ["structural files changed since then: package.json"],
+        action: "Run the `project-context` skill in refresh mode to bring AGENTS.md up to date.",
+        file: "AGENTS.md",
+      }),
+    });
+    assert.match(r, /AGENTS\.md is stale/);
+  });
+
+  test("keeps saying CLAUDE.md for verdicts that do not name a file", () => {
+    const r = reason("git push origin feat/x", {
+      getContextFreshness: () => ({ status: "stale", reasons: ["x"], action: "Refresh." }),
+    });
+    assert.match(r, /CLAUDE\.md is stale/);
+  });
+});

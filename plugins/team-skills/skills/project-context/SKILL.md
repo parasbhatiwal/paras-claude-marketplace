@@ -1,19 +1,22 @@
 ---
 name: project-context
-description: Use this skill to generate or refresh a project's CLAUDE.md by scanning the codebase ("set up CLAUDE.md", "document this project for Claude", "refresh project context", "the context is stale"). Produces high-signal context - commands, architecture, boundaries, conventions, gotchas - and maintains a freshness fingerprint so the file is updated when the project drifts rather than rotting silently.
+description: Use this skill to generate or refresh a project's AGENTS.md (the context file Claude Code, Codex and Cursor read) by scanning the codebase ("set up AGENTS.md", "set up CLAUDE.md", "document this project for agents", "refresh project context", "the context is stale"), and to migrate an existing CLAUDE.md into it. Produces high-signal context - commands, architecture, boundaries, conventions, gotchas - and maintains a freshness fingerprint so the file is updated when the project drifts rather than rotting silently.
 ---
 
-# Project Context (CLAUDE.md)
+# Project Context (AGENTS.md)
 
-`CLAUDE.md` is loaded into every session in this repo. It is the highest-
+`AGENTS.md` is loaded into every session in this repo, by Claude Code, Codex and
+Cursor alike. `CLAUDE.md` is only a one-line pointer to it (`@AGENTS.md`), so
+there is one file to keep true. It is the highest-
 leverage document in the project and the most commonly wasted one: a file full
 of things a model can read off the directory tree costs context and buys
 nothing.
 
 **Write only what cannot be inferred cheaply from the code.**
 
-This skill has two modes — **generate** (no CLAUDE.md, or an unmanaged one)
-and **refresh** (a managed one has drifted). Both start by scanning; neither
+This skill has three modes — **generate** (no AGENTS.md or CLAUDE.md, or an
+unmanaged one), **refresh** (a managed one has drifted) and **migrate** (a
+managed CLAUDE.md moves into AGENTS.md; see below). All start by scanning; none
 guesses.
 
 ## Scan before writing
@@ -45,10 +48,12 @@ Gather evidence; never assume a stack:
 
 ## Structure to write
 
-Keep it under ~200 lines. Ruthlessly. Sections in this order:
+Write it to `AGENTS.md` at the repo root. Keep it under ~200 lines. Ruthlessly
+(Codex stops reading project instructions at a size cap, so a short file is also
+one every tool reads whole). Sections in this order:
 
 ```markdown
-# <Project> — context for Claude
+# <Project> — context for agents
 
 <!-- claude-context:begin -->
 <!-- claude-context: sha=<current HEAD sha> generated=<YYYY-MM-DD> -->
@@ -92,11 +97,36 @@ The `claude-context:begin/end` markers delimit the region this skill owns.
 verbatim on refresh.**
 
 The fingerprint comment is what the freshness hook reads — always write the
-real HEAD sha (`git rev-parse HEAD`) and today's date.
+real HEAD sha (`git rev-parse HEAD`) and today's date. The markers keep the
+`claude-context` name in AGENTS.md so existing projects and hooks keep working.
+
+`CLAUDE.md` is then a single line, `@AGENTS.md`, so Claude Code loads the same
+content and nothing is written twice.
+
+## Migrate mode — an existing managed CLAUDE.md
+
+When the repo has a CLAUDE.md that carries a `claude-context` fingerprint (or any
+hand-written content) and no AGENTS.md:
+
+1. **Ask first.** Say what will happen: the whole file moves to AGENTS.md and
+   CLAUDE.md becomes a one-line import. Do nothing until the user agrees.
+2. **Move the entire file, byte for byte** — managed region, fingerprint and every
+   human line outside the markers, including the Team notes. Use `git mv
+   CLAUDE.md AGENTS.md` so history follows the file. Never retype or reflow it.
+3. **Write the pointer.** Create a new CLAUDE.md containing exactly `@AGENTS.md`
+   and a newline.
+4. **Refresh** AGENTS.md as usual (below) if it has drifted, as a separate commit
+   so the move itself is a pure rename.
+5. If both files already exist with content, stop and ask: merging two context
+   files is a human decision.
+
+Until a project migrates, the freshness hook keeps reading its CLAUDE.md, so
+nothing breaks in the meantime.
 
 ## Refresh mode
 
-1. Read the existing CLAUDE.md and extract the recorded sha.
+1. Read the existing context file (AGENTS.md, else an unmigrated CLAUDE.md) and
+   extract the recorded sha.
 2. Diff the project since then: `git diff --name-only <sha>..HEAD` and
    `git log --oneline <sha>..HEAD`.
 3. Update **only the sections the drift affects** — new commands, moved
@@ -123,13 +153,13 @@ real HEAD sha (`git rev-parse HEAD`) and today's date.
   API spec, rather than summarizing them here.
 - Write for a reader with no history on the project and a limited window: the
   first 20 lines should let someone make a correct small change.
-- If the repo already has a hand-written CLAUDE.md with no markers, do not
+- If the repo already has a hand-written AGENTS.md or CLAUDE.md with no markers, do not
   clobber it: wrap or append the managed region and keep every existing line.
 
 ## Keeping it fresh
 
-The plugin's `SessionStart` hook compares the recorded fingerprint against the
-repository and nudges when the context has drifted — commits piled up since the
+The plugin's `SessionStart` hook reads the fingerprint from AGENTS.md (falling
+back to an unmigrated CLAUDE.md), compares it against the repository and nudges when the context has drifted — commits piled up since the
 last refresh, structural files changed (dependencies, config, CI, migrations,
 new top-level modules), or the file is simply old. When that nudge appears,
 run this skill in refresh mode before doing substantial work.

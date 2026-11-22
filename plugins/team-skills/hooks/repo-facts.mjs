@@ -15,6 +15,8 @@ import { execFileSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
+import { CONTEXT_FILES, selectContext } from "./context-freshness.mjs";
+
 /** Run git, or answer `null`. A missing git is not an error worth raising here. */
 function git(cwd, ...args) {
   try {
@@ -32,14 +34,20 @@ function git(cwd, ...args) {
  * Everything `assessContextFreshness` asks for, or `null` outside a repository.
  *
  * @param {string} cwd
- * @returns {{claudeMd: string|null, commitsSince: number, changedFiles: string[], shaKnown: boolean, root: string}|null}
+ * @returns {{claudeMd: string|null, contextFile: string, commitsSince: number, changedFiles: string[], shaKnown: boolean, root: string}|null}
+ * `claudeMd` holds the selected context file's contents (AGENTS.md, else CLAUDE.md).
  */
 export function repositoryFacts(cwd = process.cwd()) {
   const root = git(cwd, "rev-parse", "--show-toplevel");
   if (!root) return null;
 
-  const claudeMdPath = join(root, "CLAUDE.md");
-  const claudeMd = existsSync(claudeMdPath) ? readFileSync(claudeMdPath, "utf8") : null;
+  const contents = Object.fromEntries(
+    CONTEXT_FILES.map((name) => {
+      const path = join(root, name);
+      return [name, existsSync(path) ? readFileSync(path, "utf8") : null];
+    })
+  );
+  const { file: contextFile, content: claudeMd } = selectContext(contents);
 
   let commitsSince = 0;
   let changedFiles = [];
@@ -56,5 +64,5 @@ export function repositoryFacts(cwd = process.cwd()) {
     }
   }
 
-  return { claudeMd, commitsSince, changedFiles, shaKnown, root };
+  return { claudeMd, contextFile, commitsSince, changedFiles, shaKnown, root };
 }
