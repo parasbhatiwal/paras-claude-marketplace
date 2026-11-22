@@ -123,7 +123,7 @@ use is adapted here (MIT, credited in `THIRD_PARTY_NOTICES.md`), then extended.
 | `codebase-design`, `improve-codebase-architecture` | `codebase-design`, `improve-architecture` | — |
 | `handoff`, `wait-what`, `to-questionnaire`, `wizard`, `writing-for-agents` | same names | `to-questionnaire`/`wizard` wired into business issues and human-only tickets |
 | `setup-matt-pocock-skills` | `setup-workflow` | + branch-protection and cloud-readiness checks |
-| `git-guardrails`, `setup-pre-commit` | `guard-git` hook, `examples/githooks` | Always on; tested |
+| `git-guardrails`, `setup-pre-commit` | `guard-git` hook, `examples/githooks` | Always on; tested. Codex: best-effort copy-in hooks in `examples/codex` (trust once; the bypass flag defeats them; git hooks and CI stay the real wall) |
 
 Only here: `handoff-gate` (zero-questions test), `threat-model`,
 `engineering-principles`, `project-context` freshness hook, `ux-audit`,

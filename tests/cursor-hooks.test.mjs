@@ -102,7 +102,7 @@ describe("cursor-guard-quality.mjs (preToolUse on file writes)", () => {
       tool_input: { file_path: filePath, content },
       cwd: repo,
     });
-  const ledger = () => join(repo, ".claude", "engineering-overrides.md");
+  const ledger = () => join(repo, ".agents", "engineering-overrides.md");
   const session = () => `quality-${process.pid}-${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
   test("blocks a violation: exit 2 with the rule on stderr", () => {

@@ -202,10 +202,13 @@ describe("README support table", () => {
     assert.match(section, /\/work/);
   });
 
-  test("labels Cursor hooks best effort and Codex hooks as planned", () => {
-    assert.match(section, /Cursor \| All 42 \| Best effort/);
-    assert.match(section, /Codex \| All 42 \| Not yet; planned/);
-    assert.match(section, /guard hooks[^.]*best\s+effort on Cursor[^.]*planned, not yet available, for Codex/i);
+  test("labels hooks best effort for Cursor and Codex (copy-in template), never as verified", () => {
+    const cursorRow = section.split("\n").find((l) => /^\|\s*Cursor/.test(l)) ?? "";
+    assert.match(cursorRow, /Best effort \(git guard, quality guard, session nudge\)/);
+    const codexRow = section.split("\n").find((l) => /^\|\s*Codex/.test(l)) ?? "";
+    assert.match(codexRow, /template/i);
+    assert.doesNotMatch(codexRow, /Not yet; planned/i);
+    assert.doesNotMatch(section, /planned, not yet available/i);
     assert.match(section, /git\s+hooks and CI[^.]*real wall/i);
     assert.match(section, /idempotent/i);
   });

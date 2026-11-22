@@ -1,0 +1,37 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "r=$(git rev-parse --show-toplevel 2>/dev/null || pwd); l=\"$r/.codex/team-skills-hook.sh\"; if [ -f \"$l\" ]; then exec sh \"$l\" codex-session-context.mjs; fi; echo \"[team-skills guard] WARNING: guard inactive: $l not found (copy examples/codex into .codex). This call is allowed unchecked.\" >&2",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "r=$(git rev-parse --show-toplevel 2>/dev/null || pwd); l=\"$r/.codex/team-skills-hook.sh\"; if [ -f \"$l\" ]; then exec sh \"$l\" codex-guard-git.mjs; fi; echo \"[team-skills guard] WARNING: guard inactive: $l not found (copy examples/codex into .codex). This call is allowed unchecked.\" >&2",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "apply_patch|Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "r=$(git rev-parse --show-toplevel 2>/dev/null || pwd); l=\"$r/.codex/team-skills-hook.sh\"; if [ -f \"$l\" ]; then exec sh \"$l\" codex-guard-quality.mjs; fi; echo \"[team-skills guard] WARNING: guard inactive: $l not found (copy examples/codex into .codex). This call is allowed unchecked.\" >&2",
+            "timeout": 30
+          }
+        ]
+      }
+    ]
+  }
+}

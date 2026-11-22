@@ -13,6 +13,8 @@
  *  - hooks.json (if present) parses and referenced hook scripts exist
  *  - repo-level skills are linked into .agents/skills for Codex, and relative
  *    links in README, CONTRIBUTING and docs/ resolve (see repo-docs.mjs)
+ *  - the copy-in Codex hook template (examples/codex) references existing files
+ *    (see codex-template.mjs)
  *  - Codex and Cursor manifests (when present) are well formed and agree with
  *    the Claude plugin on name and version (see tool-manifests.mjs)
  *
@@ -25,6 +27,7 @@ import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validatePluginManifests, validateMarketplaces } from "./tool-manifests.mjs";
 import { validateAgentSkillLinks, validateDocContextWording, validateDocLinks } from "./repo-docs.mjs";
+import { validateCodexTemplate } from "./codex-template.mjs";
 import {
   CLAUDE_PROVIDED_COMMANDS,
   inNote,
@@ -259,6 +262,7 @@ export function validate(root) {
   }
 
   validateAgentSkillLinks(root, err);
+  validateCodexTemplate(root, err);
   validateDocLinks(root, err);
   validateDocContextWording(root, err);
 

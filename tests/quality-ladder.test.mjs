@@ -29,10 +29,36 @@ const finding = (filePath, ruleId = "silenced-type", line = 1) => ({
   why: "because",
 });
 const ledgerText = () => {
-  const p = join(repo, ".claude", "engineering-overrides.md");
+  const p = join(repo, ".agents", "engineering-overrides.md");
   return existsSync(p) ? readFileSync(p, "utf8") : "";
 };
 const ask = (tool, id, findings) => applyLadder({ tool, findings, sessionId: id, cwd: repo });
+
+describe("the override ledger folder is per tool", () => {
+  const concede = (tool) => {
+    const id = session();
+    ask(tool, id, [finding("src/a.ts")]);
+    ask(tool, id, [finding("src/a.ts")]);
+    assert.equal(ask(tool, id, [finding("src/a.ts")]).exitCode, 0);
+  };
+  const ledgerAt = (dir) => join(repo, dir, "engineering-overrides.md");
+
+  test("claude records in .claude/", () => {
+    concede("claude");
+    assert.ok(existsSync(ledgerAt(".claude")));
+    assert.ok(!existsSync(join(repo, ".agents")));
+  });
+
+  for (const tool of ["cursor", "codex"]) {
+    test(`${tool} records in .agents/ with the same header and format, and creates no .claude/`, () => {
+      concede(tool);
+      const text = readFileSync(ledgerAt(".agents"), "utf8");
+      assert.match(text, /^# Engineering overrides/);
+      assert.match(text, /`src\/a\.ts:1` · \*\*silenced-type\*\* · overridden after 3 refusals/);
+      assert.ok(!existsSync(join(repo, ".claude")));
+    });
+  }
+});
 
 describe("state files never collide across tools", () => {
   test("claude keeps the legacy name, cursor and codex are prefixed", () => {

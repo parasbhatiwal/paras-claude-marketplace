@@ -87,8 +87,8 @@ per-developer onboarding: [`examples/ONBOARDING.md`](examples/ONBOARDING.md).
 ## Works with
 
 The skills are one shared set of `SKILL.md` files that all three tools can read.
-Everything else (slash commands, the in-session guard hooks, cloud delivery) is
-Claude Code only today. **The maintainer cannot run Codex or Cursor**, so every
+Everything else is Claude Code only today, except that Codex can also run the guard
+hooks from a copy-in template (slash commands and cloud delivery stay Claude-only). **The maintainer cannot run Codex or Cursor**, so every
 non-Claude row below is best effort and not verified by the maintainer. If you
 try it, please send a
 [compatibility report](https://github.com/parasbhatiwal/paras-claude-marketplace/issues/new?template=compatibility-report.yml).
@@ -96,7 +96,7 @@ try it, please send a
 | Tool | Skills | In-session guard hooks | Install | Verification |
 |---|---|---|---|---|
 | Claude Code | All 42, plus the 13 slash commands | Yes | [Install](#install) above | Used and maintained here |
-| Codex | All 42 | Not yet; planned | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
+| Codex | All 42 | Best effort, copy-in project template ([see Codex below](#codex)) | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
 | Cursor | All 42 | Best effort (git guard, quality guard, session nudge) | Import the repo (see below) | Best effort, not verified by the maintainer |
 
 An advisory CI job installs the plugin with the real Codex CLI to catch
@@ -104,7 +104,8 @@ manifest and install breakage; it does not run skills inside a session.
 
 Claude-only for now: cloud (autonomous) delivery, and `/verify` browser
 testing, which needs Claude in Chrome. The in-session guard hooks run best
-effort on Cursor and are planned, not yet available, for Codex. The committed git hooks and CI templates in
+effort on Cursor (shipped with the plugin) and on Codex (a copy-in template,
+see below). The committed git hooks and CI templates in
 [`examples/`](examples) work with any tool and are the real enforcement wall;
 the in-session hooks are an extra layer.
 
@@ -127,6 +128,38 @@ the in-session hooks are an extra layer.
 Codex reads `AGENTS.md`, which is where `/context` writes your project context;
 Claude Code reaches the same file through a one-line `@AGENTS.md` import in
 `CLAUDE.md`.
+
+#### Guard hooks for Codex (copy-in template, best effort)
+
+Codex plugin hooks are documented only for manual desktop installs, so the
+guard hooks ship as a template you copy into your project. It blocks the same
+things the Claude Code hooks do (forbidden git flags, missing trailers, pushes
+to a protected branch, and quality-rule violations in `apply_patch` edits).
+This is **best effort, not verified by the maintainer**: the hook fields come
+from Codex's documentation, not from a recorded session.
+
+1. Install the plugin as above (the template finds it in the Codex plugin cache).
+2. Copy the template into your project, keeping the files together:
+   `mkdir -p .codex && cp examples/codex/hooks.json examples/codex/team-skills-hook.sh .codex/`
+   (take the files from a checkout of this repo). Commit them if the team shares them.
+3. Trust the project and review the hooks once through the Codex hooks command.
+   Codex runs a non-managed hook only after you have reviewed and trusted it, and
+   asks again if the hook definition changes.
+4. Start a new session. If the plugin or `node` cannot be found, the launcher
+   prints `guard inactive: ...` and allows the call; it never blocks.
+
+What the quality guard sees: only edit tools (`apply_patch`, `Edit`, `Write`).
+Edits made through shell commands (heredocs, `tee`, `sed -i`) bypass it. When it
+overrides a rule after repeated attempts it records that in
+`.agents/engineering-overrides.md` (not a `.claude` folder; Cursor records there too). Also best effort,
+not verified by the maintainer.
+
+Limits to know about: the trust bypass flag (`--dangerously-bypass-hook-trust`)
+skips these hooks entirely, so they are **not a hard enforcement boundary**.
+**Git hooks and CI remain the real wall**: install the committed
+[git hooks](examples) and CI templates. The Codex session nudge (SessionStart)
+is a no-op for now because how Codex accepts added context is unconfirmed; the
+git guard still checks context freshness at push time.
 
 ### Cursor
 

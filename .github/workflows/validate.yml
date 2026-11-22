@@ -20,7 +20,10 @@ jobs:
       - name: Syntax-check the shell templates
         run: |
           for f in examples/githooks/* examples/*.sh; do
-            [ -f "$f" ] && sh -n "$f"
+            if [ -f "$f" ]; then sh -n "$f"; fi
+          done
+          for f in examples/*/*.sh; do
+            if [ -f "$f" ]; then sh -n "$f"; fi
           done
       - name: Lint the shell templates
         # -x follows the sourced _lib.sh; run from the hooks directory so the
@@ -29,6 +32,12 @@ jobs:
           sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
           (cd examples/githooks && shellcheck -s sh -x _lib.sh commit-msg pre-commit pre-push)
           shellcheck -s sh examples/*.sh
+          # Per-tool template directories (examples/<tool>/*.sh), run from their own directory.
+          for d in examples/*/; do
+            for f in "$d"*.sh; do
+              if [ -f "$f" ]; then (cd "$d" && shellcheck -s sh -x "$(basename "$f")"); fi
+            done
+          done
       - name: Validate marketplace, plugins, skills, hooks
         run: npm run validate
       # The shipped gitleaks config is a security control with its own tests;

@@ -3,7 +3,7 @@
  * wrapper: `guard-quality.mjs` (Claude Code), `cursor-guard-quality.mjs`
  * (Cursor) and the Codex wrapper. It uses the pure rules in `escalation.mjs`:
  * block with an explanation, insist, then concede on the record in
- * `.claude/engineering-overrides.md` at the git root. Without it a legitimate
+ * `engineering-overrides.md` at the git root (folder per tool, below). Without it a legitimate
  * exception could never be justified and a blocked retry would loop forever.
  *
  * Public interface
@@ -26,6 +26,9 @@
  *   - A call blocks while any finding is still below its third ask; the tone is
  *     taken from the least-argued blocked rule, so a new problem in a file
  *     under discussion still gets its full explanation.
+ *   - Ledger folder per tool: claude -> `.claude/` (the historical place),
+ *     cursor and codex -> `.agents/` (so a Cursor or Codex repo does not grow a
+ *     Claude folder). Same file name, header and format.
  *   - State: the OS temp directory, `team-skills/<sessionId>.json` for claude
  *     (the historical name) and `<tool>-<sessionId>.json` for cursor and codex,
  *     so tools never collide. Never written into the user's repository except
@@ -47,6 +50,9 @@ import {
 } from "./escalation.mjs";
 
 const PREFIX = "[team-skills guard]";
+
+/** Folder (inside the git root) that holds the override ledger, per tool. */
+export const ledgerFolder = (tool) => (tool === "claude" ? ".claude" : ".agents");
 
 const LEDGER_HEADER =
   "# Engineering overrides\n\n" +
@@ -121,9 +127,9 @@ const byFile = (findings) => {
   return groups;
 };
 
-const recordOverrides = (groups, root) => {
+const recordOverrides = (tool, groups, root) => {
   if (!root) return;
-  const ledger = join(root, ".claude", "engineering-overrides.md");
+  const ledger = join(root, ledgerFolder(tool), "engineering-overrides.md");
   try {
     mkdirSync(dirname(ledger), { recursive: true });
     if (!existsSync(ledger)) writeFileSync(ledger, LEDGER_HEADER);
@@ -165,6 +171,6 @@ export function applyLadder({ tool = "claude", findings, sessionId, cwd }) {
 
   if (action === "block") return { exitCode: 2, stderr: `${PREFIX} BLOCKED\n${message}\n` };
 
-  recordOverrides(groups, root);
+  recordOverrides(tool, groups, root);
   return { exitCode: 0, stderr: `${PREFIX} ${message}\n` };
 }

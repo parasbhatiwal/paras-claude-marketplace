@@ -7,6 +7,38 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.10.0] — 2026-11-22
+
+### Added
+
+- **Guard hooks for Codex, as a copy-in project template** (`examples/codex`):
+  a `hooks.json` plus a small launcher (`team-skills-hook.sh`) that finds the
+  newest installed `team-skills` in the Codex plugin cache and runs the
+  matching wrapper, failing open with a "guard inactive" warning if the plugin
+  or `node` is missing. Wrappers: `codex-guard-git.mjs` (shell commands),
+  `codex-guard-quality.mjs` (file edits including `apply_patch`, with the same
+  explain, insist, concede-on-the-record escalation as Claude Code) and
+  `codex-session-context.mjs` (a deliberate no-op: how a Codex SessionStart hook
+  may add context is unconfirmed).
+- `validate` checks that the template is well formed and references existing
+  files.
+
+### Changed
+
+- The quality guard's override record is now written per tool by the shared
+  ladder: Claude Code keeps `.claude/engineering-overrides.md`; **Cursor and
+  Codex record in `.agents/engineering-overrides.md`** (same file name, header
+  and format), so a Cursor or Codex repo does not grow a `.claude` folder.
+  Existing Cursor users who already have a `.claude/engineering-overrides.md`
+  from 2.9.0 keep that file; new overrides go to the `.agents` one.
+
+**Read this honestly:** this is best effort and **not verified by the
+maintainer** (nobody on the project can run Codex); payload fields come from
+Codex's documentation. Codex asks you to review and trust each hook once, and
+the trust bypass flag skips them, so they are not a hard boundary: git hooks
+and CI remain the real wall. Claude Code's hooks are unchanged, and the Codex
+plugin manifest still registers no hooks (the template is the delivery path).
+
 ## [2.9.0] — 2026-11-22
 
 ### Added
