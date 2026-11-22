@@ -1,7 +1,7 @@
 # paras-claude-marketplace — context for Claude
 
 <!-- claude-context:begin -->
-<!-- claude-context: sha=10b3d6525942227d713c3b7c808916476a7c623a generated=2026-10-28 -->
+<!-- claude-context: sha=60d95ce4738dd61e4c8f24c93cefb56723978c86 generated=2026-11-22 -->
 
 ## What this is
 A Claude Code plugin marketplace (`parasbhatiwal`) shipping one plugin,
@@ -26,6 +26,9 @@ hooks that run on other developers' machines. "Done" = merged to `main`
   `guard-quality.mjs`, `session-context.mjs`). Keep rules pure and testable.
 - `examples/` — language-agnostic templates teams copy into their projects.
 - `scripts/` — the validator and version-bump check used by CI.
+- Docs: `README.md` is the newcomer-facing front door; maintainer flow lives in
+  `CONTRIBUTING.md`, per-skill deep dives in `docs/skills-guide.md`. Edit those,
+  not README, for detail. CHANGELOG links to README's "How updates reach you" anchor.
 - v2 flow: `work` → `intake` → `grill` → `spec-and-tickets` → `handoff-gate` →
   `deliver`; autonomous behavior documented in `references/autonomous-mode.md`.
 
@@ -41,6 +44,9 @@ hooks that run on other developers' machines. "Done" = merged to `main`
   the weekly `upstream-sync` workflow has an agent adapt changes into one PR (content files
   only, enforced by `scripts/upstream-guard.mjs`). Merging a PR that moves the plugin version
   auto-fast-forwards `stable` via `release-stable.yml`, so the manual step is no longer needed.
+  The sync can only open its PR if the repo setting "Allow GitHub Actions to create and approve
+  pull requests" is on; when off, the run pushes `upstream-sync/auto`, opens an issue instead,
+  and the PR must be opened by hand.
 - **Version bump is silent-fail:** unchanged `plugin.json` version = nobody receives the update.
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this
