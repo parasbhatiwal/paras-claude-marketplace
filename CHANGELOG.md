@@ -23,12 +23,49 @@ Notable changes to the `team-skills` plugin. Format follows
 - `validate` checks that the template is well formed and references existing
   files.
 
+### Changed
+
+- The quality guard's override record is now written per tool by the shared
+  ladder: Claude Code keeps `.claude/engineering-overrides.md`; **Cursor and
+  Codex record in `.agents/engineering-overrides.md`** (same file name, header
+  and format), so a Cursor or Codex repo does not grow a `.claude` folder.
+  Existing Cursor users who already have a `.claude/engineering-overrides.md`
+  from 2.9.0 keep that file; new overrides go to the `.agents` one.
+
 **Read this honestly:** this is best effort and **not verified by the
 maintainer** (nobody on the project can run Codex); payload fields come from
 Codex's documentation. Codex asks you to review and trust each hook once, and
 the trust bypass flag skips them, so they are not a hard boundary: git hooks
 and CI remain the real wall. Claude Code's hooks are unchanged, and the Codex
 plugin manifest still registers no hooks (the template is the delivery path).
+
+## [2.9.0] — 2026-11-22
+
+### Added
+
+- Guard hooks for Cursor, **best effort and not verified by the maintainer**
+  (nobody on the project can run Cursor; they are built from Cursor's
+  documentation, not recorded payloads). `hooks/cursor-hooks.json` wires the git
+  guard (shell commands), the quality guard (file writes, with the same
+  escalation ladder as Claude Code) and the session context nudge
+  (`sessionStart`, not run by Cursor cloud agents). The Cursor manifest now
+  points at it, so Claude's `hooks/hooks.json` is still never loaded by Cursor.
+  If Cursor also imports a project's `.claude/settings.json` hooks a guard may
+  run twice; that is harmless because blocking is idempotent. The git hooks and
+  CI remain the real wall. Codex hooks are still planned. Claude Code is unchanged.
+- `validate` checks the Cursor manifest's hooks path exists, parses, has
+  `version` and a `hooks` object of event arrays, that every entry is a
+  `command` hook, and that every command references an existing script inside
+  the plugin under `${CURSOR_PLUGIN_ROOT}`.
+
+### Changed
+
+- The quality guard's escalation ladder is now one shared module used by Claude
+  Code and Cursor (and Codex next). Claude Code behaviour is unchanged. The
+  ladder now counts only findings it blocks, records each override once per
+  session, and treats `a.ts`, `./a.ts` and the absolute path as the same file.
+- The Cursor git guard also runs on `preToolUse` for `Shell`, and the working
+  directory falls back to the workspace roots (including `file://` URIs).
 
 ## [2.8.0] — 2026-11-22
 

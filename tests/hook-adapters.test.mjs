@@ -22,6 +22,8 @@ import {
   blockResult,
   failOpenResult,
   guardPayload,
+  resolveCwd,
+  workspaceDirs,
 } from "../plugins/team-skills/hooks/hook-adapters.mjs";
 
 const NO_VERIFY = ["--no", "verify"].join("-");
@@ -324,6 +326,50 @@ describe("Codex apply_patch renames", () => {
   it("trims line endings only, keeping spaces inside a path", () => {
     const p = "*** Begin Patch\r\n*** Add File: my dir/a b.ts\r\n+x\r\n*** End Patch";
     assert.equal(adaptPayload("codex", codexTool("apply_patch", { command: p })).edits[0].filePath, "my dir/a b.ts");
+  });
+});
+
+describe("working directory resolution", () => {
+  it("prefers cwd, then workspace_roots in order", () => {
+    assert.deepEqual(workspaceDirs({ cwd: "/a", workspace_roots: ["/b", "/c"] }), ["/a", "/b", "/c"]);
+    assert.equal(resolveCwd({ cwd: "/a", workspace_roots: ["/b"] }), "/a");
+  });
+  it("falls back to the first workspace root when cwd is missing", () => {
+    assert.equal(resolveCwd({ workspace_roots: ["/b", "/c"] }), "/b");
+    assert.equal(resolveCwd({ cwd: "", workspace_roots: ["/b"] }), "/b");
+  });
+  it("converts file:// URIs to paths, including encoded characters", () => {
+    assert.equal(resolveCwd({ workspace_roots: ["file:///Users/me/my%20proj"] }), "/Users/me/my proj");
+    assert.deepEqual(workspaceDirs({ cwd: "file:///x", workspace_roots: ["file:///y"] }), ["/x", "/y"]);
+  });
+  it("skips non-string and empty entries and a malformed URI", () => {
+    assert.deepEqual(workspaceDirs({ workspace_roots: [null, 5, "", { a: 1 }, "file://bad host/x", "/ok"] }), ["/ok"]);
+  });
+  it("returns nothing usable when no directory is given", () => {
+    assert.deepEqual(workspaceDirs({}), []);
+    assert.equal(resolveCwd({}), undefined);
+  });
+  it("adaptPayload carries the resolved cwd for shell and edits", () => {
+    const n = adaptPayload("cursor", {
+      ...common, hook_event_name: "beforeShellExecution", command: "ls", workspace_roots: ["file:///w%20x"],
+    });
+    assert.equal(n.cwd, "/w x");
+    const edit = adaptPayload("cursor", {
+      ...common, hook_event_name: "preToolUse", tool_name: "Write",
+      tool_input: { file_path: "a.ts", content: "x" }, workspace_roots: ["file:///w"],
+    });
+    assert.equal(edit.cwd, "/w");
+  });
+});
+
+describe("guardPayload returns the working directory", () => {
+  it("on shell blocks and on edit blocks", () => {
+    const shell = guardPayload("cursor", cursorShell(badPush), POLICY);
+    assert.equal(shell.exitCode, 2);
+    assert.equal(shell.cwd, "/w");
+    const edit = guardPayload("cursor", cursorTool("Write", { file_path: "src/a.ts", content: TS_ANY }), POLICY);
+    assert.equal(edit.cwd, "/w");
+    assert.ok(edit.findings.length > 0);
   });
 });
 

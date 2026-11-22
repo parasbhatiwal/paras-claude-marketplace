@@ -96,15 +96,16 @@ try it, please send a
 | Tool | Skills | In-session guard hooks | Install | Verification |
 |---|---|---|---|---|
 | Claude Code | All 42, plus the 13 slash commands | Yes | [Install](#install) above | Used and maintained here |
-| Codex | All 42 | Copy-in project template, [see Codex below](#codex); best effort | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
-| Cursor | All 42 | Not yet; planned | Import the repo (see below) | Best effort, not verified by the maintainer |
+| Codex | All 42 | Best effort, copy-in project template ([see Codex below](#codex)) | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
+| Cursor | All 42 | Best effort (git guard, quality guard, session nudge) | Import the repo (see below) | Best effort, not verified by the maintainer |
 
 An advisory CI job installs the plugin with the real Codex CLI to catch
 manifest and install breakage; it does not run skills inside a session.
 
-Claude-only for now: the always-on in-session guard hooks (Codex gets a copy-in
-template, below; Cursor hooks are planned, not yet available), cloud
-(autonomous) delivery, and `/verify` browser testing, which needs Claude in Chrome. The committed git hooks and CI templates in
+Claude-only for now: cloud (autonomous) delivery, and `/verify` browser
+testing, which needs Claude in Chrome. The in-session guard hooks run best
+effort on Cursor (shipped with the plugin) and on Codex (a copy-in template,
+see below). The committed git hooks and CI templates in
 [`examples/`](examples) work with any tool and are the real enforcement wall;
 the in-session hooks are an extra layer.
 
@@ -150,7 +151,7 @@ from Codex's documentation, not from a recorded session.
 What the quality guard sees: only edit tools (`apply_patch`, `Edit`, `Write`).
 Edits made through shell commands (heredocs, `tee`, `sed -i`) bypass it. When it
 overrides a rule after repeated attempts it records that in
-`.agents/engineering-overrides.md` (not a `.claude` folder). Also best effort,
+`.agents/engineering-overrides.md` (not a `.claude` folder; Cursor records there too). Also best effort,
 not verified by the maintainer.
 
 Limits to know about: the trust bypass flag (`--dangerously-bypass-hook-trust`)
@@ -175,6 +176,16 @@ git guard still checks context freshness at push time.
 | `/work` | `/work` |
 | `/deliver` | `/deliver` (attended only) |
 | `/triage` | `/triage` |
+
+**Guard hooks (best effort, not verified by the maintainer):** the plugin ships
+Cursor-format hooks (`hooks/cursor-hooks.json`) for the git guard on shell
+commands, the quality guard on file writes and the session context nudge. They
+are built from Cursor's documentation only; nobody on the project can run
+Cursor, so treat them as an extra layer that may not fire. The committed git
+hooks and CI in [`examples/`](examples) remain the real wall. Cursor cloud
+agents do not run the session hook. Cursor may also import a project's own
+`.claude/settings.json` hooks, so a guard can run twice; that is harmless
+because blocking is idempotent.
 
 **Branch limit:** Cursor has no documented way to pin a branch when importing a
 repo, so it may follow the default branch (`main`), which can be ahead of

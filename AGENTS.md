@@ -26,12 +26,16 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
   `context-freshness.mjs`, `quality.mjs`) + thin I/O wrappers (`guard-git.mjs`,
   `guard-quality.mjs`, `session-context.mjs`). Keep rules pure and testable.
   `policy-deps.mjs` builds the git/gh dependencies the policy needs, shared by
-  every wrapper. `hook-adapters.mjs`: Cursor/Codex payload adapters. Codex wrappers:
-  `codex-guard-git.mjs`, `codex-guard-quality.mjs` (applies the escalation ladder
-  itself), `codex-session-context.mjs` (safe no-op: SessionStart output unconfirmed);
-  delivered as the copy-in template `examples/codex` (launcher finds the newest
-  cached plugin version and fails open). Cursor wrappers: not yet. See
-  `references/agent-tool-contracts.md`.
+  every wrapper. `hook-adapters.mjs`: Cursor/Codex payload adapters.
+  Cursor wrappers `cursor-guard-git.mjs`, `cursor-guard-quality.mjs`,
+  `cursor-session-context.mjs` are listed in `hooks/cursor-hooks.json` (the Cursor manifest's
+  `hooks` path). Codex wrappers `codex-guard-git.mjs`, `codex-guard-quality.mjs`,
+  `codex-session-context.mjs` (safe no-op: SessionStart output unconfirmed) ship as the
+  copy-in template `examples/codex` (its launcher finds the newest cached plugin and fails
+  open). `quality-ladder.mjs` is the ONE escalation ladder
+  (`applyLadder({tool, findings, sessionId, cwd})`) shared by `guard-quality.mjs` (Claude) and the
+  Cursor and Codex quality wrappers; state files and the override ledger folder are per tool.
+  See `references/agent-tool-contracts.md`.
 - `examples/` — language-agnostic templates teams copy into their projects.
 - `scripts/` — the validator and version-bump check used by CI; `tool-manifests.mjs`
   and `repo-docs.mjs` hold the Codex/Cursor manifest and doc-link rules;
@@ -71,8 +75,9 @@ same skills (best effort; hooks are Claude-only so far). "Done" = merged to `mai
   Bump the Claude, Codex and Cursor plugin manifests to the SAME number; `validate` fails otherwise.
 - **`.agents/skills/ship-change` is a symlink** to `.claude/skills/ship-change` (Codex does not read
   `.claude/skills`); `validate` fails on a missing, broken or copied link.
-- Cursor and Codex auto-discover `hooks/hooks.json` and `commands/`, which are Claude-format; their
-  manifests declare both empty on purpose. Don't remove that without shipping real hooks for them.
+- Cursor and Codex auto-discover `hooks/hooks.json` and `commands/`, which are Claude-format. The
+  Cursor manifest points `hooks` at `hooks/cursor-hooks.json` (a path replaces discovery) and keeps
+  `commands` empty; the Codex manifest declares both empty on purpose until Codex hooks ship.
 - **`stable` is the release,** not `main`. Fast-forward only; roll forward, never rewind.
 - The installed guard hook runs from the **plugin cache** (an older version), not this
   working tree — hook changes here don't affect your own session until released.

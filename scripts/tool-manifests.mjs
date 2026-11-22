@@ -11,7 +11,7 @@
  */
 
 import { existsSync, readFileSync } from "node:fs";
-import { join, resolve, relative } from "node:path";
+import { join, resolve, relative, sep } from "node:path";
 
 export const CODEX_SCHEMA = "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json";
 
@@ -46,6 +46,74 @@ function checkAgreement(label, manifest, claude, err) {
   }
 }
 
+const CURSOR_ROOT_VAR = "${CURSOR_PLUGIN_ROOT}";
+
+/**
+ * The Cursor manifest's `hooks` field: a path (replaces default discovery of the
+ * Claude-format hooks/hooks.json) or an inline object. Either way the config
+ * needs `version`, and every command must reach an existing script through the
+ * Cursor plugin root variable.
+ */
+function checkCursorHooks({ pluginDir, label, hooks, err }) {
+  let config = hooks;
+  let where = `${label}: \`hooks\``;
+  if (typeof hooks === "string") {
+    const file = resolve(pluginDir, hooks);
+    where = `${label}: hooks file ${hooks}`;
+    if (file !== resolve(pluginDir) && !file.startsWith(resolve(pluginDir) + sep)) {
+      err(`${where} must stay inside the plugin directory`);
+      return;
+    }
+    if (!existsSync(file)) {
+      err(`${where} does not exist`);
+      return;
+    }
+    config = readJson(file, relative(resolve(pluginDir, ".."), file), err);
+    if (config === null) return;
+  }
+  if (config === null || typeof config !== "object" || Array.isArray(config)) {
+    err(`${where} must be a path or an object`);
+    return;
+  }
+  if (config.version === undefined) err(`${where}: missing \`version\``);
+  if (config.hooks === null || typeof config.hooks !== "object" || Array.isArray(config.hooks)) {
+    err(`${where}: \`hooks\` must be an object keyed by event name`);
+    return;
+  }
+  const pluginRoot = resolve(pluginDir);
+  for (const [event, entries] of Object.entries(config.hooks)) {
+    if (!Array.isArray(entries)) {
+      err(`${where}: event ${event} must be an array of hook entries`);
+      continue;
+    }
+    for (const entry of entries) {
+      if (entry === null || typeof entry !== "object" || Array.isArray(entry)) {
+        err(`${where}: ${event} entry must be an object`);
+        continue;
+      }
+      if (entry.type !== undefined && entry.type !== "command") {
+        err(`${where}: ${event} entry \`type\` must be "command" (plugin hooks run command hooks only)`);
+      }
+      if (!nonEmpty(entry.command)) {
+        err(`${where}: ${event} entry missing \`command\``);
+        continue;
+      }
+      const refs = [...entry.command.matchAll(/\$\{CURSOR_PLUGIN_ROOT\}\/([^\s"']+)/g)];
+      if (refs.length === 0) {
+        err(`${where}: ${event} command must reference a script under ${CURSOR_ROOT_VAR}`);
+      }
+      for (const [, script] of refs) {
+        const target = resolve(pluginRoot, script);
+        if (!target.startsWith(pluginRoot + sep)) {
+          err(`${where}: ${event} command script ${script} must stay inside the plugin directory`);
+        } else if (!existsSync(target)) {
+          err(`${where}: ${event} command script ${script} does not exist`);
+        }
+      }
+    }
+  }
+}
+
 /** Per-plugin manifests: the Codex portable plugin.json and the Cursor plugin.json. */
 export function validatePluginManifests({ root, pluginDir, claude, err }) {
   const label = relative(root, pluginDir);
@@ -77,6 +145,9 @@ export function validatePluginManifests({ root, pluginDir, claude, err }) {
       err(`${l}: \`author.name\` is required when \`author\` is present`);
     }
     checkAgreement(l, cursor, claude, err);
+    if (cursor.hooks !== undefined) {
+      checkCursorHooks({ pluginDir, label: l, hooks: cursor.hooks, err });
+    }
   }
 }
 

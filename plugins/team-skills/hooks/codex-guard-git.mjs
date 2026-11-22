@@ -29,9 +29,17 @@ try {
   process.exit(0);
 }
 
-if (adaptPayload("codex", raw).kind === "edit") process.exit(0);
+// Parse once; an unparseable payload stays a string and the adapter fails open.
+let payload = raw;
+try {
+  payload = JSON.parse(raw);
+} catch {
+  // reported by the adapter as "payload is not valid JSON"
+}
 
-const result = guardPayload("codex", raw, {
+if (adaptPayload("codex", payload).kind === "edit") process.exit(0);
+
+const result = guardPayload("codex", payload, {
   policy: ({ cwd, sessionId }) => buildPolicyDeps({ cwd, env: process.env, sessionId }),
 });
 if (result.exitCode === 2) rememberContextRaised(result);

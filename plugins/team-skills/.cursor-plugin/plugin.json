@@ -7,8 +7,5 @@
   },
   "repository": "https://github.com/parasbhatiwal/paras-claude-marketplace",
   "commands": [],
-  "hooks": {
-    "version": 1,
-    "hooks": {}
-  }
+  "hooks": "./hooks/cursor-hooks.json"
 }
