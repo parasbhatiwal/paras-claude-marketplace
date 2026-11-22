@@ -47,13 +47,28 @@ not repeated here so the two cannot drift apart.
 
 ## What CI checks
 
-Three workflows run here. `upstream-sync.yml` (weekly) and `release-stable.yml`
+Four workflows run here. `upstream-sync.yml` (weekly) and `release-stable.yml`
 (on merge) are described in [the v2 workflow](docs/skills-guide.md#the-v2-workflow-grill-once-deliver-without-you)
 and `ship-change`. `validate.yml` runs on every PR: syntax-checks the scripts, shellchecks the
 shell templates, runs the validator (manifests, frontmatter, every referenced
 skill exists, every explicitly-relative reference resolves, plugin names
 agree, `.claude/skills/` held to the same bar), runs the full test suite, and
 fails the PR if `skills/` or `hooks/` changed without a version bump.
+
+`codex-smoke.yml` is **advisory**: branch protection requires only `validate`, so it
+can fail without blocking a merge. It installs the open-source Codex CLI into a
+temp directory and runs `scripts/codex-smoke.mjs`, which adds this repo as a
+local marketplace, installs the plugin, and checks that Codex lists it at the
+Claude plugin's version and caches every skill. It uses a throwaway `CODEX_HOME`,
+no network beyond the npm install, and no credentials. Run it yourself with:
+
+```sh
+npm install --prefix /tmp/codex @openai/codex
+node scripts/codex-smoke.mjs --codex /tmp/codex/node_modules/.bin/codex
+```
+
+It does not run skills inside a Codex session; it catches manifest and install
+breakage only.
 
 CI is the **only** place Node 20 is exercised — local Node is newer, so
 version-specific breakage surfaces there and nowhere else.

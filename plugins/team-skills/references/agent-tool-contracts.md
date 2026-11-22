@@ -216,6 +216,28 @@ Sources: <https://cursor.com/docs/context/rules>,
   `name` and `description` frontmatter). This plugin ships none: skills are
   invoked as `/skill-name`.
 
+## Observed with the real Codex CLI
+
+Run by hand on 2026-11-22 against `@openai/codex` 0.171.0, offline, with a
+throwaway `CODEX_HOME`, using this repo's own manifests. These are observations,
+not documentation, so they can change; `scripts/codex-smoke.mjs` re-checks them
+in CI (advisory).
+
+- `codex plugin marketplace add <local repo path>` accepts the repo and reads
+  `.agents/plugins/marketplace.json`; `codex plugin marketplace list` shows it.
+- `codex plugin list` shows the plugin as **not installed** with no version
+  until it is added; after `codex plugin add <plugin>@<marketplace>` it reports
+  **installed, enabled** with the plugin version.
+- The install lands in `<CODEX_HOME>/plugins/cache/<marketplace>/<plugin>/<version>/`,
+  matching the documented layout, with all of the plugin's skills under
+  `skills/`. The plugin's `hooks/` directory is copied too but nothing runs.
+- A plugin entry can be enabled in `config.toml` as
+  `[plugins."<plugin>@<marketplace>"]`.
+- No network or credentials are needed for a local marketplace.
+
+This is the first run of the Codex manifests through the real tool. It does not
+show that the skills behave well inside a session, nor anything about hooks.
+
 ## Unconfirmed, and the decision already made
 
 | Not confirmed from official docs | Decision |

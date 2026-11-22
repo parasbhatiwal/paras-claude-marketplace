@@ -99,6 +99,9 @@ try it, please send a
 | Codex | All 42 | Not yet; planned | `codex plugin marketplace add parasbhatiwal/paras-claude-marketplace --ref stable` | Best effort, not verified by the maintainer |
 | Cursor | All 42 | Not yet; planned | Import the repo (see below) | Best effort, not verified by the maintainer |
 
+An advisory CI job installs the plugin with the real Codex CLI to catch
+manifest and install breakage; it does not run skills inside a session.
+
 Claude-only for now: the in-session guard hooks (hooks for Codex and Cursor are
 planned, not yet available), cloud (autonomous) delivery, and `/verify` browser
 testing, which needs Claude in Chrome. The committed git hooks and CI templates in

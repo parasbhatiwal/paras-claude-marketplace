@@ -1,0 +1,24 @@
+name: codex-smoke
+
+# Advisory: runs the real Codex CLI against this repo's marketplace. It is NOT a
+# required check (branch protection requires only `validate`), so a Codex CLI
+# change can show up here without blocking a merge. See CONTRIBUTING.md.
+on:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  codex-smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install the Codex CLI (into a temp prefix, not the repo)
+        run: npm install --no-audit --no-fund --prefix "$RUNNER_TEMP/codex" @openai/codex
+      - name: Add the marketplace and install the plugin
+        run: node scripts/codex-smoke.mjs --codex "$RUNNER_TEMP/codex/node_modules/.bin/codex"
