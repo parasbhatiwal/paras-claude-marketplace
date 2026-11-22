@@ -6,7 +6,9 @@
  *  - each plugin has a valid .claude-plugin/plugin.json (name, version, description)
  *  - every skills/<name>/SKILL.md has YAML frontmatter with `name` and a
  *    non-trivial `description`, and `name` matches its directory
- *  - skills that reference another skill reference one that EXISTS
+ *  - skills that reference another skill reference one that EXISTS (a command
+ *    Claude Code provides itself counts only inside a `(Claude Code: ...)` note)
+ *  - skills, commands and references stay tool-neutral (see neutral-wording.mjs)
  *  - skills that reference a bundled file (`./x` or `../x`) reference one that EXISTS
  *  - hooks.json (if present) parses and referenced hook scripts exist
  *  - repo-level skills are linked into .agents/skills for Codex, and relative
@@ -22,18 +24,15 @@ import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validatePluginManifests, validateMarketplaces } from "./tool-manifests.mjs";
-import { validateAgentSkillLinks, validateDocLinks } from "./repo-docs.mjs";
+import { validateAgentSkillLinks, validateDocContextWording, validateDocLinks } from "./repo-docs.mjs";
+import {
+  CLAUDE_PROVIDED_COMMANDS,
+  inNote,
+  noteSpans,
+  onAttributionLine,
+  validateNeutralWording,
+} from "./neutral-wording.mjs";
 
-/** Skills shipped by Claude Code itself — always valid reference targets. */
-const BUILTIN_SKILLS = new Set([
-  "code-review",
-  "security-review",
-  "review",
-  "simplify",
-  "run",
-  "init",
-  "brainstorming",
-]);
 
 const MIN_DESCRIPTION = 40;
 // Claude Code truncates very long skill descriptions in the skill listing.
@@ -59,7 +58,7 @@ function collectSkills(skillsDir, labelPrefix, err) {
 }
 
 /** Frontmatter, cross-referenced skills, and bundled file references. */
-function validateSkills(skills, known, err, parseFrontmatter) {
+function validateSkills(skills, known, err, parseFrontmatter, realNames) {
   for (const { entry, dir, sLabel, raw } of skills) {
     const fm = parseFrontmatter(raw, sLabel);
     if (!fm.name) err(`${sLabel}: frontmatter missing \`name\``);
@@ -79,12 +78,23 @@ function validateSkills(skills, known, err, parseFrontmatter) {
     const body = raw.replace(/^---\r?\n[\s\S]*?\r?\n---/, "");
 
     // cross-referenced skills must exist: "`x` skill" / "skill `x`"
-    const refs = new Set();
-    for (const m of body.matchAll(/`\/?([a-z][a-z0-9-]{2,})`\s+skill\b/g)) refs.add(m[1]);
-    for (const m of body.matchAll(/\bskills?\s+`\/?([a-z][a-z0-9-]{2,})`/g)) refs.add(m[1]);
-    for (const ref of refs) {
-      if (ref !== entry && !known.has(ref)) {
+    const refs = new Map();
+    const note = (m, ref) => {
+      if (!refs.has(ref)) refs.set(ref, []);
+      refs.get(ref).push(m.index);
+    };
+    for (const m of body.matchAll(/`\/?([a-z][a-z0-9-]{2,})`\s+skill\b/g)) note(m, m[1]);
+    for (const m of body.matchAll(/\bskills?\s+`\/?([a-z][a-z0-9-]{2,})`/g)) note(m, m[1]);
+    const spans = noteSpans(body);
+    for (const [ref, indexes] of refs) {
+      if (ref === entry || realNames.has(ref)) continue;
+      if (!known.has(ref)) {
         err(`${sLabel}: references skill \`${ref}\`, which does not exist`);
+      } else if (!indexes.every((i) => inNote(spans, i) || onAttributionLine(body, i))) {
+        err(
+          `${sLabel}: references \`${ref}\`, a Claude-provided command, outside a ` +
+            "`(Claude Code: ...)` note"
+        );
       }
     }
 
@@ -184,8 +194,9 @@ export function validate(root) {
 
     const skills = collectSkills(join(pluginDir, "skills"), `${label}/skills`, err);
     allSkills.push(...skills);
-    const known = new Set([...skills.map((s) => s.entry), ...BUILTIN_SKILLS]);
-    validateSkills(skills, known, err, parseFrontmatter);
+    const known = new Set([...skills.map((s) => s.entry), ...CLAUDE_PROVIDED_COMMANDS]);
+    validateSkills(skills, known, err, parseFrontmatter, new Set(skills.map((x) => x.entry)));
+    validateNeutralWording({ pluginDir, label, err });
 
     // commands — thin entry points, but a broken one is invisible until a
     // developer types it, so hold them to the same bar as skills
@@ -236,13 +247,20 @@ export function validate(root) {
     const known = new Set([
       ...repoSkills.map((s) => s.entry),
       ...allSkills.map((s) => s.entry),
-      ...BUILTIN_SKILLS,
+      ...CLAUDE_PROVIDED_COMMANDS,
     ]);
-    validateSkills(repoSkills, known, err, parseFrontmatter);
+    validateSkills(
+      repoSkills,
+      known,
+      err,
+      parseFrontmatter,
+      new Set([...repoSkills, ...allSkills].map((x) => x.entry))
+    );
   }
 
   validateAgentSkillLinks(root, err);
   validateDocLinks(root, err);
+  validateDocContextWording(root, err);
 
   return errors;
 }

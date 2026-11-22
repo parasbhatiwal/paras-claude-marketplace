@@ -5,6 +5,10 @@ description: Use this skill when the user asks to manually test or verify someth
 
 # Browser verify
 
+> **Claude Code only.** This skill drives Claude in Chrome. Codex and Cursor have
+> no equivalent here, so in those tools it hands over the test plan as a manual
+> checklist.
+
 Manual testing, done by Claude in a real Chrome. The user asks for it by
 pointing at the work: an **issue / ticket**, a **PR**, a **branch**, or a
 plain **task description**. Nothing in the delivery flow calls this
@@ -46,7 +50,7 @@ user's yes or edits — they may add a flow or drop one.
   `git worktree add` into a temp directory on that branch (or `gh pr checkout`
   inside one), and install dependencies there. Say which branch you are
   testing so results are attributable.
-- **Start the app** with the command from `CLAUDE.md` (or the built-in `run`
+- **Start the app** with the command from `AGENTS.md` (Claude Code: or the built-in `run`
   skill); wait until the URL answers. Note the port.
 - Use **local** URLs. Anything else (staging, production) only if the user
   names it, and then without destructive actions.

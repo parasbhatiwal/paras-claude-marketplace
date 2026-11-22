@@ -87,7 +87,7 @@ section; conventional-commit subjects; both `Co-Authored-By` trailers.
 ### 9. Claude-facing rules
 `.claude/settings.json` from `examples/project-settings.json`: the team
 marketplace pinned to `stable`, permission allowlist for the project's real
-commands, and denials for `.env`, keys, and secret paths. Plus `CLAUDE.md` via
+commands, and denials for `.env`, keys, and secret paths. Plus `AGENTS.md` via
 `project-context`, whose rules section points at this document.
 
 ## Stage 3 — Record the decisions

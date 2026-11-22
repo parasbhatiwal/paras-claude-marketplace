@@ -2,7 +2,8 @@
 /**
  * Claude Code SessionStart hook.
  *
- * Checks whether the project's CLAUDE.md has drifted from the repository and,
+ * Checks whether the project's context file (AGENTS.md, else CLAUDE.md) has
+ * drifted from the repository and,
  * if so, injects a short notice so the session starts by refreshing context
  * instead of working from stale facts. Every session in a git repository also
  * gets the one-paragraph workflow nudge (`workflow-nudge.mjs`). This runs on

@@ -230,6 +230,85 @@ describe("contributor docs", () => {
   });
 });
 
+describe("project context template and skill", () => {
+  test("the example template is AGENTS.md.template and says how to wire CLAUDE.md", () => {
+    assert.ok(existsSync(join(REPO_ROOT, "examples/AGENTS.md.template")));
+    assert.ok(!existsSync(join(REPO_ROOT, "examples/CLAUDE.md.template")));
+    const text = read("examples/AGENTS.md.template");
+    assert.match(text, /Save it as `AGENTS\.md`/);
+    assert.match(text, /`@AGENTS\.md`/);
+  });
+
+  test("project-context writes AGENTS.md, asks before migrating and preserves human text", () => {
+    const text = read("plugins/team-skills/skills/project-context/SKILL.md");
+    assert.match(text, /Write it to `AGENTS\.md`/);
+    assert.match(text, /\*\*Ask first\.\*\*/);
+    assert.match(text, /byte for byte/);
+    assert.match(text, /@AGENTS\.md/);
+    assert.match(text, /falling\s+back to an unmigrated CLAUDE\.md/);
+  });
+
+  test("bootstrap-project points at the renamed template", () => {
+    const text = read("plugins/team-skills/skills/bootstrap-project/SKILL.md");
+    assert.match(text, /examples\/AGENTS\.md\.template/);
+    assert.doesNotMatch(text, /CLAUDE\.md\.template/);
+  });
+});
+
+describe("this repo's own context lives in AGENTS.md", () => {
+  test("AGENTS.md is the managed context file and CLAUDE.md only imports it", () => {
+    const agents = read("AGENTS.md");
+    assert.match(agents, /<!-- claude-context:begin -->/);
+    assert.match(agents, /<!-- claude-context: sha=[0-9a-f]{7,40} generated=\d{4}-\d{2}-\d{2} -->/);
+    assert.match(agents, /<!-- claude-context:end -->/);
+    assert.equal(read("CLAUDE.md"), "@AGENTS.md\n");
+  });
+
+  test("the freshness logic reads AGENTS.md for this repo", async () => {
+    const { repositoryFacts } = await import("../plugins/team-skills/hooks/repo-facts.mjs");
+    const facts = repositoryFacts(REPO_ROOT);
+    assert.equal(facts.contextFile, "AGENTS.md");
+    assert.match(facts.claudeMd, /claude-context: sha=/);
+  });
+
+  test("the context file records the migration gotcha for maintainers", () => {
+    assert.match(read("AGENTS.md"), /older cached plugin version/i);
+  });
+});
+
+describe("top-level docs name AGENTS.md as the context file", () => {
+  const withDoc = (rel, text) => {
+    mkdirSync(dirname(join(root, rel)), { recursive: true });
+    writeFileSync(join(root, rel), text);
+  };
+
+  test("a README that tells the reader to write CLAUDE.md is flagged", () => {
+    withDoc("README.md", "Run `/context` to write your `CLAUDE.md`.\n");
+    assert.equal(errorsMatching(/README\.md:1.*AGENTS\.md/).length, 1);
+  });
+
+  test("CONTRIBUTING and docs/ are checked too", () => {
+    withDoc("CONTRIBUTING.md", "Refresh CLAUDE.md before pushing.\n");
+    withDoc("docs/guide.md", "Then update CLAUDE.md.\n");
+    assert.equal(errorsMatching(/CONTRIBUTING\.md:1.*AGENTS\.md/).length, 1);
+    assert.equal(errorsMatching(/docs\/guide\.md:1.*AGENTS\.md/).length, 1);
+  });
+
+  test("an explanation of the import or fallback is fine", () => {
+    withDoc("README.md", "`CLAUDE.md` is just the line `@AGENTS.md`.\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("the changelog is history and is not checked", () => {
+    withDoc("CHANGELOG.md", "- Changed how CLAUDE.md is refreshed.\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("the real top-level docs are clean", () => {
+    assert.deepEqual(validate(REPO_ROOT).filter((e) => /AGENTS\.md/.test(e)), []);
+  });
+});
+
 describe("license", () => {
   test("the repo ships an MIT LICENSE under the maintainer's name", () => {
     const text = read("LICENSE");

@@ -57,7 +57,7 @@ a UI → do not ask.
 
 ## Stage 4 — Commit
 
-If the root cause reveals something `CLAUDE.md` states wrong or omits — a
+If the root cause reveals something `AGENTS.md` states wrong or omits — a
 gotcha this bug *was*, a convention nobody wrote down — refresh it via
 `project-context` before committing, so the fix and the corrected description
 land together. Most bug fixes touch nothing `project-context` would write

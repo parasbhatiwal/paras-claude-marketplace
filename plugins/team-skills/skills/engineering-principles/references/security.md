@@ -2,7 +2,8 @@
 
 Security is a property of the design, not a review stage. The rules below are
 organized by the OWASP Top 10 (2021) categories, with the concrete controls we
-expect in our code. `review-changes` routes risky diffs to `/security-review`;
+expect in our code. `review-changes` routes risky diffs to the tool's security review
+(Claude Code: `/security-review`);
 this file is what "risky" means and what good looks like.
 
 ## A01 — Broken access control (the most common real breach)

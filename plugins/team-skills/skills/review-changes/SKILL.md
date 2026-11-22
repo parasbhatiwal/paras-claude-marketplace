@@ -1,6 +1,6 @@
 ---
 name: review-changes
-description: Use this skill to run one round of code review on the current working diff before committing — after implementation is complete and tests are green. Wraps the built-in /code-review and routes risky diffs through /security-review.
+description: Use this skill to run one round of code review on the current working diff before committing — after implementation is complete and tests are green. Runs the tool's built-in code review and routes risky diffs through its security review (Claude Code: `/code-review` and `/security-review`).
 ---
 
 # Review Changes
@@ -14,15 +14,17 @@ One structured review round on the working diff, before anything is committed.
 2. Confirm the suite is green first (use the `run-tests` skill if its state is
    unknown — it detects the toolchain in any language) — reviewing red code
    wastes a round.
-3. **Run the built-in `/code-review` skill** at medium effort on the working
-   diff — the correctness core; do not reimplement it here.
+3. **Run the tool's built-in code review** at medium effort on the working
+   diff (Claude Code: the built-in `/code-review` skill) — the correctness core;
+   do not reimplement it here. A tool with no built-in review: read the diff by
+   hand against steps 3b to 5.
 3b. **Two-axis review, in parallel subagents** (adapted from Matt Pocock's
    `code-review` skill, MIT; see `THIRD_PARTY_NOTICES.md`). A change can pass
    one axis and fail the other, so the axes run separately and are reported
    separately — never merged or reranked. Start every sub-agent with a fresh
    context window.
    - **Standards:** does the diff follow this repo's documented standards
-     (`CLAUDE.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `docs/adr/`, the
+     (`AGENTS.md`, `CODING_STANDARDS.md`, `CONTRIBUTING.md`, `docs/adr/`, the
      `engineering-principles` skill) plus the smell baseline in
      `../../references/code-smells.md`? Documented standards can be hard
      violations; baseline smells are always judgment calls, and a documented
@@ -38,7 +40,7 @@ One structured review round on the working diff, before anything is committed.
    `## Standards` and `## Spec` side by side, then one line: findings per
    axis and the worst within each — no single winner across axes.
 4. **Security routing:** if the diff touches any of the following, ALSO run the
-   built-in `/security-review` skill:
+   tool's built-in security review (Claude Code: the `/security-review` skill):
    - auth, sessions, tokens, permissions
    - user input handling, file uploads, redirects
    - dependency changes (package.json, lockfiles)

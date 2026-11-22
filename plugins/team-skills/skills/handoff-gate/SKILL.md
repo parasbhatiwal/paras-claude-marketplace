@@ -13,7 +13,7 @@ will take the most literal, least-informed reading of every word.**
 ## For each ticket
 
 Run the **zero-questions test**. Role-play the implementer with only the
-brief, the repo, and `CLAUDE.md`:
+brief, the repo, and `AGENTS.md`:
 
 1. Can every acceptance criterion become a failing test? If not, rewrite it.
 2. Is every behavior the ticket touches specified — failure modes, edge

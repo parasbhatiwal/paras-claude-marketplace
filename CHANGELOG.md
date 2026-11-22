@@ -7,6 +7,39 @@ Notable changes to the `team-skills` plugin. Format follows
 **A version only reaches teammates once `stable` is fast-forwarded** — see
 [How updates reach you](README.md#how-updates-reach-you).
 
+## [2.6.0] — 2026-11-22
+
+### Added
+
+- **`AGENTS.md` is the project context file.** `project-context` now writes
+  `AGENTS.md` (read by Claude Code, Codex and Cursor) and leaves `CLAUDE.md` as a
+  one-line `@AGENTS.md` import. For a project that already has a `CLAUDE.md` it
+  offers a migration, asks first, and moves the whole file, your own notes
+  included, byte for byte. Nothing migrates until you say yes.
+- The session nudge and the push reminder read the fingerprint from
+  `AGENTS.md`, fall back to an unmigrated `CLAUDE.md`, and name the file they
+  are talking about.
+- `validate` keeps skills tool-neutral and checks that the context file is
+  called `AGENTS.md` everywhere (skills, commands, references, README,
+  CONTRIBUTING, docs).
+
+### Changed
+
+- Claude-only names (the built-in review commands, Claude in Chrome, the Claude
+  trailer) are reworded neutrally in skills, with the Claude name in a
+  `(Claude Code: ...)` note. `browser-verify` and `deliver` say "Claude Code
+  only" up front.
+- `examples/CLAUDE.md.template` is now `examples/AGENTS.md.template`.
+
+### Notes
+
+- **Update the plugin before refreshing context in a migrated project.** An
+  older plugin version reads only `CLAUDE.md`, so in a migrated repo it sees the
+  one-line import and calls the context "unmanaged"; refreshing from that older
+  version would write into the wrong file. Run
+  `/plugin update team-skills@parasbhatiwal` first.
+- This repo's own context moved to `AGENTS.md` in this release.
+
 ## [2.5.0] — 2026-11-22
 
 ### Added

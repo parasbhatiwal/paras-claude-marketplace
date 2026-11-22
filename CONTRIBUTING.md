@@ -52,7 +52,8 @@ Four workflows run here. `upstream-sync.yml` (weekly) and `release-stable.yml`
 and `ship-change`. `validate.yml` runs on every PR: syntax-checks the scripts, shellchecks the
 shell templates, runs the validator (manifests, frontmatter, every referenced
 skill exists, every explicitly-relative reference resolves, plugin names
-agree, `.claude/skills/` held to the same bar), runs the full test suite, and
+agree, `.claude/skills/` held to the same bar, skills kept tool-neutral: a Claude-only
+name such as a built-in review command goes in a `(Claude Code: ...)` note), runs the full test suite, and
 fails the PR if `skills/` or `hooks/` changed without a version bump.
 
 `codex-smoke.yml` is **advisory**: branch protection requires only `validate`, so it

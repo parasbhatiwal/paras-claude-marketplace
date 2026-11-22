@@ -12,6 +12,8 @@
 import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 
+import { checkContextFile } from "./neutral-wording.mjs";
+
 /** Every `.claude/skills/<name>` needs `.agents/skills/<name>` linking to it. */
 export function validateAgentSkillLinks(root, err) {
   const agentsDir = join(root, ".agents", "skills");
@@ -64,13 +66,26 @@ export function validateAgentSkillLinks(root, err) {
   }
 }
 
-/** Relative markdown links (not inside code fences) must point at something that exists. */
-export function validateDocLinks(root, err) {
+/** README, CONTRIBUTING and docs/*.md. The changelog is history and is left alone. */
+function topLevelDocs(root) {
   const docs = ["README.md", "CONTRIBUTING.md"];
   const docsDir = join(root, "docs");
   if (existsSync(docsDir)) {
     for (const f of readdirSync(docsDir)) if (f.endsWith(".md")) docs.push(`docs/${f}`);
   }
+  return docs.filter((rel) => existsSync(join(root, rel)));
+}
+
+/** The project context lives in AGENTS.md; these docs must not say otherwise. */
+export function validateDocContextWording(root, err) {
+  for (const rel of topLevelDocs(root)) {
+    checkContextFile({ text: readFileSync(join(root, rel), "utf8"), rel, label: "", err });
+  }
+}
+
+/** Relative markdown links (not inside code fences) must point at something that exists. */
+export function validateDocLinks(root, err) {
+  const docs = topLevelDocs(root);
 
   for (const rel of docs) {
     const file = join(root, rel);

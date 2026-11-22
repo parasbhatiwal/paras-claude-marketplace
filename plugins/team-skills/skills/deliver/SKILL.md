@@ -8,13 +8,17 @@ description: Use this skill to implement ready-for-agent tickets with no human i
 Adapted from Matt Pocock's spec-implementation skill (MIT; see
 `THIRD_PARTY_NOTICES.md`).
 
+> **Cloud delivery is Claude Code only.** Autonomous mode, and the hooks that
+> enforce it, exist only for Claude Code today. In Codex and Cursor run this skill
+> attended in your own session; the commit, push and PR gates still ask first.
+
 The tickets are a **task graph**, not a list of steps. The goal is the whole
 feature on one **integration branch**, ending in **one PR to the default
 branch** — the single point where a human looks.
 
 Autonomy rules (what is auto-approved, what the hooks block, the stuck rule):
 `../../references/autonomous-mode.md`. Read it first. Ticket briefs are
-the contract; read `CLAUDE.md` and the epic spec as context pointers —
+the contract; read `AGENTS.md` and the epic spec as context pointers —
 subagent messages carry pointers, not copies of what the tracker already says.
 
 ## Stage 0 — Preflight
@@ -100,7 +104,7 @@ remain):
    (cloud) runs never ask and never run it — nobody is there to answer and
    there is no browser; the PR simply says it was not browser-tested.
 3. Apply the grill's deliverables: `GLOSSARY.md` terms, ADRs (`adr` skill).
-4. Refresh `CLAUDE.md` with `project-context` in this same change.
+4. Refresh `AGENTS.md` with `project-context` in this same change.
 5. Push; mark the draft PR **ready** (or create it with `open-pr`). Body: the
    team PR structure plus:
    - **Delivered** — tickets closed, one line each

@@ -102,7 +102,7 @@ for your stack.
 | Triage incoming issues | `/triage` |
 | Start a new project | `/new-project <what you're building>` — architecture + guardrails before features |
 | Assess an inherited project | `/audit` — scored report + phased remediation plan, no code changes |
-| Set up or refresh CLAUDE.md | `/context` — scans the repo, keeps your own notes intact |
+| Set up or refresh AGENTS.md | `/context` — scans the repo, keeps your own notes intact |
 | Make the standards enforceable here | `/rules` — formatter, lint, strict types, boundaries, coverage, security gates |
 | Record a decision | `/adr <decision>` |
 | Cut a release | `/release` — version from commits, changelog, tag, publish |

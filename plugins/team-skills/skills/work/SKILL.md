@@ -26,8 +26,9 @@ piling up? `triage`.
 
 - `gh auth status` must pass and the repo must have a GitHub remote. If not,
   say so and stop; this workflow lives in GitHub issues.
-- No `CLAUDE.md`, or the session flagged it stale → run `project-context` first.
-  The grill and the agent both read it.
+- No `AGENTS.md` (a project that has not migrated still has its `CLAUDE.md`),
+  or the session flagged it stale → run `project-context` first. The grill and
+  the agent both read it.
 - Ensure the workflow labels exist (create missing ones).
 
 ## Stage 1 — Intake

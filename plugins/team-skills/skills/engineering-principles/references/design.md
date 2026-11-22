@@ -159,7 +159,7 @@ Date: 2026-07-31   Status: accepted   Supersedes: —
 
 Write it when the decision is made, not retrospectively. ADRs are the memory
 that stops the team relitigating a choice every six months — and the context
-`project-context` feeds into CLAUDE.md.
+`project-context` feeds into AGENTS.md.
 
 ## Smells that should stop a review
 

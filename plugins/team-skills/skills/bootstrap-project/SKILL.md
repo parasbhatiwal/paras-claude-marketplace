@@ -149,8 +149,8 @@ foundation is exactly the code you cannot afford to be wrong.
 
 ## Stage 5 — Context for humans and Claude
 
-Run the `project-context` skill to generate `CLAUDE.md`, and fill
-`examples/CLAUDE.md.template`'s architecture and conventions sections from the
+Run the `project-context` skill to generate `AGENTS.md`, and fill
+`examples/AGENTS.md.template`'s architecture and conventions sections from the
 ADRs written in Stage 1. Add `README.md` (what it is, how to run it, how to
 test it) and `CONTRIBUTING.md` pointing at the team workflow.
 
