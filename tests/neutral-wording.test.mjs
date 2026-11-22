@@ -190,3 +190,64 @@ describe("the context file is AGENTS.md", () => {
     assert.deepEqual(stray, []);
   });
 });
+
+describe("review fixes: paragraph handling, markers and nested notes", () => {
+  const body = (text) => `---\nname: alpha\ndescription: ${DESC}\n---\n${text}`;
+
+  test("reports the right line after several blank lines", () => {
+    w(`${P}/references/notes.md`, "intro\n\n\n\nRefresh `CLAUDE.md` now.\n");
+    assert.equal(errorsMatching(/references\/notes\.md:5/).length, 1);
+  });
+
+  test("reports the right line after a blank line that holds spaces", () => {
+    w(`${P}/references/notes.md`, "intro\n  \t \nRefresh `CLAUDE.md` now.\n");
+    assert.equal(errorsMatching(/references\/notes\.md:3/).length, 1);
+  });
+
+  test("reports the right line in a file with CRLF line endings", () => {
+    w(`${P}/references/notes.md`, "intro\r\n\r\nmore\r\n\r\nRefresh `CLAUDE.md` now.\r\n");
+    assert.equal(errorsMatching(/references\/notes\.md:5/).length, 1);
+  });
+
+  test("an unrelated 'falls back' does not excuse a CLAUDE.md instruction", () => {
+    w(`${P}/skills/alpha/SKILL.md`, body("\nRead `CLAUDE.md` for the context; the build falls back to the cache.\n"));
+    assert.equal(errorsMatching(/alpha\/SKILL\.md.*AGENTS\.md/).length, 1);
+  });
+
+  test("a real fallback explanation still passes", () => {
+    w(`${P}/skills/alpha/SKILL.md`, body("\nRead AGENTS.md; a project that falls back to `CLAUDE.md` has not moved yet.\n"));
+    w(`${P}/skills/beta/SKILL.md`, skill("beta", "The hook falls back to its `CLAUDE.md` until the project migrates."));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("a blank line inside a code fence does not split the paragraph", () => {
+    w(
+      `${P}/skills/alpha/SKILL.md`,
+      body("\n```\ncat CLAUDE.md\n\n# which holds only @AGENTS.md\n```\n")
+    );
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("a fenced mention with no explanation is still flagged", () => {
+    w(`${P}/skills/alpha/SKILL.md`, body("\n```\ncat CLAUDE.md\n\nls\n```\n"));
+    assert.equal(errorsMatching(/alpha\/SKILL\.md.*AGENTS\.md/).length, 1);
+  });
+
+  test("a note may contain one level of nested parentheses", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "Review it (Claude Code: run (at medium effort) `/code-review` first)."));
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("text after a note with a nested parenthesis is still outside it", () => {
+    w(`${P}/skills/alpha/SKILL.md`, skill("alpha", "Review it (Claude Code: run (at medium effort) first), then `/security-review`."));
+    const errs = errorsMatching(/alpha\/SKILL\.md/);
+    assert.equal(errs.length, 1, errs.join("\n"));
+    assert.match(errs[0], /security-review/);
+  });
+
+  test("project-context creates the CLAUDE.md pointer when it generates, and stops on a conflict", () => {
+    const text = readFileSync(join(REPO_ROOT, "plugins/team-skills/skills/project-context/SKILL.md"), "utf8");
+    assert.match(text, /Generate mode[\s\S]*creates? `CLAUDE\.md`[\s\S]*`@AGENTS\.md`/i);
+    assert.match(text, /other content[\s\S]*stop and ask/i);
+  });
+});

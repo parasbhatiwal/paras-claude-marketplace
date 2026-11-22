@@ -32,7 +32,8 @@ export const CLAUDE_PROVIDED_COMMANDS = new Set([
   "brainstorming",
 ]);
 
-const NOTE = /\(Claude Code:[^)]*\)/g;
+// A note may hold one level of nested parentheses: (Claude Code: run (medium effort) ...)
+const NOTE = /\(Claude Code:(?:[^()]|\([^()]*\))*\)/g;
 const ATTRIBUTION = /\bMIT\b|\b[Aa]dapted from\b/;
 
 const PHRASES = [
@@ -47,7 +48,9 @@ const PHRASES = [
 const EXEMPT = [/^skills\/browser-verify\//, /^skills\/deliver\/SKILL\.md$/, /^commands\/verify\.md$/];
 /** Where CLAUDE.md is the subject on purpose: documenting what each tool reads. */
 const CONTEXT_EXEMPT = [/^references\/agent-tool-contracts\.md$/];
-const CONTEXT_EXPLANATION = /@AGENTS\.md|unmigrated|not (?:yet )?migrated|fall(?:s|ing)? back|one-line (?:import|pointer)/i;
+// Specific on purpose: a bare "falls back" elsewhere in a paragraph must not excuse a CLAUDE.md instruction.
+const CONTEXT_EXPLANATION =
+  /@AGENTS\.md|unmigrated|not (?:yet )?migrated|one-line (?:import|pointer)|fall(?:s|ing)?\s+back\s+to\b[^.]{0,40}CLAUDE\.md/i;
 /** Skills that must declare themselves Claude-only up front. */
 const MUST_DECLARE = ["skills/browser-verify/SKILL.md", "skills/deliver/SKILL.md"];
 const DECLARATION_LINES = 16;
@@ -81,15 +84,35 @@ function markdownFiles(dir) {
   return out;
 }
 
+/**
+ * Paragraphs as { line, text }: runs of non-blank lines. A fenced code block is
+ * never split, even if it holds blank lines, so an explanation inside a fence
+ * counts for the whole block. Handles CRLF.
+ */
+function paragraphs(text) {
+  const out = [];
+  let current = null;
+  let inFence = false;
+  text.split(/\r?\n/).forEach((line, i) => {
+    if (/^\s*(```|~~~)/.test(line)) inFence = !inFence;
+    if (line.trim() === "" && !inFence) {
+      current = null;
+      return;
+    }
+    if (!current) {
+      current = { line: i + 1, lines: [] };
+      out.push(current);
+    }
+    current.lines.push(line);
+  });
+  return out.map((p) => ({ line: p.line, lines: p.lines, text: p.lines.join("\n") }));
+}
+
 /** Flags a paragraph that names CLAUDE.md without explaining the import or fallback. */
 export function checkContextFile({ text, rel, label, err }) {
-  let start = 0;
-  for (const block of text.split(/\n\s*\n/)) {
-    const blockStart = start;
-    start += block.length + 2;
-    if (!/CLAUDE\.md/.test(block) || CONTEXT_EXPLANATION.test(block)) continue;
-    const offset = block.split("\n").findIndex((l) => /CLAUDE\.md/.test(l));
-    const line = text.slice(0, blockStart).split("\n").length + offset;
+  for (const p of paragraphs(text)) {
+    if (!/CLAUDE\.md/.test(p.text) || CONTEXT_EXPLANATION.test(p.text)) continue;
+    const line = p.line + p.lines.findIndex((l) => /CLAUDE\.md/.test(l));
     err(
       `${label ? `${label}/` : ""}${rel}:${line}: the project context lives in AGENTS.md — say AGENTS.md, ` +
         "or explain the `@AGENTS.md` import or the unmigrated-project fallback in the same paragraph"

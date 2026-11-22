@@ -103,6 +103,11 @@ real HEAD sha (`git rev-parse HEAD`) and today's date. The markers keep the
 `CLAUDE.md` is then a single line, `@AGENTS.md`, so Claude Code loads the same
 content and nothing is written twice.
 
+**Generate mode creates `CLAUDE.md` containing `@AGENTS.md`** after writing
+AGENTS.md, so Claude Code loads the context from the first session. If a
+CLAUDE.md with other content already exists, do not overwrite it: stop and ask,
+and use migrate mode if the user wants its content moved into AGENTS.md.
+
 ## Migrate mode — moving an unmigrated CLAUDE.md
 
 When the repo has an unmigrated CLAUDE.md that carries a `claude-context`
