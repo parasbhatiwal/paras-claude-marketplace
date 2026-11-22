@@ -62,7 +62,8 @@ plan.md` that `feature-ticket` can execute. Refuses generic templates
 workflow.
 
 **`project-context`** (`/context`) — scans the repo and writes a high-signal
-`CLAUDE.md`: verified command table, architecture, domain vocabulary, gotchas,
+`AGENTS.md` (the context file Claude Code, Codex and Cursor all read; `CLAUDE.md` is a one-line
+`@AGENTS.md` import): verified command table, architecture, domain vocabulary, gotchas,
 env var *names*. Content between `<!-- claude-context:begin/end -->` is
 Claude-managed; everything outside is yours and is never rewritten. It stamps
 a fingerprint, and a `SessionStart` hook nudges when the context has drifted —
@@ -91,7 +92,7 @@ fresh.
    brief and `ready-for-agent` / `ready-for-human` / `needs-info`.
 5. **`deliver`** — one integration branch `feat/<n>-<slug>` from main; each
    subtask on `feat/<n>-<slug>--t<m>`, TDD'd, reviewed, PR'd into it and
-   merged when green; then full review, `CLAUDE.md` refresh, and **one PR to
+   merged when green; then full review, `AGENTS.md` refresh, and **one PR to
    main** that it never merges. A question the brief didn't answer is never
    guessed: that subtask is marked `needs-info` and the rest continues.
 

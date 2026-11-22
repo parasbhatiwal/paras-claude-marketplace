@@ -24,7 +24,7 @@ import { readFileSync, existsSync, readdirSync, statSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validatePluginManifests, validateMarketplaces } from "./tool-manifests.mjs";
-import { validateAgentSkillLinks, validateDocLinks } from "./repo-docs.mjs";
+import { validateAgentSkillLinks, validateDocContextWording, validateDocLinks } from "./repo-docs.mjs";
 import {
   CLAUDE_PROVIDED_COMMANDS,
   inNote,
@@ -260,6 +260,7 @@ export function validate(root) {
 
   validateAgentSkillLinks(root, err);
   validateDocLinks(root, err);
+  validateDocContextWording(root, err);
 
   return errors;
 }

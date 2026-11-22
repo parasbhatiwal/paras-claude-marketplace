@@ -124,8 +124,9 @@ the in-session hooks are an extra layer.
 | `/deliver` | `$deliver` (attended only) |
 | `/triage` | `$triage` |
 
-Codex reads `AGENTS.md`, not `CLAUDE.md`, so project context may not be picked up
-until a later release.
+Codex reads `AGENTS.md`, which is where `/context` writes your project context;
+Claude Code reaches the same file through a one-line `@AGENTS.md` import in
+`CLAUDE.md`.
 
 ### Cursor
 
@@ -165,7 +166,7 @@ Open Claude Code in a project and pick the row that matches your situation:
 | Issues are piling up | `/triage` |
 | Ready to ship a version | `/release` |
 
-A good first run is `/context`: it scans your repo and writes a `CLAUDE.md`
+A good first run is `/context`: it scans your repo and writes an `AGENTS.md`
 that every later session benefits from.
 
 ---
@@ -214,7 +215,7 @@ adapts: [`docs/skills-guide.md`](docs/skills-guide.md).
 | `/new-project <what>` | `bootstrap-project` | Greenfield repo |
 | `/audit [area]` | `principles-audit` | Assess an existing codebase |
 | `/rules [area]` | `project-rules` | Make standards enforceable in this repo |
-| `/context [area]` | `project-context` | Create or refresh `CLAUDE.md` |
+| `/context [area]` | `project-context` | Create or refresh `AGENTS.md` |
 | `/adr <decision>` | `adr` | Record a hard-to-reverse decision |
 | `/release [version]` | `release` | Cut a version |
 
@@ -251,12 +252,12 @@ points. Deep dives for each group are in [`docs/skills-guide.md`](docs/skills-gu
 | `engineering-principles` | — | Always — consulted by design, implement, review | The rules everything else defers to |
 | `project-rules` | `/rules` | Standards aren't enforced by anything | Configured gates + `docs/engineering-rules.md` |
 | `codebase-design` | — | Shaping a module or placing a seam | Deep-module vocabulary |
-| `writing-for-agents` | — | Writing a skill or `CLAUDE.md` | Pointer, hierarchy, and pruning rules |
+| `writing-for-agents` | — | Writing a skill or `AGENTS.md` | Pointer, hierarchy, and pruning rules |
 | **Project lifecycle** | | | |
 | `bootstrap-project` | `/new-project` | Starting from nothing | Architecture, ADRs, guardrails, a walking slice |
 | `principles-audit` | `/audit` | You inherited a codebase | Scored report + phased remediation plan |
 | `ux-audit` | — | The UI/UX needs a modernization pass | Cited audit + implementation plan |
-| `project-context` | `/context` | Claude keeps re-learning the repo | A self-maintaining `CLAUDE.md` |
+| `project-context` | `/context` | Claude keeps re-learning the repo | A self-maintaining `AGENTS.md` |
 | `improve-architecture` | — | Spare time; keep the code easy to change | HTML report of deepening opportunities |
 | **Delivery building blocks** | | | |
 | `feature-ticket` | — | You will watch a feature end to end | Branch → PR, every gate enforced |
@@ -293,7 +294,7 @@ Skills advise; these decide. There are three independent layers.
 - `guard-git` blocks `--no-verify`, commits missing the `Co-Authored-By`
   trailers, force-push and history rewrites on `main`/`master`, and
   self-merging a PR unless you're on the allowlist (`TEAM_SELF_MERGE_ALLOWLIST`).
-- `session-context` notices when `CLAUDE.md` has drifted and reminds each
+- `session-context` notices when `AGENTS.md` has drifted and reminds each
   session to route task requests through `route`/`work` before coding.
 - **Autonomous mode** (`TEAM_AUTONOMOUS=1`, set by a cloud runtime, never by
   hand) lets the agent push and merge on feature and subtask branches but
@@ -356,7 +357,7 @@ vertical slice end to end.
 **Existing project** — go in this order, over days or weeks:
 
 ```
-Step 1  /context   Write CLAUDE.md first; everything else works better with it
+Step 1  /context   Write AGENTS.md first; everything else works better with it
 Step 2  /audit     Read-only. Get the scored report and phased plan. Change nothing yet
 Step 3  Phase 0    From the plan: test runner + CI + hooks + tests on the highest-churn code
 Step 4  /rules     Turn gates on ONE at a time: enable, allowlist today's violations,

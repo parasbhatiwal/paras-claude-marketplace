@@ -254,3 +254,57 @@ describe("project context template and skill", () => {
     assert.doesNotMatch(text, /CLAUDE\.md\.template/);
   });
 });
+
+describe("this repo's own context lives in AGENTS.md", () => {
+  test("AGENTS.md is the managed context file and CLAUDE.md only imports it", () => {
+    const agents = read("AGENTS.md");
+    assert.match(agents, /<!-- claude-context:begin -->/);
+    assert.match(agents, /<!-- claude-context: sha=[0-9a-f]{7,40} generated=\d{4}-\d{2}-\d{2} -->/);
+    assert.match(agents, /<!-- claude-context:end -->/);
+    assert.equal(read("CLAUDE.md"), "@AGENTS.md\n");
+  });
+
+  test("the freshness logic reads AGENTS.md for this repo", async () => {
+    const { repositoryFacts } = await import("../plugins/team-skills/hooks/repo-facts.mjs");
+    const facts = repositoryFacts(REPO_ROOT);
+    assert.equal(facts.contextFile, "AGENTS.md");
+    assert.match(facts.claudeMd, /claude-context: sha=/);
+  });
+
+  test("the context file records the migration gotcha for maintainers", () => {
+    assert.match(read("AGENTS.md"), /older cached plugin version/i);
+  });
+});
+
+describe("top-level docs name AGENTS.md as the context file", () => {
+  const withDoc = (rel, text) => {
+    mkdirSync(dirname(join(root, rel)), { recursive: true });
+    writeFileSync(join(root, rel), text);
+  };
+
+  test("a README that tells the reader to write CLAUDE.md is flagged", () => {
+    withDoc("README.md", "Run `/context` to write your `CLAUDE.md`.\n");
+    assert.equal(errorsMatching(/README\.md:1.*AGENTS\.md/).length, 1);
+  });
+
+  test("CONTRIBUTING and docs/ are checked too", () => {
+    withDoc("CONTRIBUTING.md", "Refresh CLAUDE.md before pushing.\n");
+    withDoc("docs/guide.md", "Then update CLAUDE.md.\n");
+    assert.equal(errorsMatching(/CONTRIBUTING\.md:1.*AGENTS\.md/).length, 1);
+    assert.equal(errorsMatching(/docs\/guide\.md:1.*AGENTS\.md/).length, 1);
+  });
+
+  test("an explanation of the import or fallback is fine", () => {
+    withDoc("README.md", "`CLAUDE.md` is just the line `@AGENTS.md`.\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("the changelog is history and is not checked", () => {
+    withDoc("CHANGELOG.md", "- Changed how CLAUDE.md is refreshed.\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("the real top-level docs are clean", () => {
+    assert.deepEqual(validate(REPO_ROOT).filter((e) => /AGENTS\.md/.test(e)), []);
+  });
+});
