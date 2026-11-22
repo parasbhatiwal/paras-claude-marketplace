@@ -23,6 +23,10 @@ Raising a PR is a gated, ask-first action.
 2. **Body**: build it to the structure in `../../references/pr-description.md`
    (Summary / Changes / Testing / Notes), derived from the real diff against
    the base branch.
+   Add a **Workflow struggles** section (format in the same reference): the
+   points where the workflow itself made you stall, go back or guess, or where
+   you had to choose a reading of an unclear instruction, brief or ticket; or
+   `None encountered`. Never include secrets or environment values.
 3. **Ticket link**: if the task came from a GitHub Issue, add `Closes #<n>`
    (use `gh issue list`/context to confirm the number). If there is no issue,
    skip — do not invent references.

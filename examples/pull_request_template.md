@@ -21,6 +21,15 @@
 <!-- Migrations, config/env changes, feature flags, rollback plan, follow-ups.
      Delete if there is nothing to flag. -->
 
+## Workflow struggles
+
+<!-- Where the workflow itself (a skill, hook, gate, brief or ticket) made you
+     stall, go back to an earlier stage, or guess. One entry each with: kind
+     (backtrack, ambiguity, gate-or-hook-block, missing-info, tooling, other),
+     where (stage and skill), what happened, cost (minor, lost-time, blocked),
+     workaround, suggested fix. Write "None encountered" if clean. Never
+     include secrets, tokens or environment values. -->
+
 ## Human verification
 
 Two different questions, because they need two different people. Whoever

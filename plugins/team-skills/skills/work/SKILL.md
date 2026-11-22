@@ -70,10 +70,19 @@ Tell the human exactly what happens next and let them choose:
 
 Never start `deliver` in this session without that choice.
 
+## Workflow struggles
+
+Log every point where the workflow itself made you stall, go back to an
+earlier stage, guess, or choose a reading of unclear text (format in
+`../../references/pr-description.md`). Stages 1-4 open no PR, so post them as
+a "Workflow struggles" comment on the issue or epic (`None encountered` if
+clean); the final PR copies them into its "Workflow struggles" section. Never
+include secrets or environment values.
+
 ## After delivery
 
 When the cloud run (or local `deliver`) ends and the human has reviewed the
-PR, run the `retro` skill over it if the run was rough: friction becomes
+PR, run the `retro` skill over it if the run was rough: struggles become
 checks, standards and navigation pointers, so the next run starts better.
 
 ## Hard rules

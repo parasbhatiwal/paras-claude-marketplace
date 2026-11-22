@@ -60,8 +60,43 @@ Skip preambles; use the project's `GLOSSARY.md` language.
   mobile, data), with ramifications if any.
 
 For autonomous `deliver` PRs, add: **Delivered**, **Decisions the agent
-made**, **Not delivered**, **Environment friction** (anything that slowed the
-run that a `retro` would fix).
+made**, **Decisions for the reviewer**, **Workflow struggles**, **Not
+delivered**.
+
+## Workflow struggles
+
+Every PR the workflow produces carries this section, so the skills can be
+improved from real PRs (the `retro` skill reads it as primary input).
+
+A struggle is a point where the workflow itself (a skill's instructions, a
+hook or gate, a reference, the grill or handoff) made an agent stall, retry,
+work around it, guess, hit the stuck rule, or go back to an earlier stage; or
+where the agent was unsure what a skill, brief or ticket meant and had to
+choose a reading. Ordinary code difficulty and bugs are not struggles.
+
+Log these even when resolved: returning to an earlier stage; the stuck rule or
+a `needs-info` label; a second implementer attempt; a gate needing more than
+one fix cycle; a hook or guard block; every ambiguity (name the unclear text
+and the reading chosen). Log everything with a cost rather than filtering:
+noise is acceptable, a gap is not.
+
+Each entry has six fields:
+
+- **kind**: one of `backtrack`, `ambiguity`, `gate-or-hook-block`,
+  `missing-info`, `tooling`, `other`
+- **where**: the stage and skill
+- **what happened**
+- **cost**: one of `minor`, `lost-time`, `blocked`
+- **workaround**: what the agent did instead
+- **suggested fix**: what change to the workflow would prevent it
+
+A clean run still shows the section, with `None encountered`.
+Entries never contain secrets, tokens, environment values or customer content.
+
+Implementers record each struggle at the moment it happens and list them in
+their subtask PR; the orchestrator merges them into the final PR. Stages that
+open no PR (grill, spec, handoff gate) post theirs as a "Workflow struggles"
+comment on the issue or epic, and the final PR copies them in.
 
 ## Rules
 

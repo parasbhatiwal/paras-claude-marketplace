@@ -63,10 +63,17 @@ Loop until the frontier is empty:
    - commits via `commit-changes` (gates run; no ask when autonomous), pushes,
      merges the integration tip into its branch and re-runs tests;
    - opens a PR with **base = integration branch**, `Closes #<sub>`, via
-     `open-pr`.
+     `open-pr`;
+   - records every workflow struggle at the moment it happens (fresh context
+     forgets) and lists them under "Workflow struggles" in its subtask PR,
+     format in `../../references/pr-description.md`. Never put secrets,
+     tokens or environment values in an entry.
 3. **Merger**: once CI is green on a subtask PR, merge it into the integration
    branch (`gh pr merge --merge`). Red CI → the implementer fixes the cause;
    never merge red, never bypass.
+   The orchestrator merges the subtask PRs' entries into the final PR's
+   "Workflow struggles" section (Stage 3), including its own: stuck rule hits,
+   second implementer attempts, gates needing more than one fix cycle.
 4. A merge unlocks blocked tickets → recompute the frontier and start them.
    Remove `agent-working` from the closed subtask.
 
@@ -110,7 +117,10 @@ remain):
    - **Delivered** — tickets closed, one line each
    - **Decisions the agent made** — assumptions used, judgment calls,
      anything that departed from the brief and why
-   - **Environment friction** — what slowed the run that a `retro` would fix
+   - **Decisions for the reviewer** — judgment-call findings left open
+   - **Workflow struggles** — the merged entries from every subtask PR and
+     from the epic's pre-PR "Workflow struggles" comments, in the format of
+     `../../references/pr-description.md`; `None encountered` if clean
    - **Not delivered** — stuck or blocked tickets with the issue links and
      the exact question each is waiting on
    - **Human verification** — the mandatory checklist; unticked

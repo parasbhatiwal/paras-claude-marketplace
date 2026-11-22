@@ -132,6 +132,15 @@ Do not act until the human confirms shared understanding. Then:
    raised, what remains blocking.
 3. Hand off to `spec-and-tickets`.
 
+## Workflow struggles
+
+Log any point where this stage's own instructions made you stall, go back or
+guess, or where you had to choose a reading of unclear text. This stage opens
+no PR: post the entries as a "Workflow struggles" comment on the issue or epic
+(`None encountered` if clean), in the format of
+`../../references/pr-description.md`. The final PR copies them in. Never
+include secrets or environment values.
+
 ## Rules
 
 - Never ask the human for something you could look up.
