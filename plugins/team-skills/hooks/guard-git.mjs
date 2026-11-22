@@ -19,6 +19,7 @@ import { assessContextFreshness } from "./context-freshness.mjs";
 import {
   evaluateCommand,
   parseAllowlist,
+  parseAgentNames,
   DEFAULT_SELF_MERGE_ALLOWLIST,
 } from "./policy.mjs";
 import { repositoryFacts } from "./repo-facts.mjs";
@@ -80,8 +81,12 @@ function payloadSessionId() {
 // not reach it. See references/autonomous-mode.md.
 const autonomous = process.env.TEAM_AUTONOMOUS === "1";
 
+// Names the agent co-author trailer may carry; see policy.mjs.
+const agentTrailerNames = parseAgentNames(process.env.TEAM_AGENT_TRAILER_NAMES);
+
 const verdict = evaluateCommand(command, {
   autonomous,
+  agentTrailerNames,
   getCurrentBranch: () => {
     try {
       return execSync("git rev-parse --abbrev-ref HEAD", { cwd, encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();

@@ -1,6 +1,11 @@
 import { test, describe } from "node:test";
 import assert from "node:assert/strict";
-import { evaluateCommand, parseAllowlist } from "../plugins/team-skills/hooks/policy.mjs";
+import {
+  evaluateCommand,
+  parseAllowlist,
+  parseAgentNames,
+  DEFAULT_AGENT_TRAILER_NAMES,
+} from "../plugins/team-skills/hooks/policy.mjs";
 
 const TRAILERS =
   "Co-Authored-By: Paras <paras@example.com>\nCo-Authored-By: Claude <noreply@anthropic.com>";
@@ -100,10 +105,51 @@ describe("commit trailers", () => {
     assert.equal(isBlocked(cmd), false);
   });
 
-  test("treats a human literally named Claude as a human trailer", () => {
+  test("accepts a Codex or Cursor agent trailer with any address", () => {
+    for (const agent of ["Codex <codex@example.com>", "Cursor Agent <agent@cursor.example>"]) {
+      const cmd = `git commit -m "fix: y\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: ${agent}"`;
+      assert.equal(isBlocked(cmd), false, agent);
+    }
+  });
+
+  test("matches agent names case-insensitively", () => {
     const cmd =
-      'git commit -m "fix: y\n\nCo-Authored-By: Claude Dupont <claude.dupont@example.com>\nCo-Authored-By: Claude <noreply@anthropic.com>"';
+      'git commit -m "fix: y\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: CODEX <x@y.z>"';
     assert.equal(isBlocked(cmd), false);
+  });
+
+  test("does not read a name that merely starts with an agent name as the agent", () => {
+    const cmd =
+      'git commit -m "fix: y\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: Claudette <c@example.com>"';
+    assert.equal(isBlocked(cmd), true);
+  });
+
+  test("blocks an agent trailer with no human trailer", () => {
+    const cmd = 'git commit -m "fix: y\n\nCo-Authored-By: Codex <codex@example.com>"';
+    assert.equal(isBlocked(cmd), true);
+  });
+
+  test("the block reason names the accepted agents and the override variable", () => {
+    const r = reason('git commit -m "feat(x): add thing"');
+    assert.match(r, /any of: Claude, Codex, Cursor/);
+    assert.match(r, /TEAM_AGENT_TRAILER_NAMES/);
+  });
+
+  test("a human whose name starts with an agent name is read as the agent", () => {
+    // Documented trade-off of name matching: override the list to avoid it.
+    const cmd =
+      'git commit -m "fix: y\n\nCo-Authored-By: Claude Dupont <claude.dupont@example.com>"';
+    assert.equal(isBlocked(cmd), true);
+    assert.equal(isBlocked(cmd, { agentTrailerNames: ["Codex"] }), true); // still no agent
+  });
+
+  test("an overridden name list replaces the defaults", () => {
+    const aider =
+      'git commit -m "fix: y\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: Aider <a@example.com>"';
+    assert.equal(isBlocked(aider), true); // not in the default list
+    assert.equal(isBlocked(aider, { agentTrailerNames: ["Aider"] }), false);
+    // Claude is no longer an agent name once the list is replaced.
+    assert.equal(isBlocked(compliantCommit, { agentTrailerNames: ["Aider"] }), true);
   });
 
   test("splits trailers written with escaped newlines", () => {
@@ -323,5 +369,20 @@ describe("autonomous mode (cloud delivery, no human at the keyboard)", () => {
   test("keeps every universal rule", () => {
     assert.ok(isBlocked(`git push ${["--no", "verify"].join("-")} origin feat/x`, auto()));
     assert.ok(isBlocked("git push --force origin main", auto()));
+  });
+});
+
+describe("agent trailer names", () => {
+  test("default to Claude, Codex and Cursor", () => {
+    assert.deepEqual(DEFAULT_AGENT_TRAILER_NAMES, ["Claude", "Codex", "Cursor"]);
+  });
+
+  test("parse a comma-separated list, trimming blanks", () => {
+    assert.deepEqual(parseAgentNames(" Claude , Aider ,, "), ["Claude", "Aider"]);
+  });
+
+  test("fall back to the defaults when the variable is empty or unset", () => {
+    assert.deepEqual(parseAgentNames(""), DEFAULT_AGENT_TRAILER_NAMES);
+    assert.deepEqual(parseAgentNames(undefined), DEFAULT_AGENT_TRAILER_NAMES);
   });
 });

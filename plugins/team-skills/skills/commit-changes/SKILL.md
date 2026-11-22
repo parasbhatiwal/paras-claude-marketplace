@@ -54,8 +54,15 @@ trailers — BOTH are mandatory on every commit:
 
 ```
 Co-Authored-By: <human name> <human email>
-Co-Authored-By: Claude <noreply@anthropic.com>
+Co-Authored-By: <agent name> <agent address>
 ```
+
+The second line names whichever agent wrote the commit, for example
+`Co-Authored-By: Claude <noreply@anthropic.com>`, or `Codex` or `Cursor` with
+that tool's address. The check reads the **name**, not the address: it must be
+one of Claude, Codex or Cursor (or a name from `TEAM_AGENT_TRAILER_NAMES`, which
+replaces that list) and may be followed by a version, so `Claude Sonnet 5.5`
+passes and `Claudette` does not. Every other trailer counts as the human's.
 
 Fill the human line from `git config user.name` / `git config user.email`.
 

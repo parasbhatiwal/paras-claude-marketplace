@@ -26,7 +26,8 @@ This repo uses the team's Claude workflow (team-skills plugin):
 - **TDD is required.** No production code without a failing test first.
   Commits without tests are blocked by hooks and CI (break-glass:
   `Justified-Exception:` trailer + reviewer approval).
-- **Every commit** needs both `Co-Authored-By:` trailers (human + Claude) —
+- **Every commit** needs both `Co-Authored-By:` trailers (human + the agent that
+  wrote it: Claude, Codex or Cursor) —
   the `commit-changes` skill drafts these.
 - Git writes (commit / push / PR) always require explicit user approval.
 
