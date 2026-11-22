@@ -17,7 +17,8 @@ jobs:
           TEAM_AGENT_TRAILER_NAMES: ${{ vars.TEAM_AGENT_TRAILER_NAMES || 'Claude,Codex,Cursor' }}
         run: |
           set -e
-          alt=$(printf '%s' "$TEAM_AGENT_TRAILER_NAMES" | sed 's/[^A-Za-z0-9 _,-]//g; s/ *, */|/g; s/^|*//; s/|*$//')
+          alt=$(printf '%s' "$TEAM_AGENT_TRAILER_NAMES" | sed 's/[^A-Za-z0-9 ._,-]//g; s/ *, */|/g; s/^|*//; s/|*$//; s/\./\\./g')
+          [ -n "$alt" ] || alt='Claude|Codex|Cursor'
           agent_re="^Co-Authored-By:[[:space:]]*(${alt})([[:space:]]|<|$)"
           fail=0
           for sha in $(git rev-list origin/${{ github.base_ref }}..HEAD --no-merges); do

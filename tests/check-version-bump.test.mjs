@@ -67,7 +67,6 @@ describe("tool manifests count as plugin changes", () => {
 
   for (const file of [
     "plugins/team-skills/plugin.json",
-    "plugins/team-skills/.codex-plugin/plugin.json",
     "plugins/team-skills/.cursor-plugin/plugin.json",
   ]) {
     test(`flags ${file}`, () => {

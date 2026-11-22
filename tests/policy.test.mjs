@@ -373,6 +373,21 @@ describe("autonomous mode (cloud delivery, no human at the keyboard)", () => {
 });
 
 describe("agent trailer names", () => {
+  test("keep dots so a versioned name like `Claude 3.5` survives", () => {
+    assert.deepEqual(parseAgentNames("Claude 3.5, Codex"), ["Claude 3.5", "Codex"]);
+    const cmd =
+      'git commit -m "fix: y\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: Claude 3.5 Sonnet <x@y.z>"';
+    assert.equal(isBlocked(cmd, { agentTrailerNames: ["Claude 3.5"] }), false);
+  });
+
+  test("drop characters the shell hook and CI would also drop, so all three agree", () => {
+    assert.deepEqual(parseAgentNames("Cla*ude, Co$dex"), ["Claude", "Codex"]);
+  });
+
+  test("fall back to the defaults when nothing usable is left after cleaning", () => {
+    assert.deepEqual(parseAgentNames("***, ,"), DEFAULT_AGENT_TRAILER_NAMES);
+  });
+
   test("default to Claude, Codex and Cursor", () => {
     assert.deepEqual(DEFAULT_AGENT_TRAILER_NAMES, ["Claude", "Codex", "Cursor"]);
   });

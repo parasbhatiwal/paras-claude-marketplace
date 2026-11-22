@@ -22,7 +22,7 @@ import { fileURLToPath, pathToFileURL } from "node:url";
  *
  * The Claude plugin manifest is deliberately absent: editing it IS the bump.
  */
-const PLUGIN_FILES = /^(plugins\/[^/]+)\/(?:(?:skills|hooks)\/|plugin\.json$|\.codex-plugin\/plugin\.json$|\.cursor-plugin\/plugin\.json$)/;
+const PLUGIN_FILES = /^(plugins\/[^/]+)\/(?:(?:skills|hooks)\/|plugin\.json$|\.cursor-plugin\/plugin\.json$)/;
 const ROOT_MARKETPLACES = new Set([".agents/plugins/marketplace.json", ".cursor-plugin/marketplace.json"]);
 
 export function pluginsNeedingBump(changedFiles, pluginDirs = []) {

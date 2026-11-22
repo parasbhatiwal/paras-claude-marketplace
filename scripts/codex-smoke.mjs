@@ -81,7 +81,10 @@ export function runSmoke({ codex = "codex", root, env = {} }) {
     // Before installing, Codex lists the plugin as available but "not installed".
     const before = codexRun("plugin", "list");
     say(before.stdout.trim());
-    if (before.status !== 0 || !before.stdout.split("\n").some((l) => l.includes(id))) {
+    // Rows are whitespace-separated columns; match the id as a whole first
+    // column so `team-skills@x-fork` is never mistaken for `team-skills@x`.
+    const rowFor = (out) => out.split("\n").find((l) => l.trim().split(/\s+/)[0] === id);
+    if (before.status !== 0 || !rowFor(before.stdout)) {
       fail(`plugin list does not show ${id} from the marketplace`);
     }
 
@@ -94,10 +97,10 @@ export function runSmoke({ codex = "codex", root, env = {} }) {
 
     // After installing it must be installed, at the Claude plugin's version.
     const after = codexRun("plugin", "list");
-    const line = after.stdout.split("\n").find((l) => l.includes(id));
+    const line = rowFor(after.stdout);
     if (!line || /not installed/i.test(line) || !/installed/i.test(line)) {
       fail(`${id} is not reported as installed after plugin add: ${line?.trim() ?? "(not listed)"}`);
-    } else if (!line.includes(version)) {
+    } else if (!line.trim().split(/\s+/).some((t) => t.replace(/,$/, "") === version)) {
       fail(`${id} is installed but not at version ${version} (the Claude plugin version): ${line.trim()}`);
     }
 

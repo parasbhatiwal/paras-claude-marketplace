@@ -46,6 +46,22 @@ export function validateAgentSkillLinks(root, err) {
       err(`${label}: symlink points at ${target}, not at .claude/skills/${name}`);
     }
   }
+
+  // A link left behind after its skill was removed or renamed dangles, and
+  // Codex then sees a broken skill.
+  for (const name of readdirSync(agentsDir)) {
+    if (existsSync(join(claudeDir, name))) continue;
+    const link = join(agentsDir, name);
+    let broken = false;
+    try {
+      realpathSync(link);
+    } catch {
+      broken = true;
+    }
+    if (broken) {
+      err(`.agents/skills/${name}: stale — broken symlink with no matching .claude/skills/${name}; remove it`);
+    }
+  }
 }
 
 /** Relative markdown links (not inside code fences) must point at something that exists. */
@@ -67,11 +83,17 @@ export function validateDocLinks(root, err) {
         continue;
       }
       if (inFence) continue;
-      for (const m of line.replace(/`[^`]*`/g, "").matchAll(/\]\(([^)\s]+)\)/g)) {
+      // `[text](target)` or `[text](target "title")`
+      for (const m of line.replace(/`[^`]*`/g, "").matchAll(/\]\(([^)\s]+)(?:\s+"[^"]*")?\)/g)) {
         const target = m[1];
         if (/^([a-z][a-z0-9+.-]*:|#)/i.test(target)) continue; // web, mailto, same-page anchor
-        const path = target.split("#")[0];
+        let path = target.split("#")[0];
         if (!path) continue;
+        try {
+          path = decodeURIComponent(path);
+        } catch {
+          // not valid percent-encoding: check it as written
+        }
         if (!existsSync(resolve(dirname(file), path))) {
           err(`${rel}:${i + 1}: link to \`${path}\` does not resolve`);
         }

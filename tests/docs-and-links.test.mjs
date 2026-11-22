@@ -101,6 +101,15 @@ describe("repo-level skill symlinks", () => {
     assert.ok(errorsMatching(/\.agents\/skills\/ship-it.*other/).length >= 1);
   });
 
+  test("fail on a stale link whose skill was removed from .claude/skills", () => {
+    link();
+    mkdirSync(join(root, ".claude", "skills", "gone"), { recursive: true });
+    writeFileSync(join(root, ".claude", "skills", "gone", "SKILL.md"), SKILL("gone"));
+    link("gone");
+    rmSync(join(root, ".claude", "skills", "gone"), { recursive: true });
+    assert.equal(errorsMatching(/\.agents\/skills\/gone.*(stale|broken)/).length, 1);
+  });
+
   test("fail when the entry is a copy rather than a link", () => {
     mkdirSync(join(root, ".agents", "skills", "ship-it"), { recursive: true });
     writeFileSync(join(root, ".agents", "skills", "ship-it", "SKILL.md"), SKILL("ship-it"));
@@ -133,6 +142,20 @@ describe("relative links in the top-level docs", () => {
   test("resolve links in docs/ relative to that file", () => {
     withDoc("docs/a.md", "[up](../README.md)\n");
     withDoc("README.md", "# r\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("decode percent-escapes before checking the file", () => {
+    withDoc("docs/my file.md", "# f\n");
+    withDoc("README.md", "[f](docs/my%20file.md)\n");
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("check links that carry a title", () => {
+    withDoc("README.md", '[x](docs/missing.md "a title")\n');
+    assert.equal(errorsMatching(/README\.md.*docs\/missing\.md/).length, 1);
+    withDoc("docs/present.md", "# p\n");
+    withDoc("README.md", '[x](docs/present.md "a title")\n');
     assert.deepEqual(validate(root), []);
   });
 

@@ -26,7 +26,7 @@ have() { command -v "$1" >/dev/null 2>&1; }
 # CI template.
 agent_trailer_regex() {
   names=${TEAM_AGENT_TRAILER_NAMES:-Claude,Codex,Cursor}
-  alt=$(printf '%s' "$names" | sed 's/[^A-Za-z0-9 _,-]//g; s/ *, */|/g; s/^|*//; s/|*$//')
+  alt=$(printf '%s' "$names" | sed 's/[^A-Za-z0-9 ._,-]//g; s/ *, */|/g; s/^|*//; s/|*$//; s/\./\\./g')
   [ -n "$alt" ] || alt='Claude|Codex|Cursor'
   printf '^Co-Authored-By:[[:space:]]*(%s)([[:space:]]|<|$)' "$alt"
 }

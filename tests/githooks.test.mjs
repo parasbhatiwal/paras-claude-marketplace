@@ -108,6 +108,19 @@ describe("commit-msg: co-author trailers", () => {
     assert.match(r.stderr, /missing human/);
   });
 
+  test("a versioned name with a dot works the same as in the policy module", () => {
+    stage({ "docs/readme.md": "# hi\n" });
+    const msg =
+      "docs: add readme\n\nCo-Authored-By: Paras <p@example.com>\nCo-Authored-By: Claude 3.5 Sonnet <x@y.z>\n";
+    assert.equal(commitMsg(msg, { TEAM_AGENT_TRAILER_NAMES: "Claude 3.5" }).status, 0);
+  });
+
+  test("a name list that cleans down to nothing falls back to the defaults", () => {
+    stage({ "docs/readme.md": "# hi\n" });
+    const r = commitMsg(withTrailers("docs: add readme"), { TEAM_AGENT_TRAILER_NAMES: "***,," });
+    assert.equal(r.status, 0);
+  });
+
   test("an overridden TEAM_AGENT_TRAILER_NAMES replaces the defaults", () => {
     stage({ "docs/readme.md": "# hi\n" });
     const aider =
@@ -250,6 +263,14 @@ describe("the CI template agrees with the hook and the policy module", () => {
   test("uses the same override variable and default names", () => {
     assert.match(ci, /TEAM_AGENT_TRAILER_NAMES/);
     assert.match(ci, /Claude,Codex,Cursor/);
+  });
+
+  test("falls back to the default names when the cleaned list is empty, like the hook", () => {
+    assert.match(ci, /\[ -n "\$alt" \]/);
+  });
+
+  test("keeps dots in names, like the hook and the policy module", () => {
+    assert.match(ci, /A-Za-z0-9 \._,-/);
   });
 
   test("no longer insists on the Claude name specifically", () => {

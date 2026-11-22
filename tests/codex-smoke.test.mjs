@@ -32,8 +32,10 @@ case "$*" in
     echo "Added marketplace" ;;
   "plugin list")
     [ "$mode" = "no-plugin" ] && { echo "Marketplace \`$FAKE_MARKET\`"; exit 0; }
+    [ "$mode" = "similar-id" ] && echo "$FAKE_PLUGIN@$FAKE_MARKET-fork  installed, enabled  9.9.9"
     if [ -d "$cache" ] && [ "$mode" != "not-installed" ]; then
       v="$FAKE_VERSION"; [ "$mode" = "wrong-version" ] && v="0.0.1"
+      [ "$mode" = "longer-version" ] && v="\${FAKE_VERSION}0"
       echo "$FAKE_PLUGIN@$FAKE_MARKET  installed, enabled  $v"
     else
       echo "$FAKE_PLUGIN@$FAKE_MARKET  not installed"
@@ -132,6 +134,20 @@ describe("runSmoke", () => {
     const r = run("not-installed");
     assert.equal(r.ok, false);
     assert.match(r.failures.join("\n"), /not reported as installed/);
+  });
+
+  test("reads the row for this exact plugin id, not a similarly named one", () => {
+    assert.equal(run("similar-id").ok, true);
+  });
+
+  test("does not accept a longer version that merely contains the expected one", () => {
+    const r = run("longer-version");
+    assert.equal(r.ok, false);
+    assert.match(r.failures.join("\n"), /version/);
+  });
+
+  test("records the CLI version in its output so a failure can be attributed", () => {
+    assert.match(run().log, /codex-cli 9\.9\.9/);
   });
 
   test("fails when the plugin cannot be installed", () => {

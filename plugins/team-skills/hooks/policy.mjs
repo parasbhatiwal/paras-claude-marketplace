@@ -27,9 +27,12 @@ export const DEFAULT_SELF_MERGE_ALLOWLIST = ["parasbhatiwal"];
 export const DEFAULT_AGENT_TRAILER_NAMES = ["Claude", "Codex", "Cursor"];
 
 export const parseAgentNames = (raw) => {
+  // Same cleaning as the shell hook and the CI template (letters, digits, space,
+  // dot, underscore, hyphen), so one TEAM_AGENT_TRAILER_NAMES value means the
+  // same thing in all three.
   const names = (raw ?? "")
     .split(",")
-    .map((s) => s.trim())
+    .map((s) => s.replace(/[^A-Za-z0-9 ._-]/g, "").trim())
     .filter(Boolean);
   return names.length ? names : DEFAULT_AGENT_TRAILER_NAMES;
 };
