@@ -370,3 +370,54 @@ describe("a repo with only Claude manifests", () => {
     assert.deepEqual(validate(root), []);
   });
 });
+
+describe("license field", () => {
+  test("a declared Claude license must be carried by the Codex manifest", () => {
+    edit(root, PATHS.claudePlugin, (j) => (j.license = "MIT"));
+    edit(root, PATHS.cursorPlugin, (j) => (j.license = "MIT"));
+    assert.equal(errorsMatching(/plugin\.json.*license/).length, 1);
+    assert.match(errorsMatching(/license/)[0], /^plugins\/demo\/plugin\.json/);
+  });
+
+  test("a declared Claude license must be carried by the Cursor manifest", () => {
+    edit(root, PATHS.claudePlugin, (j) => (j.license = "MIT"));
+    edit(root, PATHS.codexPlugin, (j) => (j.license = "MIT"));
+    assert.match(errorsMatching(/license/)[0], /cursor-plugin\/plugin\.json/);
+  });
+
+  test("a different license in another manifest is reported", () => {
+    edit(root, PATHS.claudePlugin, (j) => (j.license = "MIT"));
+    edit(root, PATHS.codexPlugin, (j) => (j.license = "MIT"));
+    edit(root, PATHS.cursorPlugin, (j) => (j.license = "Apache-2.0"));
+    const errs = errorsMatching(/license/);
+    assert.equal(errs.length, 1);
+    assert.match(errs[0], /Apache-2\.0.*MIT/);
+  });
+
+  test("passes when all three agree", () => {
+    for (const p of [PATHS.claudePlugin, PATHS.codexPlugin, PATHS.cursorPlugin]) {
+      edit(root, p, (j) => (j.license = "MIT"));
+    }
+    assert.deepEqual(validate(root), []);
+  });
+
+  test("no license in the Claude manifest means nothing is required elsewhere", () => {
+    edit(root, PATHS.codexPlugin, (j) => (j.license = "MIT"));
+    assert.deepEqual(validate(root), []);
+  });
+});
+
+describe("the real repo's license", () => {
+  const read = (rel) => JSON.parse(readFileSync(join(REPO_ROOT, rel), "utf8"));
+
+  test("all three plugin manifests declare the MIT license the LICENSE file grants", () => {
+    assert.match(readFileSync(join(REPO_ROOT, "LICENSE"), "utf8"), /^MIT License/);
+    for (const rel of [
+      "plugins/team-skills/.claude-plugin/plugin.json",
+      "plugins/team-skills/plugin.json",
+      "plugins/team-skills/.cursor-plugin/plugin.json",
+    ]) {
+      assert.equal(read(rel).license, "MIT", rel);
+    }
+  });
+});
